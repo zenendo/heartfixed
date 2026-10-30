@@ -48,7 +48,6 @@
   (upgrading to Next 16) breaks the locked stack, so `package.json` `overrides` pins
   postcss 8.5.29 instead. `npm audit` now reports 0 vulnerabilities.
 - All dependency versions are pinned exactly and are at least two weeks old.
-- Spec Section 1 says to commit at the end of each session. The commit
-  (`session-01: scaffold`) is held until the founder reviews the preview.
+- Committed as `session-01: scaffold` after the founder reviewed the session.
 - The preview-URL deploy needs the founder's Vercel account (Section 17.3). Until then, the
   production build is verified locally. See the README.
