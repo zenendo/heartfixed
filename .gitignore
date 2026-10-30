@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# env — only .env.example is committed (Section 17.2)
+.env*
+!.env.example
+
+# hosting
+.vercel
+
+# os / editor
+.DS_Store
+*.log

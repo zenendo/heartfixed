@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface font-sans text-body text-ink antialiased;
+  }
+
+  h1 {
+    @apply text-h1 font-bold tracking-tight text-ink md:text-h1-lg;
+  }
+
+  a {
+    @apply underline-offset-4;
+  }
+
+  /* Visible focus ring on every interactive element (Section 8.3). */
+  :focus-visible {
+    outline: 3px solid theme("colors.primary");
+    outline-offset: 2px;
+  }
+}
+
+/* Section 8.3: respect reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* TODO(session-5): print stylesheet for the quiz result; TODO(session-6): tracker summary. */
