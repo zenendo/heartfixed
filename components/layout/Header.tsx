@@ -11,7 +11,7 @@ export function Header() {
         >
           {site.name}
         </Link>
-        <nav aria-label="Main">
+        <nav aria-label="Main" className="print:hidden">
           <ul className="flex flex-wrap gap-x-4">
             {tools.map((tool) => (
               <li key={tool.key}>

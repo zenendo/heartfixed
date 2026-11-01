@@ -4,9 +4,9 @@ import { CrisisFooterLine } from "./CrisisFooterLine";
 
 export function Footer() {
   return (
-    <footer className="mt-16 bg-panel">
+    <footer className="mt-16 bg-panel print:mt-6 print:bg-surface">
       <div className="mx-auto max-w-5xl px-4 py-10">
-        <nav aria-label="Footer">
+        <nav aria-label="Footer" className="print:hidden">
           <div className="grid gap-8 sm:grid-cols-3">
             {footerNav.map((group) => (
               <div key={group.heading}>
@@ -30,7 +30,7 @@ export function Footer() {
 
         {/* TODO(session-9): footer email signup (Section 13.3) — list join, action (b) only. */}
 
-        <p className="mt-8 text-sm text-muted">
+        <p className="mt-8 text-sm text-muted print:hidden">
           Some links on this site may be affiliate links. They never change the tools or your
           results.{" "}
           <Link href={routes.affiliateDisclosure} className="text-primary underline">
