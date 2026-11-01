@@ -9,7 +9,7 @@ import type { FaqItem } from "@/lib/seo/schema";
 const { partner } = copy;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export const faqs: { tracker: FaqItem[] } = {
+export const faqs: { tracker: FaqItem[]; decision: FaqItem[] } = {
   tracker: [
     {
       question: "Does my tracker data leave this browser?",
@@ -38,6 +38,38 @@ export const faqs: { tracker: FaqItem[] } = {
       question: "Can I use the tracker on my phone and my laptop?",
       answer:
         "Each browser keeps its own tracker, and nothing syncs between them. Pick the one you'll have with you — usually your phone — and use that.",
+    },
+  ],
+  decision: [
+    {
+      question: "Is my draft sent anywhere or stored?",
+      answer:
+        "No. The checks run in your browser. Your draft isn't sent to a server, isn't stored after you leave the page, and nobody sees it. The only exception is if you choose “Save it unsent” — then it's kept on this device only, until you delete it.",
+    },
+    {
+      question: "Is this AI?",
+      answer:
+        "No. It's a fixed set of rules written in advance. The same answers always give the same result, and nothing about your message leaves your device.",
+    },
+    {
+      question: "Why does it always say don't send when I've been drinking?",
+      answer:
+        "Because that rule holds every time. Nothing good gets sent drunk or at a 9 out of 10. What you want to say can still be true in the morning — and you can run the check again then.",
+    },
+    {
+      question: "When does it say sending is reasonable?",
+      answer:
+        "Only for logistics — belongings, money, housing, or something you still share — when you're calm, you haven't drafted and deleted it repeatedly, and the draft is short, plain and free of pressure phrases.",
+    },
+    {
+      question: `Can it tell me how ${partner.subject}'ll respond?`,
+      answer:
+        "No. It doesn't predict anyone's response, and it takes no side on whether you should try to get back together. It only helps you decide whether to send this message now.",
+    },
+    {
+      question: "What is the unsent list?",
+      answer:
+        "A private place to keep what you wanted to say without sending it. It's stored only on this device, and you can delete any message, or all of them, at any time.",
     },
   ],
 };

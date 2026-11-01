@@ -38,4 +38,7 @@ export const blockD: readonly Segment[] = [
 ];
 
 // TODO(session-5): Block A (self-reflection disclaimer).
-// TODO(session-7): Block E (draft-privacy notice).
+/** Block E — draft-privacy notice. Directly above the decision tool's draft textarea. */
+export const blockE = {
+  text: "Your draft stays in this browser. It is not sent anywhere, not stored after you leave this page, not used to train anything, and never seen by a person. The checks below run on your device.",
+} as const;
