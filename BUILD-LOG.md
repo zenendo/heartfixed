@@ -314,3 +314,106 @@ so this branch is stacked on `session-03-storage-tools` and needs #2 merged firs
 **For founder review now:** the tracker copy in `content/tracker.ts` and the six FAQ
 answers in `content/faqs.ts`. In particular, the FAQ says a reply to genuine logistics
 doesn't need to reset the counter.
+
+## Session 7 — "Should I text my ex?" decision tool (2026-11-01)
+
+**Shipped**
+
+- `/should-i-text-my-ex/`: statically generated; the flow hydrates on the client. "How
+  this works", the three outcomes, the tracker link block and the FAQ are
+  server-rendered, with FAQPage and BreadcrumbList schema. Block B is in the footer area.
+- The five-step flow (`components/tools/DecisionTool.tsx`), all logic from
+  `lib/tools/decision.ts`:
+  1. Timing bands (since breakup, since contact).
+  2. Purpose (six options; partner terms from `config/copy.ts`).
+  3. State check: alcohol, a 0–10 intensity slider with visible value and
+     `aria-valuetext`, and drafted-and-deleted.
+  4. The optional draft check (`DraftCheck`): **Block E verbatim directly above the
+     textarea**, and live, local observations (length, question marks, pressure
+     phrases, ultimatums, stacked apologies, night-send) shown as notes.
+  5. The outcome (`DecisionOutcome`):
+     - one of three outcomes, with the reason named per rule (the forced-wait rules use
+       the spec's "Nothing good gets sent drunk or at a 9…" line);
+     - the "takes no side / doesn't predict" line;
+     - next actions: save unsent, the 30-minute timer, the tracker;
+     - for wait-24h, a concrete re-check time ("Monday at 2:00 PM") with an optional
+       on-device reminder;
+     - for logistics_ok, guidance for a short, factual version he edits himself;
+     - **Block D on every outcome**.
+- Flow mechanics: "Step N of 5" with a progress bar; Back preserves every answer; inline
+  `aria-live` errors; focus moves to each step heading; "Start over".
+- `UrgeTimer`:
+  - a 30-minute numeric countdown computed from a fixed end time (no drift, no
+    animation, so identical with reduced motion), with a full-screen button where
+    supported;
+  - three config-driven prompt cards rotating every 60 seconds, plus "Next prompt"; the
+    Day N card uses the tracker's day count, with a fallback when there's no tracker;
+  - on completion: a check-in link if a tracker exists, otherwise the tracker setup
+    offer;
+  - start points: the outcome, or "Just start the 30-minute urge timer" on step 1.
+- `UnsentVault`:
+  - messages saved only by explicit choice, newest first, each deletable;
+  - a "Your data" panel whose Clear my data (with on-page confirmation) deletes the
+    unsent list and the reminder.
+- `lib/tools/unsent.ts`: vault and re-check schemas and pure helpers (5,000-character
+  messages, up to 100 entries; the re-check stores a time only, never the draft).
+- `from=tracker`: the tracker's "I'm about to break it" link now lands here and shows
+  "From your tracker: Day N of no contact."
+- Copy lives in `content/decision.ts` and `content/faqs.ts`; Block E is in
+  `content/compliance.ts`; the urge-timer prompts are in `config/content.ts`.
+- Tests:
+  - 238 unit tests pass (3 `todo`s): Block E verbatim; copy rules (no AI/person/chat
+    claims, no promises or Section 14.2 terms, the rule line, the no-position line);
+    prompt cards; vault and re-check helpers; plus all Session 3 decision fixtures.
+  - 171 Playwright tests pass. The 21 new decision tests × 3 viewports cover:
+    - **the network assertion**: a marked draft appears in no request URL, body or
+      header, and in no local/session storage or cookie;
+    - the draft gone after leaving the page;
+    - **Block E directly above the textarea** (DOM and geometry), with spellcheck off;
+    - every outcome path, including 01:30 night-send;
+    - re-check time, reminder and banner;
+    - the unsent list save, reload, delete and clear;
+    - **the timer under reduced motion**, with prompt rotation and the completion
+      actions with and without a tracker;
+    - 320px with no overflow, and 44px targets.
+- Mutation check: a draft that leaks to the server as he types, and Block E moved below
+  the textarea, are each caught by their own test.
+- Size: the decision route ships 145 kB first-load JS (budget 180 kB).
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **Nothing is saved automatically.** Block E promises the draft is "not stored after
+  you leave this page", so the flow and draft live in memory only. This is unlike the
+  Section 8.3 default of persisting tool state. The only stored items are the ones he
+  explicitly saves: the unsent list and the re-check time.
+- **Spellcheck, autocorrect and Grammarly are off** on every draft textarea. Chrome's
+  enhanced spellcheck can send typed text to a server, which would break Block E.
+- **Block D** shows on every outcome, not just "don't send". Section 14.1 says "the
+  decision tool outcome view".
+- **The Day N prompt card** falls back to "Every day of no contact is worth more than
+  this draft." when there's no tracker, or on Day 0.
+- **Timer `from`:** `tracker` when he arrived via `?from=tracker`, otherwise `decision`
+  or `direct` by where he started it. This is recorded for the Session 13 analytics
+  event.
+- **The intensity slider starts at 5** (a slider must hold a value). 0 would understate
+  by default.
+- **"Wait 24 hours" for logistics** lists the specific reasons: no draft to check, drafted
+  and deleted more than once, or draft flags.
+- **Copy-rule test.** It ignores questions ("Can it tell me how she'll respond?"), since
+  a question isn't a promise. Answers and statements are all checked.
+- **Source guards.** The `{{` and gendered-literal guards caught a `style={{…}}` and a
+  "he chooses" comment in `DecisionTool.tsx`. Both were fixed in the code; neither guard
+  was loosened.
+
+**Deferred**
+
+- Analytics (`decision_started`, `decision_completed`, `urge_timer_completed`) →
+  Session 13, never with draft text.
+- Affiliate slot `decision-dont-send` → Session 10.
+- Lighthouse and axe on this page → Session 13; not run in this session.
+
+**For founder review now:**
+
+- Outcome reasons, step wording and FAQ in `content/decision.ts` and `content/faqs.ts`.
+- The extra pressure and ultimatum phrases in `config/content.ts` (from Session 3).
+- The logistics template pattern.

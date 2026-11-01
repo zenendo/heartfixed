@@ -36,4 +36,18 @@ export const draftCheck = {
   ],
 } as const;
 
-// TODO(session-7): urge-timer prompt cards (Section 11.2).
+/**
+ * Urge timer (Section 11.2): a 30-minute countdown with rotating prompt cards.
+ * Tokens: {subject} → partner reference from config/copy.ts; {day} → the tracker's
+ * current day when a tracker exists (otherwise noTrackerPrompt replaces that card).
+ */
+export const urgeTimer = {
+  minutes: 30,
+  rotateSeconds: 60,
+  prompts: [
+    "What do you actually want to happen after {subject} reads it?",
+    "How will you feel at breakfast if {subject} doesn't reply?",
+    "Day {day} of no contact is worth more than this draft.",
+  ],
+  noTrackerPrompt: "Every day of no contact is worth more than this draft.",
+} as const;

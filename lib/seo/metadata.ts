@@ -22,6 +22,11 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
     description:
       "Count the days since you last had contact, check in daily and protect the streak. Free, no signup, and everything stays in your browser.",
   },
+  [routes.decision]: {
+    title: "Should I Text My Ex? A Free 5-Step Check",
+    description:
+      "About to text your ex? Work through five short steps and check your draft first. Free, no signup, and your draft never leaves your browser.",
+  },
   // TODO(session-12): metadata for every other Section 6 route, plus per-tool OG images.
 };
 
