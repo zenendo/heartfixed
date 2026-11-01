@@ -130,3 +130,95 @@
 
 **For founder review now:** the four sample stems in `lib/quiz/questions.ts` and the
 context questions in `config/quiz.ts`.
+
+## Session 3 — Storage and tool primitives (2026-10-31)
+
+**Shipped (logic only — no pages)**
+
+- `lib/storage.ts`:
+  - versioned keys (`heartfixed-quiz-v1`, `heartfixed-tracker-v1`, plus reserved keys
+    for quiz progress, the unsent vault and the decision re-check);
+  - schema-validated `readStored`, which returns `ok` / `empty` / `corrupt` /
+    `unavailable` and never throws;
+  - `writeStored`; `clearStored` and `clearAllStored`, which really delete the keys;
+  - `exportStored` (JSON).
+- `lib/tools/tracker.ts`:
+  - the Section 11.1 model with a Zod schema;
+  - DST-safe calendar-day maths; setup;
+  - streak, longest and total calculations;
+  - check-ins (one per day, back-fill, 500-character notes); slips; calendar with
+    visible gaps;
+  - goal progress, extension, and a completion state that fires once;
+  - CSV export (with spreadsheet-formula defusing).
+- `lib/tools/decision.ts`:
+  - input schema and bands/purposes;
+  - local draft check (length, question marks, pressure phrases, ultimatums, stacked
+    apologies, night-send);
+  - the ordered rule table (forced wait → logistics eligibility → default);
+  - `decide`, which returns flags and counts only, never draft text.
+- `config/content.ts`: the draft-check thresholds and the pressure/ultimatum phrase
+  lists (founder-maintained).
+- **All Section 16.2 tracker and decision fixtures pass:**
+  - month boundaries, including leap years;
+  - both 2026 US DST changes;
+  - slip preservation;
+  - back-fill can't inflate the streak;
+  - 30/60/90 completion fires once;
+  - the alcohol and intensity property tests across the full 14,256-combination input
+    space;
+  - logistics_ok has one path only;
+  - two pressure phrases block logistics_ok;
+  - 01:30 sets night-send.
+- Mutation check: elapsed-millisecond day maths (the DST bug), deleting the alcohol rule,
+  and a slip that forgets the longest streak are each caught.
+- Tests: 204 unit tests pass, plus 3 `todo`s carried from Session 2. The 30 Playwright
+  smoke tests pass.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **Streak model.** The spec calls `startDate` "Day 1" and says a slip "starts today".
+  Both read consistently as: the streak is the number of calendar days since the last
+  contact.
+  - The contact day is Day 0; the next day is Day 1.
+  - `startDate` = last contact + 1, as the model says.
+  - A slip sets `restartedOn` to the slip day, the new Day 0.
+  - Setting up on the day of contact (the default) shows Day 0, and check-ins start
+    the next day.
+- **A slip credits full days only.** If the tracker reads "Day 18" on the day he slips,
+  the reset says "You did 17 days", because the slip day had contact.
+  - Invariant (tested): total = calendar days since Day 1 that had no contact.
+  - Copy note for Session 6: say "17 full days" so the drop from 18 reads as intended.
+- **Back-fill.** The streak is time-based, so check-ins confirm days but never change it.
+  - A missed day shows as a gap.
+  - Back-filling marks the day but leaves the streak unchanged.
+  - Check-ins dated in the future, or before the current streak's Day 1, are rejected.
+- **`TrackerState` gains an optional `goalReachedOn`** so completion fires exactly once.
+  A slip or a goal extension clears it.
+- **Slip type** ("what happened") is defined (`SLIP_TYPES`) but not stored: the Section
+  11.1 model has no field for it. The page uses it once, to show the guide link and to
+  send the analytics category.
+- **Decision rules where the spec says "weights strongly toward waiting":**
+  - A recent breakup or contact turns a clean closure/apology draft into "don't send"
+    instead of "wait 24h".
+  - Logistics ignores timing; belongings and bills don't wait.
+  - Logistics without a draft, with any flag, or "drafted and deleted more than once"
+    → wait 24h.
+- **Night-send** is part of the draft check, so a 1:30am logistics draft can't be
+  `logistics_ok`.
+- **Questions.** More than two question marks is a flag (`maxQuestionMarks: 2`, in
+  config).
+- **Phrase lists.** Beyond the spec's three examples, the pressure and ultimatum lists
+  are drafts for founder review.
+- **Brand guard.** The Session 1 guard now matches `HeartFixed` case-sensitively and the
+  domain in any case. A second check allows lowercase brand text only as a
+  `heartfixed-…-vN` storage key.
+
+**Deferred**
+
+- Quiz save/progress shapes → Session 4. Unsent vault and re-check shapes, plus the
+  urge-timer prompt cards → Session 7. Analytics `day_band` → Session 13.
+- Purpose and slip-type labels (which use partner terms from `config/copy.ts`) → the
+  sessions that build those screens.
+
+**For founder review now:** the pressure and ultimatum phrase lists in
+`config/content.ts`, and the streak/slip counting rules above.
