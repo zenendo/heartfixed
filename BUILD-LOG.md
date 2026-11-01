@@ -222,3 +222,95 @@ context questions in `config/quiz.ts`.
 
 **For founder review now:** the pressure and ultimatum phrase lists in
 `config/content.ts`, and the streak/slip counting rules above.
+
+## Session 6 — No-contact tracker (2026-10-31)
+
+Built on top of the Session 3 branch: PR #2 was still open when this session started,
+so this branch is stacked on `session-03-storage-tools` and needs #2 merged first.
+
+**Shipped**
+
+- `/no-contact-tracker/`: statically generated, with the tool hydrating on the client.
+  The explainer, goal guidance (30/60/90), the "what counts as contact" list (with the
+  story-view strictness note and the soft-contact note), the FAQ, and the links to
+  `/no-contact-rule/` and the decision tool are all in the server-rendered HTML.
+- Tool (`components/tools/`), all logic from `lib/tools/tracker.ts`:
+  - `TrackerSetup`: one screen; last contact defaults to today, goal to 30 days; no
+    name, no account; inline error for a future date.
+  - Streak view:
+    - the day count as the hero number, with "Day N of goal" or "Day N — past your
+      30-day goal";
+    - days remaining to the goal;
+    - a persistent "I'm about to break it" link to `/should-i-text-my-ex/?from=tracker`;
+    - longest streak and total days;
+    - goal completion shown once, with the option to extend to 60 or 90 days.
+  - `StreakCalendar`: the last 14 days as filled or outlined cells, each labelled by
+    date and status for screen readers; contact days dashed; no flames, no loss
+    animations.
+  - `CheckInForm`: "Still no contact", an optional urge rating, a private note
+    (500-character cap, with counter and privacy line), back-filling missed days in the
+    current streak, and editing today's check-in.
+  - `SlipFlow`: one question, then a reset screen ("You did N full days…", total,
+    longest, "starts today"). "Reached out and I replied" links the guide.
+  - "Your data": JSON and CSV export, Print / Save PDF, and Clear my data (with an
+    on-page confirmation; really deletes the key); "Start over" uses the same
+    confirmation.
+  - Resilience: a corrupted value shows a recovery panel (download what's there, then
+    start fresh). Blocked storage still runs for the visit, with a notice. Focus moves
+    to each new view's heading.
+- Compliance: Block B (brand from config) and Block D added to `content/compliance.ts`,
+  rendered verbatim by `CrisisBlock` and `ToolDisclaimer`. Block C stays in the footer.
+- New shared pieces:
+  - `Breadcrumbs` (with BreadcrumbList schema), `Faq` (FAQPage schema from
+    `content/faqs.ts`, the same data as the visible FAQ), `JsonLd`;
+  - `lib/seo/schema.ts` (with a prohibited-types list);
+  - `Button` / `RadioCard` (real radio inputs) / `Callout`, and `lib/download.ts`.
+- Print: only the H1, the streak summary, Block B and the footer crisis line print.
+- Copy lives in `content/tracker.ts` and `content/faqs.ts`. Partner references resolve
+  through `config/copy.ts`.
+- Metadata: title "No-Contact Tracker: Free, No Account Needed | HeartFixed" (56
+  characters), plus description and canonical.
+- Tests:
+  - 221 unit tests pass (3 `todo`s), including Blocks B and D verbatim, copy rules (no
+    shaming words, no Section 14.2 terms, never asks for a name), and JSON-LD builders.
+  - 108 Playwright tests pass: 26 tracker acceptance tests × 3 viewports, plus the
+    existing smoke tests.
+  - Covered: clearing deletes the key (asserted); the slip-flow shaming-word grep on the
+    rendered text of every slip state; JSON and CSV export contents; the note never
+    appearing in any network request; back-fill not moving the streak; completion
+    showing once; print output; corrupted and blocked storage; 320px with no
+    horizontal scroll; 44px targets.
+  - Mutation check: a clear that doesn't delete, and "Streak lost" in the reset copy,
+    are both caught.
+- Size: the tracker route ships 139 kB first-load JS (budget 180 kB).
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- Blocks B and D were scheduled for Sessions 11 and 5, but Section 14.1/16.4 require
+  them on the tracker page, so they ship now.
+- Block D's crisis-page reference is a link labelled "Crisis Resources" (the page's name
+  in the footer), rather than the raw path `/crisis-resources/`. The rest is word for
+  word.
+- The reset screen says "full days" (see Session 3): on the day of a slip the counter
+  read one higher than the full days credited.
+- No check-in is possible on Day 0, the contact day; the first check-in is on Day 1.
+  Back-fill is limited to missed days in the current streak (last 14).
+- An unchosen urge rating saves as 0 ("None"), since the Section 11.1 model requires a
+  value.
+- The `{{` source guard tripped on JSX in `JsonLd.tsx`. The component now avoids the
+  double brace rather than the guard being loosened.
+
+**Deferred**
+
+- Reminder opt-in (Section 13.1(c)) → Session 9. Analytics events (`tracker_created`,
+  `tracker_checkin`, `tracker_slip_recorded`) → Session 13.
+- Affiliate slot `tracker-after-explainer` → Session 10.
+- Lighthouse budgets and the axe pass on this page → Session 13. These were not run in
+  this session.
+- Linked pages that don't exist yet (they 404 until built): `/should-i-text-my-ex/`
+  (Session 7), `/no-contact-rule/` and the guide (Session 10), `/crisis-resources/`
+  (Session 11).
+
+**For founder review now:** the tracker copy in `content/tracker.ts` and the six FAQ
+answers in `content/faqs.ts`. In particular, the FAQ says a reply to genuine logistics
+doesn't need to reset the counter.

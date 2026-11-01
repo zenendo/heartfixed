@@ -17,6 +17,11 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
     description:
       "A free attachment style quiz for men, a no-contact tracker, and a should-I-text-my-ex tool. Full results free — no signup, no account.",
   },
+  [routes.tracker]: {
+    title: "No-Contact Tracker: Free, No Account Needed",
+    description:
+      "Count the days since you last had contact, check in daily and protect the streak. Free, no signup, and everything stays in your browser.",
+  },
   // TODO(session-12): metadata for every other Section 6 route, plus per-tool OG images.
 };
 
