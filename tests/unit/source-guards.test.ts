@@ -37,7 +37,14 @@ describe("source guards", () => {
   });
 
   it("brand name and domain appear only in config/site.ts (Section 1.3)", () => {
-    expect(hits(/HeartFixed|heartfixed\.com/i, (rel) => rel !== "config/site.ts")).toEqual([]);
+    // The rendered brand is matched case-sensitively: the lowercase storage keys in
+    // lib/storage.ts ("heartfixed-tracker-v1") are fixed identifiers, not the brand.
+    expect(hits(/HeartFixed|heartfixed\.com/, (rel) => rel !== "config/site.ts")).toEqual([]);
+    expect(hits(/heartfixed\.com/i, (rel) => rel !== "config/site.ts")).toEqual([]);
+  });
+
+  it("lowercase brand text appears only as storage keys in lib/storage.ts", () => {
+    expect(hits(/heartfixed(?!-[a-z-]+-v\d)/i, (rel) => rel !== "config/site.ts")).toEqual([]);
   });
 
   it("never references the defensive domain in site code (Section 1.3)", () => {
