@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { blockB, blockD, type Segment } from "@/content/compliance";
+import { blockB, blockD, blockE, type Segment } from "@/content/compliance";
 
 function renderSegments(segments: readonly Segment[]) {
   return segments.map((s, i) => {
@@ -31,6 +31,19 @@ export function ToolDisclaimer({ className = "" }: { className?: string }) {
   return (
     <p data-testid="tool-disclaimer" className={`text-sm text-muted ${className}`}>
       {blockB.text}
+    </p>
+  );
+}
+
+/** Block E — the draft-privacy notice. Renders directly above the draft textarea. */
+export function DraftPrivacyNotice({ id }: { id: string }) {
+  return (
+    <p
+      id={id}
+      data-testid="draft-privacy"
+      className="rounded-card border-l-4 border-primary bg-panel px-4 py-3 text-body text-ink"
+    >
+      {blockE.text}
     </p>
   );
 }
