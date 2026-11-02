@@ -29,7 +29,7 @@ export const home = {
     heading: "Understand your pattern",
     intro:
       "Four attachment patterns describe how you tend to act when a relationship feels close, distant or under threat. Read about each, or take the quiz to see where your own scores land.",
-    cardLink: "Read more",
+    cardLink: (name: string) => `More on the ${name.toLowerCase()} pattern`,
     hubLink: "All four attachment styles, explained",
   },
   guides: {

@@ -13,6 +13,7 @@ import { Callout } from "@/components/ui/Callout";
 import { routes } from "@/config/site";
 import { formCopy } from "@/content/emails/forms";
 import { trackerCopy as t } from "@/content/tracker";
+import { dayBand, track } from "@/lib/analytics";
 import { downloadText } from "@/lib/download";
 import { clearStored, exportStored, readStored, storageKeys, writeStored } from "@/lib/storage";
 import {
@@ -21,6 +22,7 @@ import {
   calendar,
   checkGoalCompletion,
   checkIn,
+  currentStreak,
   extendGoal,
   goalProgress,
   lastContactDate,
@@ -166,7 +168,7 @@ export function Tracker() {
           onCreate={(created) => {
             save(created);
             setNotice(null);
-            // TODO(session-13): tracker_created { goal_days } analytics event.
+            track({ name: "tracker_created", params: { goal_days: created.goalDays } });
             focusSoon("streak-heading");
           }}
         />
@@ -185,7 +187,7 @@ export function Tracker() {
           const outcome = recordSlip(state, today);
           save(outcome.state);
           setCompleted(false);
-          // TODO(session-13): tracker_slip_recorded { slip_type } — category only.
+          track({ name: "tracker_slip_recorded", params: { slip_type: type } });
           setView({
             name: "slip-done",
             previousStreak: outcome.previousStreak,
@@ -271,7 +273,10 @@ export function Tracker() {
   function saveCheckIn(entry: CheckIn): string | null {
     try {
       save(checkIn(state!, entry, today!));
-      // TODO(session-13): tracker_checkin { day_band } analytics event.
+      track({
+        name: "tracker_checkin",
+        params: { day_band: dayBand(currentStreak(state!, today!)) },
+      });
       return null;
     } catch (e) {
       if (e instanceof TrackerError) return e.message;
@@ -395,7 +400,10 @@ export function Tracker() {
               <ReminderOptIn
                 startDate={addDays(lastContactDate(state), 1)}
                 goalDays={state.goalDays}
-                onEnabled={() => save({ ...state, reminderOptIn: true })}
+                onEnabled={() => {
+                  save({ ...state, reminderOptIn: true });
+                  track({ name: "reminder_optin", params: { goal_days: state.goalDays } });
+                }}
               />
             )
           )}

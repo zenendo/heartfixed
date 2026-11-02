@@ -42,7 +42,6 @@ function Line({ line, children }: { line: CrisisLine; children?: ReactNode }) {
  * /crisis-resources/ — Section 14.3. Block D renders first, directly under the H1.
  * International lines render only once the founder has verified each against the
  * provider's own page (source + date); until then, the emergency-number guidance stands.
- * TODO(session-13): crisis_link_click with placement only.
  */
 export default function CrisisResourcesPage() {
   const international = verifiedInternationalLines(c.international.lines);

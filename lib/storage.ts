@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 
 /**
  * Versioned localStorage helpers — Sections 8.3, 9.6, 11.1, 14.4.
@@ -25,6 +25,8 @@ export const storageKeys = {
   unsentVault: "heartfixed-unsent-v1",
   /** Decision tool's "come back tomorrow" re-check state. Shape defined in Session 7. */
   decisionRecheck: "heartfixed-recheck-v1",
+  /** Random analytics id + session (Section 16.1) — no tool data, no personal data. */
+  analytics: "heartfixed-analytics-v1",
 } as const;
 
 export type StorageKey = (typeof storageKeys)[keyof typeof storageKeys];
@@ -58,7 +60,7 @@ export type ReadResult<T> =
 
 export function readStored<T>(
   key: StorageKey,
-  schema: z.ZodType<T>,
+  schema: z.ZodMiniType<T>,
   storage: StorageLike | null = browserStorage(),
 ): ReadResult<T> {
   if (!storage) return { status: "unavailable" };
@@ -80,7 +82,7 @@ export function readStored<T>(
 /** Validates, then saves. Returns false if the value is invalid or storage fails (e.g. full). */
 export function writeStored<T>(
   key: StorageKey,
-  schema: z.ZodType<T>,
+  schema: z.ZodMiniType<T>,
   value: T,
   storage: StorageLike | null = browserStorage(),
 ): boolean {

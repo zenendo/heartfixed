@@ -13,12 +13,22 @@ function renderSegments(segments: readonly Segment[]) {
   });
 }
 
-/** Block D — the crisis block. Calm crisis panel, never red; body-size text. */
-export function CrisisBlock({ className = "" }: { className?: string }) {
+/**
+ * Block D — the crisis block. Calm crisis panel, never red; body-size text.
+ * `placement` labels crisis_link_click (Section 16.1); omitted on the crisis page itself.
+ */
+export function CrisisBlock({
+  className = "",
+  placement,
+}: {
+  className?: string;
+  placement?: "result" | "decision" | "tracker";
+}) {
   return (
     <aside
       aria-label="Crisis support"
       data-testid="crisis-block"
+      data-crisis-placement={placement}
       className={`rounded-card border-l-4 border-primary bg-crisis px-4 py-4 text-body text-ink ${className}`}
     >
       <p>{renderSegments(blockD)}</p>

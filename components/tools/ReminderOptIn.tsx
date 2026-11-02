@@ -5,7 +5,7 @@ import { Honeypot } from "@/components/content/EmailSignup";
 import { Button } from "@/components/ui/Button";
 import { formCopy, hourLabel } from "@/content/emails/forms";
 import { postEmail } from "@/lib/email/client";
-import { checkEmail } from "@/lib/email/validate";
+import { checkEmail } from "@/lib/email/rules";
 import type { GoalDays, IsoDate } from "@/lib/tools/tracker";
 
 const f = formCopy.reminders;
@@ -18,7 +18,7 @@ type Status = { kind: "idle" | "sending" } | { kind: "error"; message: string };
  * Tracker reminders — Section 13.1 (c). Its own consent, separate from the list; shown
  * only once a streak exists. Sends the email plus what a reminder needs (day 1, goal,
  * hour, time zone) — never notes, urges or slips. The address is not kept in the
- * browser. TODO(session-13): reminder_optin event with goal_days only.
+ * browser. The Tracker sends reminder_optin { goal_days } on success.
  */
 export function ReminderOptIn({
   startDate,

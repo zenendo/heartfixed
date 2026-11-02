@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { JsonLd } from "@/components/content/JsonLd";
+import { AnalyticsListener } from "@/components/layout/AnalyticsListener";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { defaultMetadata } from "@/lib/seo/metadata";
@@ -10,8 +11,7 @@ import "./globals.css";
 export const metadata: Metadata = defaultMetadata;
 
 // No web app manifest: Section 5.2 rules out a PWA install prompt. Icons are file-based
-// (app/icon.svg, app/apple-icon.tsx).
-// TODO(session-13): analytics (lib/analytics.ts) — no sensitive content, ever (Section 16.1).
+// (app/icon.svg, app/favicon.ico, app/apple-touch-icon/).
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -28,6 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
         <Footer />
+        <AnalyticsListener />
         <JsonLd data={websiteSchema()} />
         <JsonLd data={organizationSchema()} />
       </body>

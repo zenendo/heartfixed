@@ -76,10 +76,16 @@ export const privacyPolicy: LegalDoc = {
       heading: "Cookies and analytics",
       blocks: [
         {
-          p: "Our analytics provider uses cookies to count visits and tell new visitors from returning ones. We don't use advertising cookies, we don't run ads, and we don't use ad networks or tracking pixels.",
+          p: "We don't use cookies. To count visits and tell new visitors from returning ones, your browser keeps a random analytics ID in its local storage. It isn't linked to your name, your email or anything you do in the tools.",
         },
         {
-          p: "Local storage, where your tool data lives, is not a cookie and is never sent with your requests to the site.",
+          p: "Usage events go from your browser to our own server, which checks each one against a fixed list of allowed details and passes it on to our analytics provider. No analytics script from another company runs on these pages.",
+        },
+        {
+          p: "If your browser sends a Global Privacy Control signal, we don't send any analytics at all.",
+        },
+        {
+          p: "We don't run ads, and we don't use ad networks or tracking pixels. Local storage, where your tool data lives, is never sent with your requests to the site.",
         },
       ],
     },

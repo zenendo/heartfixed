@@ -1074,3 +1074,123 @@ Two adapter details the docs left ambiguous are confirmed by step 4:
   Session 9.
 - The welcome sequence and reminder copy (`content/emails/`).
 - The form copy (`content/emails/forms.ts`).
+
+## Session 13 — Analytics and full QA (2026-11-01 → 2026-11-02)
+
+**Shipped**
+
+- **First-party analytics (Section 16.1).** Every Section 16.1 event, plus `page_view`,
+  is sent by the browser to our own `POST /api/collect/`. The route then forwards it to
+  GA4 with the Measurement Protocol.
+  - **Why no Google script:** `gtag.js` alone is about 157 kB gzipped, which would break
+    the 180 kB tool-page budget on its own.
+  - **No cookies.** A random client id and a 30-minute session id are kept under
+    `heartfixed-analytics-v1`. "Clear my data" removes them too.
+  - **Global Privacy Control turns analytics off entirely.**
+  - **The Privacy Policy's "Cookies and analytics" section** now describes exactly
+    this.
+- **Two checks before anything reaches GA4:**
+  - **In the browser** (`lib/analytics.ts`, no zod): a known event name, known
+    parameter keys, and only booleans, small integers or short lowercase codes as
+    values. Free text never leaves the browser, even from a call site that gets it
+    wrong. In development, a bad event throws.
+  - **On the server** (`lib/analyticsSchema.ts`): the exact allow-list, as strict zod
+    schemas. The route also:
+    - rejects any body containing `@`;
+    - caps bodies at 8 kB;
+    - rate-limits per IP (`ANALYTICS_RATE_LIMIT`, default 600 an hour);
+    - always answers 204 or 400/429, with no body;
+    - never logs.
+  - Unit tests keep the browser's name and key lists in step with the schemas.
+- **Wiring:**
+  - The tracker sends created, check-in (a day band, never the day), slip type and
+    reminder opt-in.
+  - The decision tool sends started, completed (outcome and whether the draft check
+    was used) and the urge timer's source.
+  - The email forms send codes and placements.
+  - A delegated listener sends page views (flagging 404s), crisis-link clicks by
+    placement, guide tool-block clicks, and affiliate slot views and clicks.
+- **New environment variables:** `GA4_API_SECRET` (server-only) and
+  `ANALYTICS_RATE_LIMIT`, both in `.env.example`. Without the secret, events are
+  validated and then dropped.
+- **Performance fixes found by Lighthouse:**
+  - **zod is out of the shared bundle.** Since Session 9, the footer form's
+    `checkEmail` had put zod (26 kB gzipped) on every page; Session 13's `track()` was a
+    second path in.
+    - New `lib/email/rules.ts` holds the address rule and placements, without zod. Its
+      regex is zod's own, checked by a test against `z.regexes.email`, plus a parity
+      test against the server schema.
+    - The server schema in `lib/email/validate.ts` is built from the same values.
+  - **The tool pages' storage schemas now use `zod/mini`** (`lib/tools/tracker.ts`,
+    `decision.ts`, `unsent.ts`, `lib/storage.ts`). Zod on those pages went from 26 kB
+    to 8 kB. The validation rules are unchanged, and all tool tests pass unedited.
+  - **Home page profile cards** now say "More on the … pattern" instead of "Read
+    more", for Lighthouse SEO `link-text`.
+  - **`app/favicon.ico`** (32 px, from the touch icon) removes a 404 on every page.
+- **`QA.md`** records the full Section 16.4 checklist: Pass or Open for each item, with
+  the test that proves it, plus the Lighthouse and INP results.
+- **Lighthouse 13.5.0, mobile, median of 3 runs:**
+
+  | Pages           | Perf | A11y | Best Pr. | SEO | LCP (budget)      | CLS |
+  | --------------- | ---- | ---- | -------- | --- | ----------------- | --- |
+  | Both tools      | 100  | 100  | 96       | 100 | 1.88–1.89 s (2.0) | 0   |
+  | Home and guides | 100  | 100  | 96       | 100 | 1.72–1.73 s (1.8) | 0   |
+  - Before the fixes, LCP was about 2.05 s everywhere and home SEO was 92.
+  - Lab INP, measured with the Event Timing API at 4× CPU: 64 ms worst on the tracker,
+    40 ms on the decision tool.
+  - Tool-page JS is 127–129 kB gzipped (Next first-load), against 180 kB.
+
+- **Tests:**
+  - 429 unit tests pass (5 skipped, 3 todo).
+  - 795 Playwright tests pass (6 `fixme`: the quiz routes).
+  - New unit tests:
+    - the allow-list matches Section 16.1 exactly;
+    - sensitive and extra parameters are rejected;
+    - day bands;
+    - the Measurement Protocol transform and URL;
+    - config from the environment;
+    - no `gtag`, GTM or `dataLayer` in the source;
+    - the browser check and its drift tests;
+    - email-rule parity.
+  - New Playwright tests:
+    - a full journey with marked private text (a note, a draft, an address) that
+      inspects every `/api/collect/` body;
+    - Global Privacy Control means no requests;
+    - the API's 204 and 400 cases.
+- **Mutation checks, each caught:**
+  - a draft leaked into an event (with client validation off);
+  - a loosened server schema;
+  - the browser check without the key allow-list;
+  - the browser check with a permissive value pattern;
+  - a changed email regex.
+
+**Not done — needs the founder**
+
+- **GA4 DebugView.** Set `GA4_API_SECRET` on a preview, run a journey, and confirm that
+  only allow-listed parameters arrive. The network-log half of the criterion is
+  automated.
+- **The Session 9 real-inbox email checks.** These are still open; see the Session 9
+  entry.
+
+**Open until Sessions 4–5**
+
+- Quiz events (`quiz_view`, `quiz_started`, `quiz_completed`, `quiz_result_shared`).
+  They're defined and validated, but not yet sent.
+- Lighthouse on the quiz page.
+- The quiz rows of `QA.md`.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **The Measurement Protocol instead of `gtag.js`.** Section 16.3's JS budget is an
+  acceptance criterion, and `gtag.js` alone would break it. The Measurement Protocol
+  also means no Google script, and no Google cookies, in the browser.
+- **`fetch` with `keepalive` instead of `sendBeacon`.** It behaves the same on unload,
+  and Playwright can read its body for the payload inspection.
+- **`page_view` added** to the Section 16.1 events, with a path only (no query or
+  fragment) and a `not_found` flag.
+- **"All three tools" in Section 18 is two for now.** The quiz isn't built; it's
+  measured in Session 5.
+- **The INP budget is checked in the lab with Event Timing,** because a Lighthouse
+  navigation can't measure INP. Real-user data confirms it after launch.
+- **Best Practices is 96, not 100,** because of the 404 when the quiz link is
+  prefetched. It meets the ≥ 95 budget and clears once the quiz exists.

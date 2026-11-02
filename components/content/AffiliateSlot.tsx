@@ -18,7 +18,7 @@ export function AffiliateSlot({
 }) {
   const slot = renderableSlot(id, slots);
   if (!slot) return null;
-  // TODO(session-13): affiliate_slot_view / affiliate_click events with slot_id only.
+  // affiliate_slot_view / affiliate_click are sent from data-slot-id by AnalyticsListener.
   return (
     <aside
       data-testid="affiliate-slot"
