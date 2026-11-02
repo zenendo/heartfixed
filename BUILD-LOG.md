@@ -1194,3 +1194,30 @@ Two adapter details the docs left ambiguous are confirmed by step 4:
   navigation can't measure INP. Real-user data confirms it after launch.
 - **Best Practices is 96, not 100,** because of the 404 when the quiz link is
   prefetched. It meets the ≥ 95 budget and clears once the quiz exists.
+
+## Session 14 — Production launch: blocked, tracker added (2026-11-02)
+
+**Shipped**
+
+- **`LAUNCH.md`** tracks every Section 19.1 item, with its status (Done, Ready or
+  Blocked), its owner and its evidence. It also lists the founder's steps in order and
+  what Claude does once they're done.
+
+**Not done: the launch itself**
+
+Session 14 is done only when Section 19.1 is fully ticked on the live domain. As of
+this entry, none of it can be ticked:
+
+- **`npm run test:launch` fails 0/4.** The contact email, mailing address,
+  helpline verification and resource own-use answers are all missing.
+- **Both domains are still on registrar parking pages.**
+- **The quiz isn't built (Sessions 4–5).**
+- **The Resend, GA4 and Search Console steps aren't done.**
+
+No production deploy, DNS change or affiliate change was made.
+
+**Noted**
+
+- The "get her back" part of Section 19.1 isn't in the automated prohibited-terms
+  pattern. A manual grep of the source is clean, and it's recorded in `LAUNCH.md` for
+  a re-check on the live domain.
