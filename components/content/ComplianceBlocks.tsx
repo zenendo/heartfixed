@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { blockB, blockD, blockE, type Segment } from "@/content/compliance";
+import { blockA, blockB, blockD, blockE, type Segment } from "@/content/compliance";
 
 function renderSegments(segments: readonly Segment[]) {
   return segments.map((s, i) => {
@@ -23,6 +23,18 @@ export function CrisisBlock({ className = "" }: { className?: string }) {
     >
       <p>{renderSegments(blockD)}</p>
     </aside>
+  );
+}
+
+/** Block A — the self-reflection disclaimer. Readable type, never small print. */
+export function SelfReflectionDisclaimer({ className = "" }: { className?: string }) {
+  return (
+    <p
+      data-testid="self-reflection-disclaimer"
+      className={`rounded-card border-l-4 border-primary bg-panel px-4 py-3 text-body text-ink ${className}`}
+    >
+      {blockA.text}
+    </p>
   );
 }
 

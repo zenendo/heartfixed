@@ -85,7 +85,42 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
     description:
       "Books and programmes for getting through a breakup, organised by the moment you're in: the first weeks, understanding your pattern, going deeper.",
   },
-  // TODO(session-12): metadata for every other Section 6 route, plus per-tool OG images.
+  [routes.crisis]: {
+    title: "Crisis Resources: 988 and Other Helplines",
+    description:
+      "If you're in crisis or thinking about harming yourself, call or text 988 in the US, any time. Helplines and emergency guidance in one place.",
+  },
+  [routes.about]: {
+    title: "About: Free Breakup Tools for Men",
+    description:
+      "Free tools and guides for men going through a breakup. Private by design, free in full, no AI and no accounts. How the site works and is funded.",
+  },
+  [routes.methodology]: {
+    title: "How the Attachment Quiz Works: Methodology",
+    description:
+      "What the attachment quiz measures, how its 24 questions are written and scored, the score bands, and what a self-reflection assessment can't tell you.",
+  },
+  [routes.privacy]: {
+    title: "Privacy Policy",
+    description:
+      "Your quiz answers, tracker and drafts stay in your browser. What we collect (only an email you choose to give), what we never collect, and your choices.",
+  },
+  [routes.terms]: {
+    title: "Terms of Use",
+    description:
+      "The terms for using this site's free breakup tools and guides: what they're for, what they aren't, acceptable use and limits of liability.",
+  },
+  [routes.affiliateDisclosure]: {
+    title: "Affiliate Disclosure",
+    description:
+      "How affiliate links work on this site, how you'll know one when you see it, and what money never changes: results, recommendation order or tools.",
+  },
+  [routes.contact]: {
+    title: "Contact",
+    description:
+      "Questions, corrections, or a request about your email data. Replies within a few days. This site can't help in an emergency — see Crisis Resources.",
+  },
+  // TODO(session-12): metadata for the quiz routes, plus per-tool OG images.
 };
 
 export const fullTitle = (title: string) => `${title} | ${site.name}`;

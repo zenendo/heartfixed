@@ -662,3 +662,144 @@ noopener"`.
 - **One Session 6 line to fix.** The tracker FAQ in `content/faqs.ts` still says "She
   reaching out doesn't reset your counter". I left it as it is, since it is outside this
   session. The guides now say "When she reaches out…".
+
+## Session 11 — Legal and trust pages (2026-11-01)
+
+**Shipped**
+
+- **Seven pages.** Privacy, Terms and Affiliate Disclosure share a `LegalPage` template
+  (visible "Last updated", the guide block renderer). About, Contact, Methodology and
+  Crisis Resources are their own pages. Each has breadcrumbs, a BreadcrumbList and
+  metadata.
+- **`/privacy-policy/`** covers every Section 14.4 item:
+  - what stays in the browser, and that clearing it erases it unrecoverably;
+  - the three separate email choices;
+  - what's never collected;
+  - cookies and analytics in plain terms;
+  - one-click unsubscribe;
+  - sharing, by provider category (email, analytics, hosting); no sale; no sharing of
+    self-reflection content, affiliates included;
+  - what an affiliate click shares;
+  - share links;
+  - retention (the list inactivity purge comes from `config/legal.ts`);
+  - requests via Contact;
+  - adults only;
+  - changes.
+- **`/terms/`** covers:
+  - educational purpose;
+  - no professional relationship, with Block B quoted verbatim;
+  - results are self-reflection, not diagnosis;
+  - not an emergency service;
+  - 18+ and acceptable use;
+  - your data;
+  - intellectual property;
+  - third-party links;
+  - no warranties and limitation of liability;
+  - changes and contact.
+- **`/affiliate-disclosure/`** covers:
+  - what an affiliate link is;
+  - the Section 14.5 sentence quoted;
+  - what money never changes (results, recommendation order, tool behaviour);
+  - how recommendations are chosen;
+  - what a click shares.
+  - A **live status line** computed from `config/affiliates.ts`: "Right now, no links on
+    this site are affiliate links."
+- **`/about/`** — faceless. It covers what the site is and who it's for: "For adults
+  (18+)" (Section 14.1 item 8), plus how it works and how it's funded. It carries Block B
+  (Section 14.3) and links Crisis Resources (Section 14.1 item 5), Methodology,
+  Disclosure, Privacy and Contact.
+- **`/contact/`** — the email comes from `config/site.ts`. While that's empty the page
+  shows "The contact address will be listed here before launch", never an empty
+  `mailto:`. It uses the Section 14.4 line "Replies within a few days; this site cannot
+  help with emergencies — see Crisis Resources." It also explains that browser data
+  can't be seen or deleted by us.
+- **`/methodology/`** — Block A sits directly under the H1, followed by the Section 14.2
+  framing. It covers:
+  - the two dimensions;
+  - the questions, with counts, reversed items and context questions all read from
+    `config/quiz.ts`;
+  - the Likert labels from config;
+  - scoring and bands from config, with the shared `BandTable` computed by
+    `profileFor`;
+  - "same answers, same result", and that scoring runs in the browser;
+  - the limits ("not a clinical instrument");
+  - sources.
+  - The attention check is deliberately not mentioned (Section 9.2).
+- **`/crisis-resources/`** — Block D is first under the H1. Then:
+  - the US lines: 988 (call/text), the Crisis Text Line (text HOME to 741741) and 911,
+    each with `tel:`/`sms:` links;
+  - "Outside the US" with the emergency-number guidance;
+  - "If you're worried about someone else";
+  - "not a crisis service".
+- **Block A** is verbatim in `content/compliance.ts`, with a `SelfReflectionDisclaimer`
+  component (it was a Session 5 TODO). The Section 14.5 and 13.4 lines were added in
+  Session 10.
+- **International crisis lines are gated.** `InternationalLine` needs `sourceUrl`
+  (https, the provider's own page) and `verifiedOn`, and
+  `verifiedInternationalLines` renders only complete entries. The list ships empty: no
+  number from memory.
+- **`npm run test:launch`** (`tests/unit/launch-readiness.test.ts`) is skipped in normal
+  runs. It fails until the founder supplies:
+  - the contact email;
+  - the mailing address;
+  - at least one verified international line;
+  - an explicit `ownUse` on every resource.
+  - It fails all 4 today, as intended.
+- `BandTable` is now shared by the hub and Methodology.
+- Tests:
+  - 356 unit tests pass (4 launch checks skipped, 3 `todo`s). The new ones cover:
+    - Block A verbatim and in body-size text;
+    - Privacy, Terms and Disclosure topic coverage and required statements;
+    - About 18+ and the crisis link; the Contact expectations line;
+    - Methodology numbers from config, its framing, no attention check;
+    - the crisis US lines and the international gate;
+    - no Section 14.2 terms in trust and crisis copy;
+    - no subscription/trial/membership language;
+    - no partner pronouns.
+  - 546 Playwright tests pass. 6 are marked `fixme`: the quiz and results routes.
+    - **The guardrail sweep** (`guardrails.spec.ts`) runs over every Section 6 route.
+      It checks:
+      - Block C and the crisis link in every footer;
+      - Blocks B, D and A where required;
+      - no chat UI;
+      - no prohibited term outside the verbatim Blocks A/B and the three legal pages.
+      - Unbuilt routes are listed as `fixme`, so the gap stays visible.
+    - **The trust-page suite** (`trust-pages.spec.ts`) checks the H1, canonical and
+      breadcrumb schema, layout, the last-updated dates, and the per-page placement and
+      copy checks.
+- Mutation check: each of these is caught by its own test:
+  - Block D moved below the intro on the crisis page;
+  - Block B removed from About;
+  - "therapy" added to the methodology copy.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **The guardrail sweep is "fully green" except for the Section 16.4 items that need the
+  quiz.** Block A on the quiz page and under the result headline, Block D on the result
+  view, and "full completion with the email field untouched" all wait for Sessions 4–5.
+  They're `fixme`, not passing.
+- **The prohibited-terms exemption** is the three legal pages plus the verbatim Blocks A
+  and B wherever they render, which Section 14.3 requires on Methodology and About.
+- **List inactivity purge defaults to 24 months** (`config/legal.ts`). Set the same value
+  in the email provider, or change both.
+- **Terms leave out a legal entity name and governing law.** Both need the lawyer review
+  Section 14 asks for.
+- **Crisis copy says only what the spec states.** I removed "free and confidential",
+  "trained people" and "24/7 by text" claims I couldn't source from the spec.
+- **"Privacy policy describes analytics"** that Session 13 wires up. The policy's
+  wording matches the Section 16.1 event rules.
+
+**Deferred**
+
+- `crisis_link_click` analytics → Session 13.
+- Email-footer mailing address, and the result-email Block A short form → Session 9.
+
+**For founder review now (blocking launch, not this merge):**
+
+- **The contact email and mailing address** (`config/site.ts`).
+- **International crisis lines.** Add entries to `crisisPage.international.lines` in
+  `content/crisis.ts`, each with the provider page you checked and the date.
+- **`ownUse`** on each resource in `content/resources.ts`. Set `true` only where you've
+  used it; the disclosure page then says so.
+- **The About facts** in `content/trust.ts`.
+- **A lawyer's review** of Privacy and Terms before any paid promotion (Section 14).
