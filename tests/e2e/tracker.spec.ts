@@ -112,7 +112,10 @@ test.describe("setup (Section 11.1)", () => {
     await expect(page.getByLabel("When did you last have contact?")).toHaveValue(TODAY);
     await expect(page.getByRole("radio", { name: "30 days" })).toBeChecked();
     await expect(page.getByRole("radio")).toHaveCount(3);
-    await expect(page.locator("form input:not([type=radio]):not([type=date])")).toHaveCount(0);
+    // The setup form itself (the footer's list signup is a separate, Section 13.3 form).
+    await expect(
+      page.getByRole("main").locator("form input:not([type=radio]):not([type=date])"),
+    ).toHaveCount(0);
 
     await page.getByRole("button", { name: "Start my streak" }).click();
     await expect(page.getByTestId("day-line")).toHaveText(

@@ -908,3 +908,169 @@ noopener"`.
   Ahrefs session before planning month two.
 - **Review** the OG card copy in `content/og.ts` and the 404 copy in
   `content/notFound.ts`.
+
+## Session 9 — Email flows (2026-11-01)
+
+**Shipped**
+
+- **`POST /api/email/`** (`app/api/email/route.ts`), the site's only server route. Logic
+  lives in `lib/email/handler.ts` so every path is unit-tested. Order: per-IP rate limit
+  (`EMAIL_RATE_LIMIT`, default 5/hour) → shared Zod validation → honeypot → provider →
+  exactly one action. Other guards:
+  - bodies over 4 KB are rejected;
+  - responses are `{ ok }` or an error code only, never the address, and `no-store`;
+  - nothing in `lib/email/` or `app/api/` logs.
+- **Consent separation (Section 13.1)** is built into the shape of the code, not
+  enforced only by UI:
+  - **(a) `send_result`:** one transactional send that never subscribes. The list join
+    happens only when the separate, unchecked box is ticked, as its own provider call.
+    If that join fails after the send, the form says so honestly.
+  - **(b) `join_list`:** list only, with a placement of footer, result or tracker.
+  - **(c) `reminders_on`:** reminders only, with their own consent.
+- **Provider interface** (`lib/email/provider.ts`): `send`, `joinList` and
+  `enableReminders`.
+  - **Resend over REST with `fetch`** — no SDK, endpoints checked against Resend's
+    current docs:
+    - `POST /emails` with auth and a category tag;
+    - contacts upserted via `POST /contacts`, falling back to
+      `PATCH /contacts/{email}` and `/contacts/{email}/topics`;
+    - auth, quota and rate errors fail instead of falling through.
+  - **Topics carry the consent.** The list and reminders are two Resend Topics, so each
+    unsubscribes independently. Reminders also store `hf_start_date`, `hf_goal_days`,
+    `hf_reminder_hour` and `hf_time_zone`.
+  - **A memory provider** records actions for tests and local QA.
+  - **No configuration means `not_configured`,** never a pretend success.
+- **The quiz result email** (`lib/email/resultEmail.ts`) is built on the server from the
+  Section 9.6 share token alone, so bands and profile come from the engine
+  (`decodeShareToken`); tampered or outdated tokens are refused. It contains:
+  - the Section 13.2 subject;
+  - both scores with bands;
+  - the lean paragraph where it applies, then the description and watch-outs;
+  - "Your first 14 days", per profile (`content/emails/actionLists.ts`);
+  - the tracker link, the reading list and the resources page;
+  - the share link;
+  - Block A, the Block A short form and the requested-on-site note (Section 14.4);
+  - Block C;
+  - a clearly separate list-join link.
+- **The welcome sequence** (`content/emails/welcome.ts`) is five emails on days 0, 2, 4,
+  7 and 10, linking what Section 13.2 names. Email 5 carries the honest-framing line
+  and the `email-welcome-5` slot. While the slot is disabled, it links the resources
+  page instead; when enabled, the Section 14.5 disclosure sits directly above it,
+  inside the email.
+- **Reminder templates** (`content/emails/reminders.ts`): "Day N. Still going." with
+  "If you've already checked in today, ignore this.", plus a goal-reached email that
+  stops reminders.
+- **`renderMarketingEmail`** puts Resend's `{{{RESEND_UNSUBSCRIBE_URL}}}` one-click
+  link, the config mailing address and Block C in every list and reminder email. It
+  **refuses to render without a mailing address**, except in preview mode.
+- **`npm run emails:export`** writes every template to `emails-out/` (git-ignored) for
+  loading into Resend automations. It fails until the mailing address is set.
+- **Forms**, each with one email field, a honeypot, inline errors via `aria-live`,
+  inline success and no redirect:
+  - **The footer** (Section 13.3, verbatim microcopy) on every page. It's the only
+    pre-value form.
+  - **The tracker** shows reminders (with an hour picker) and its own list join, only
+    once a streak exists. Reminders send Day 1, the goal, the hour and the time zone —
+    never notes, urges or slips. Success sets `reminderOptIn` in the tracker state; the
+    address is never stored in the browser.
+  - **`components/quiz/EmailResultForm.tsx`** is built and unit-tested (the verbatim,
+    unchecked-by-default list box; a print fallback on failure). Session 5 places it on
+    the result view.
+- **Privacy Policy** now says exactly what reminders store and how long it's kept.
+- **`.env.example`** adds `EMAIL_REMINDER_TOPIC_ID` and the test-only `EMAIL_PROVIDER`.
+  Playwright runs the server with the memory provider.
+- Tests:
+  - 414 unit tests pass (5 skipped: launch checks and export; 3 `todo`s). The new ones
+    cover:
+    - consent separation for every action;
+    - disposable addresses accepted;
+    - honeypot, rate limit and sliding window;
+    - token tampering, no provider, provider failure, no echo;
+    - reminder setting validation, and unknown fields stripped;
+    - no logging;
+    - every required part of the result email;
+    - the marketing footer (unsubscribe, address, crisis line);
+    - the welcome-sequence schedule and links;
+    - the disclosure above an enabled email slot;
+    - copy rules (no urgency, nothing person-like, no subscription or prohibited
+      terms);
+    - the Resend adapter against a fake `fetch`;
+    - provider selection;
+    - the verbatim form copy.
+  - 783 Playwright tests pass. 6 are marked `fixme` (the quiz routes). They check:
+    - the footer form on every page type;
+    - inline validation, then a join with the **exact request body** (action,
+      address, placement and the empty honeypot only);
+    - no tracker form before a streak;
+    - reminders sending only what they need, and staying on after reload, with the
+      address not in `localStorage`;
+    - the tracker list join leaving reminders off;
+    - the API's codes, `no-store`, the 400/413/405 cases, and robots/sitemap
+      exclusion.
+- Mutation check: each of these is caught:
+  - a result send that always joins the list;
+  - reminders that also join the list;
+  - a marketing email without unsubscribe;
+  - the footer sending an extra field.
+- Size: tracker 145 kB and decision tool 146 kB first-load JS (budget 180 kB); other
+  pages 106 kB.
+
+**Not done — needs the founder (the session's done-when)**
+
+Section 18 says Session 9 is done when the Section 16.4 email criteria pass **on a
+preview with a real inbox**. That needs Resend set up, so it is **not yet verified**:
+
+1. In Resend:
+   - verify the sending domain (SPF, DKIM, DMARC);
+   - create two Topics with default "Opt-out": the email list and tracker reminders;
+   - create the four `hf_*` contact properties (types in `.env.example`).
+2. In Vercel: set `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_LIST_ID` (the
+   list Topic) and `EMAIL_REMINDER_TOPIC_ID`.
+3. Set `mailingAddress` in `config/site.ts`, run `npm run emails:export`, and load the
+   welcome sequence into a Resend automation for list joins.
+4. On the preview, check:
+   - footer, tracker and result joins land on the list Topic;
+   - a result send with the box unticked creates **no** list subscription;
+   - reminders land on the reminder Topic, independent of the list;
+   - one-click unsubscribe works for each Topic.
+
+Two adapter details the docs left ambiguous are confirmed by step 4:
+
+- the status Resend returns for an existing contact;
+- whether `PATCH /contacts/{email}/topics` takes `{ topics: [...] }` or a bare array.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **Topics, not one list.** Section 13.1 needs reminders as "their own consent flag,
+  unsubscribable independently". In Resend that is a Topic, so `EMAIL_LIST_ID` holds
+  the list Topic id and `EMAIL_REMINDER_TOPIC_ID` is added.
+- **Reminder sending isn't built.** Section 18 says "sending configured in the
+  provider". The daily "Day N" email needs a per-contact daily schedule that skips days
+  with a check-in. Whether a Resend automation can compute Day N from
+  `hf_start_date` + time zone is unconfirmed. If it can't, the smallest fix is a daily
+  scheduled job that reads the reminder Topic from Resend: no database, but it is new
+  server code. **Open question for the founder before reminders go live.**
+- **The rate limit is in-memory, per server instance** (no database in the MVP).
+  Accepted for launch, with the honeypot as a second guard.
+- **No tracker summary email.** Section 13.1(a) mentions "my tracker summary", but
+  nothing in Sections 11.1, 13.2 or 16.4 specifies or tests one. The tracker already
+  exports its data.
+- **Result email transport:** the share token, not raw scores. It's the same data,
+  validated by the engine's own decoder.
+- **The result email carries both the Block A short form (Section 14.4) and full Block
+  A (Section 13.2).**
+- **Endpoint path is `/api/email/`** with a trailing slash; without it,
+  `trailingSlash: true` 308-redirects the POST.
+
+**Deferred**
+
+- Placing `EmailResultForm` on the result view → Session 5.
+- `email_result_*`, `newsletter_signup` and `reminder_optin` analytics → Session 13,
+  with codes, placements and goal days only.
+
+**For founder review now:**
+
+- The 14-day action lists (`content/emails/actionLists.ts`), as Section 13.2 asks for
+  Session 9.
+- The welcome sequence and reminder copy (`content/emails/`).
+- The form copy (`content/emails/forms.ts`).

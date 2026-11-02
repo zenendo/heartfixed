@@ -9,6 +9,14 @@ import { routes, site } from "@/config/site";
 export type Segment = string | { strong: string } | { link: string; href: string };
 
 /**
+ * Block A short form — Section 14.4. Opens every transactional email (the quiz result
+ * email), alongside a note that the email was requested on the site.
+ */
+export const blockAShort = {
+  text: "This is a self-reflection result, not a diagnosis or therapy.",
+} as const;
+
+/**
  * Block B — general not-therapy disclaimer. Footer area of every tool page and the
  * About page. The brand name comes from config/site.ts; the words are otherwise fixed.
  */
