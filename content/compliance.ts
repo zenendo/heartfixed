@@ -37,7 +37,14 @@ export const blockD: readonly Segment[] = [
   " page lists international helplines, and your local emergency number always works. Please reach out to a person today.",
 ];
 
-// TODO(session-5): Block A (self-reflection disclaimer).
+/**
+ * Block A — self-reflection disclaimer. Under the quiz result headline (Session 5), on
+ * the quiz page (Session 4), and on the methodology page.
+ */
+export const blockA = {
+  text: "This assessment is a self-reflection tool informed by attachment research. It is not a medical or psychological diagnosis, it is not therapy, and it is not a substitute for professional support. Only a qualified professional who knows your full situation can assess your mental health. If you are struggling, please consider talking to a licensed professional.",
+} as const;
+
 /** Block E — draft-privacy notice. Directly above the decision tool's draft textarea. */
 export const blockE = {
   text: "Your draft stays in this browser. It is not sent anywhere, not stored after you leave this page, not used to train anything, and never seen by a person. The checks below run on your device.",

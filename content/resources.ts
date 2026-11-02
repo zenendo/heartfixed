@@ -17,6 +17,11 @@ export interface Resource {
   text: string;
   /** The affiliate slot rendered after this resource (Section 13.4). */
   slotId: string;
+  /**
+   * True only when the founder has used it — the affiliate disclosure then says so
+   * (Section 14.5: "stated only where true"). TODO(session-11 founder): set per resource.
+   */
+  ownUse?: boolean;
 }
 
 export interface OwnLink {

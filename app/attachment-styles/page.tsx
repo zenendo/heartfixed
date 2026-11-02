@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BandTable } from "@/components/content/BandTable";
 import { Faq } from "@/components/content/Faq";
 import { ProfileCard } from "@/components/content/ProfileCard";
 import { QuizCta } from "@/components/content/QuizCta";
@@ -7,17 +8,16 @@ import { ButtonLink } from "@/components/ui/Button";
 import { routes } from "@/config/site";
 import { hubCopy as h, profilePageCopy } from "@/content/attachment-styles";
 import { faqs } from "@/content/faqs";
-import { profileFor, profiles, type Band, type ProfileId } from "@/lib/quiz";
+import { profiles, type ProfileId } from "@/lib/quiz";
 import { metadataFor } from "@/lib/seo/metadata";
 
 export const metadata = metadataFor(routes.attachmentStyles);
 
 const PROFILE_ORDER: readonly ProfileId[] = ["secure", "anxious", "avoidant", "fearful-avoidant"];
-const BANDS: readonly Band[] = ["low", "moderate", "high"];
 
 /**
  * /attachment-styles/ — the explainer hub (Section 6). Links all four profiles and the
- * quiz. The band table is computed from the engine's profileFor, so it can never
+ * quiz. The band table (BandTable) is computed from the engine's profileFor, so it can never
  * disagree with how results are scored.
  */
 export default function AttachmentStylesPage() {
@@ -62,52 +62,7 @@ export default function AttachmentStylesPage() {
             {text}
           </p>
         ))}
-        <div className="mt-4 overflow-x-auto">
-          <table
-            className="w-full table-fixed border-collapse text-left text-small sm:text-sm [&_td]:break-words [&_th]:break-words"
-            data-testid="band-table"
-          >
-            <caption className="mb-2 text-left text-muted">{h.dimensions.tableCaption}</caption>
-            <thead>
-              <tr>
-                <th scope="col" className="border-b border-muted py-2 pr-2">
-                  <span className="sr-only">{`${h.dimensions.anxietyLabel} by row, ${h.dimensions.avoidanceLabel} by column`}</span>
-                </th>
-                {BANDS.map((avoidance) => (
-                  <th
-                    key={avoidance}
-                    scope="col"
-                    className="border-b border-muted px-1 py-2 font-normal text-muted"
-                  >
-                    {avoidance}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {BANDS.map((anxiety) => (
-                <tr key={anxiety}>
-                  <th
-                    scope="row"
-                    className="border-b border-panel py-2 pr-1 font-normal text-muted"
-                  >
-                    {anxiety}
-                  </th>
-                  {BANDS.map((avoidance) => {
-                    const id = profileFor(anxiety, avoidance);
-                    return (
-                      <td key={avoidance} className="border-b border-panel px-1 py-2">
-                        <Link href={profiles[id].route} className="text-primary underline">
-                          {profiles[id].name}
-                        </Link>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <BandTable caption={h.dimensions.tableCaption} className="mt-4" />
       </section>
 
       <section aria-labelledby="trap-heading" className="mt-12">
