@@ -3,7 +3,7 @@ import { routes } from "../../config/site";
 import { profilePages } from "../../content/attachment-styles";
 import { faqs } from "../../content/faqs";
 import { profileFor, profiles, type Band, type ProfileId } from "../../lib/quiz";
-import { validateJsonLd } from "../../lib/seo/schema";
+import { SITEWIDE_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
 
 /**
  * Session 8 — /attachment-styles/ and the four profile pages. Section 18's done-when:
@@ -18,7 +18,10 @@ const PROHIBITED =
 
 async function jsonLdBlocks(page: Page) {
   const raw = await page.locator('script[type="application/ld+json"]').allTextContents();
-  return raw.map((text) => JSON.parse(text) as Record<string, unknown>);
+  // Page-level schema only: the sitewide WebSite/Organization are checked in seo.spec.ts.
+  return raw
+    .map((text) => JSON.parse(text) as Record<string, unknown>)
+    .filter((b) => !(SITEWIDE_SCHEMA_TYPES as readonly unknown[]).includes(b["@type"]));
 }
 
 const PAGES = [

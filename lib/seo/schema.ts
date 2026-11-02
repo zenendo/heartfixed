@@ -1,4 +1,5 @@
 import { baseUrl, site } from "@/config/site";
+import { APPLE_ICON_PATH } from "@/lib/seo/ogConfig";
 
 /**
  * JSON-LD builders — Section 12.2. FAQPage is generated from the same content/faqs.ts
@@ -15,7 +16,36 @@ export const PROHIBITED_SCHEMA_TYPES = [
   "AggregateRating",
 ] as const;
 
-// TODO(session-12): WebSite + Organization (sitewide).
+/**
+ * Sitewide WebSite + Organization (Section 12.2). Faceless: no founder Person entity.
+ * Social profiles come only from config/site.ts and are omitted while empty (12.5).
+ */
+export function organizationSchema() {
+  const sameAs = Object.values(site.social).filter(Boolean);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${absolute("/")}#organization`,
+    name: site.name,
+    url: absolute("/"),
+    logo: absolute(APPLE_ICON_PATH),
+    ...(sameAs.length > 0 && { sameAs }),
+  };
+}
+
+/** Root types every page carries from the layout; page-level checks set them aside. */
+export const SITEWIDE_SCHEMA_TYPES = ["WebSite", "Organization"] as const;
+
+export function websiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${absolute("/")}#website`,
+    name: site.name,
+    url: absolute("/"),
+    publisher: { "@id": `${absolute("/")}#organization` },
+  };
+}
 
 export interface ArticleInput {
   route: string;
@@ -96,7 +126,7 @@ export const ALLOWED_SCHEMA_TYPES = [
   "Answer",
   "Article",
   "Organization",
-  // TODO(session-12): "WebSite".
+  "WebSite",
 ] as const;
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
@@ -179,6 +209,11 @@ export function validateJsonLd(data: unknown): string[] {
       if (!isRecord(org) || org["@type"] !== "Organization" || !nonEmpty(org.name)) {
         problems.push(`Article ${key} must be an Organization with a name`);
       }
+    }
+  } else if (data["@type"] === "Organization" || data["@type"] === "WebSite") {
+    if (!nonEmpty(data.name)) problems.push(`${String(data["@type"])} needs a name`);
+    if (typeof data.url !== "string" || !/^https?:\/\//.test(data.url)) {
+      problems.push(`${String(data["@type"])} url must be absolute`);
     }
   } else {
     problems.push(`unexpected root type ${String(data["@type"])}`);
