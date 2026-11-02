@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { footerNav, routes, site } from "@/config/site";
+import { EmailSignup } from "@/components/content/EmailSignup";
 import { CrisisFooterLine } from "./CrisisFooterLine";
 
 export function Footer() {
@@ -28,7 +29,7 @@ export function Footer() {
           </div>
         </nav>
 
-        {/* TODO(session-9): footer email signup (Section 13.3) — list join, action (b) only. */}
+        <EmailSignup placement="footer" id="email-signup" className="mt-8 max-w-xl print:hidden" />
 
         <p className="mt-8 text-sm text-muted print:hidden">
           Some links on this site may be affiliate links. They never change the tools or your

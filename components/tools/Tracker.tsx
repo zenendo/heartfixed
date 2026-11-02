@@ -2,23 +2,28 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { EmailSignup } from "@/components/content/EmailSignup";
 import { CheckInForm } from "@/components/tools/CheckInForm";
+import { ReminderOptIn } from "@/components/tools/ReminderOptIn";
 import { SlipFlow } from "@/components/tools/SlipFlow";
 import { StreakCalendar } from "@/components/tools/StreakCalendar";
 import { TrackerSetup } from "@/components/tools/TrackerSetup";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { routes } from "@/config/site";
+import { formCopy } from "@/content/emails/forms";
 import { trackerCopy as t } from "@/content/tracker";
 import { downloadText } from "@/lib/download";
 import { clearStored, exportStored, readStored, storageKeys, writeStored } from "@/lib/storage";
 import {
   TrackerError,
+  addDays,
   calendar,
   checkGoalCompletion,
   checkIn,
   extendGoal,
   goalProgress,
+  lastContactDate,
   longestStreak,
   recordSlip,
   toLocalDate,
@@ -378,8 +383,24 @@ export function Tracker() {
           </Button>
         </div>
 
-        {/* TODO(session-9): tracker reminder opt-in (Section 13.1(c)) — shown only once a
-            streak exists, as the only continuity mechanism, without overselling it. */}
+        {/* Section 13.1: reminders (c) and the list (b) are separate forms, shown only
+            once a streak exists. */}
+        <div className="space-y-6 rounded-card border border-panel px-4 py-4 print:hidden">
+          {state.reminderOptIn ? (
+            <p data-testid="reminders-on" className="text-sm">
+              {formCopy.reminders.on}
+            </p>
+          ) : (
+            !state.goalReachedOn && (
+              <ReminderOptIn
+                startDate={addDays(lastContactDate(state), 1)}
+                goalDays={state.goalDays}
+                onEnabled={() => save({ ...state, reminderOptIn: true })}
+              />
+            )
+          )}
+          <EmailSignup placement="tracker" />
+        </div>
 
         <section
           aria-labelledby="data-heading"

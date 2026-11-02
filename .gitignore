@@ -8,6 +8,7 @@ next-env.d.ts
 *.tsbuildinfo
 
 # testing
+emails-out/
 coverage/
 playwright-report/
 test-results/

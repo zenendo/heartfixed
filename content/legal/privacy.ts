@@ -47,7 +47,7 @@ export const privacyPolicy: LegalDoc = {
           list: [
             "Sending yourself a result or summary: we send that one email. It does not add you to any list.",
             "Joining the email list: you receive one or two emails a week about getting through a breakup, until you unsubscribe.",
-            "Tracker reminders: you receive functional streak reminders, until you turn them off or reach your goal.",
+            "Tracker reminders: you receive functional streak reminders, until you turn them off or reach your goal. To time them, we store the start date of your current streak, your goal, the hour you chose and your time zone — never your notes, urge ratings or slips.",
           ],
         },
         {
@@ -136,7 +136,7 @@ export const privacyPolicy: LegalDoc = {
         {
           list: [
             `Email list: until you unsubscribe, or after ${legal.listInactivityPurgeMonths} months without opening any of our emails, whichever comes first.`,
-            "Tracker reminders: until you turn them off or reach your goal.",
+            "Tracker reminders: your address, streak start date, goal, reminder hour and time zone, until you turn reminders off or reach your goal.",
             "Result emails: we don't keep the address on any list. Our email provider keeps a delivery record under its own retention period.",
             "Analytics: kept in aggregate, under the analytics provider's retention settings.",
           ],

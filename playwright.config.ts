@@ -17,6 +17,8 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // The memory provider records email actions; nothing is sent from tests.
+    env: { EMAIL_PROVIDER: "memory", EMAIL_RATE_LIMIT: "1000" },
   },
   projects: [
     // Section 8.1: designed at 360px, must be usable at 320px.
