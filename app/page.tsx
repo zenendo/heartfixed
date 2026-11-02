@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { routes, tools } from "@/config/site";
 import { allGuides } from "@/content/guides";
 import { home } from "@/content/home";
-import type { ProfileId } from "@/lib/quiz";
+import { profiles, type ProfileId } from "@/lib/quiz";
 import { metadataFor } from "@/lib/seo/metadata";
 
 export const metadata = metadataFor(routes.home);
@@ -50,7 +50,7 @@ export default function HomePage() {
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PROFILE_ORDER.map((id) => (
             <li key={id}>
-              <ProfileCard id={id} linkLabel={home.patterns.cardLink} />
+              <ProfileCard id={id} linkLabel={home.patterns.cardLink(profiles[id].name)} />
             </li>
           ))}
         </ul>

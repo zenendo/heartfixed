@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { GOAL_OPTIONS, isoDateSchema } from "@/lib/tools/tracker";
+import { EMAIL_ERROR, EMAIL_MAX, PLACEMENTS } from "./rules";
 
 /**
- * Email request validation — Section 13.1. One Zod schema, shared by every form (client)
- * and the API route (server). Three actions, never conflated:
+ * Email request validation — Section 13.1. The API route's Zod schema, built on the same
+ * address rule the forms use (lib/email/rules.ts). Three actions, never conflated:
  *
  * - send_result:  (a) a one-off transactional email of his own result. Never subscribes.
  *                 Carries the share token only (two scores + version, Section 9.6).
@@ -14,16 +15,13 @@ import { GOAL_OPTIONS, isoDateSchema } from "@/lib/tools/tracker";
  * honeypot field: a real person never sees it, so any value marks a bot.
  */
 
-export const EMAIL_MAX = 254;
+export { EMAIL_MAX, PLACEMENTS, checkEmail, type Placement } from "./rules";
 
 export const emailSchema = z
   .string()
   .trim()
   .max(EMAIL_MAX)
-  .pipe(z.email({ error: "Enter a full email address, like name@example.com." }));
-
-export const PLACEMENTS = ["footer", "result", "tracker"] as const;
-export type Placement = (typeof PLACEMENTS)[number];
+  .pipe(z.email({ error: EMAIL_ERROR }));
 
 const honeypot = z.string().max(200).optional();
 
@@ -92,9 +90,3 @@ export type EmailErrorCode = (typeof ERROR_CODES)[number];
  */
 export type EmailResponse =
   { ok: true; listJoined?: boolean } | { ok: false; error: EmailErrorCode };
-
-/** Client-side check of the address alone, with the same rule as the server. */
-export function checkEmail(input: string): string | null {
-  const parsed = emailSchema.safeParse(input);
-  return parsed.success ? null : (parsed.error.issues[0]?.message ?? "Enter a full email address.");
-}

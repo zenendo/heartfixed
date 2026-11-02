@@ -35,7 +35,9 @@ import {
   marketingReasons,
 } from "@/lib/email/render";
 import { buildResultEmail, resultFromToken } from "@/lib/email/resultEmail";
-import { emailRequestSchema } from "@/lib/email/validate";
+import { EMAIL_PATTERN, checkEmail } from "@/lib/email/rules";
+import { emailRequestSchema, emailSchema } from "@/lib/email/validate";
+import { z } from "zod";
 import { encodeShareToken, profileCopy } from "@/lib/quiz";
 
 /** Session 9 — email flows: Sections 13.1–13.4, 14.4, 14.5 and 16.1. */
@@ -487,6 +489,35 @@ describe("the Resend adapter — Section 7.1 (REST, no SDK)", () => {
     expect(
       providerFromEnv({ EMAIL_PROVIDER_API_KEY: "k", EMAIL_FROM_ADDRESS: "a@b.c" }),
     ).toBeNull();
+  });
+});
+
+describe("the zod-free address check — Sections 13.1, 16.3", () => {
+  it("copies zod's own email regex exactly", () => {
+    expect(EMAIL_PATTERN.source).toBe(z.regexes.email.source);
+  });
+
+  it("agrees with the server schema on every case", () => {
+    for (const input of [
+      "reader@example.com",
+      "  reader@example.com  ",
+      "first.last+tag@sub.example.co.uk",
+      "o'neil@example.com",
+      "not-an-email",
+      "reader@",
+      "@example.com",
+      "reader@example",
+      ".reader@example.com",
+      "a..b@example.com",
+      "reader @example.com",
+      "",
+      `${"a".repeat(245)}@example.com`,
+      `${"a".repeat(244)}@example.com`,
+    ]) {
+      expect(checkEmail(input) === null, JSON.stringify(input)).toBe(
+        emailSchema.safeParse(input).success,
+      );
+    }
   });
 });
 

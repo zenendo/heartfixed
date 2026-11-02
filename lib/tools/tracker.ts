@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 
 /**
  * No-contact tracker logic — Section 11.1. Pure functions over TrackerState; the page
@@ -53,14 +53,16 @@ export function addDays(date: IsoDate, days: number): IsoDate {
   return fromUtc(utcMidnight(date) + days * DAY_MS);
 }
 
-export const isoDateSchema = z.string().refine((s) => {
-  try {
-    utcMidnight(s);
-    return true;
-  } catch {
-    return false;
-  }
-}, "Expected a real YYYY-MM-DD date");
+export const isoDateSchema = z.string().check(
+  z.refine((s) => {
+    try {
+      utcMidnight(s);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Expected a real YYYY-MM-DD date"),
+);
 
 // ---- State -----------------------------------------------------------------------
 
@@ -118,14 +120,14 @@ export const trackerStateSchema = z.object({
     z.object({
       date: isoDateSchema,
       urgeLevel: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
-      note: z.string().max(NOTE_MAX_LENGTH).optional(),
+      note: z.optional(z.string().check(z.maxLength(NOTE_MAX_LENGTH))),
     }),
   ),
   slips: z.array(z.object({ date: isoDateSchema, restartedOn: isoDateSchema })),
-  longestStreak: z.number().int().min(0),
+  longestStreak: z.int().check(z.minimum(0)),
   reminderOptIn: z.boolean(),
-  goalReachedOn: isoDateSchema.optional(),
-}) satisfies z.ZodType<TrackerState>;
+  goalReachedOn: z.optional(isoDateSchema),
+}) satisfies z.ZodMiniType<TrackerState>;
 
 export class TrackerError extends Error {
   override name = "TrackerError";

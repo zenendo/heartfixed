@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 
 /**
  * Decision-tool local state — Section 11.2. Both live only in this browser, via
@@ -30,13 +30,13 @@ export const unsentVaultSchema = z.object({
   entries: z
     .array(
       z.object({
-        id: z.string().min(1).max(64),
+        id: z.string().check(z.minLength(1), z.maxLength(64)),
         savedAt: z.iso.datetime(),
-        text: z.string().min(1).max(VAULT_TEXT_MAX),
+        text: z.string().check(z.minLength(1), z.maxLength(VAULT_TEXT_MAX)),
       }),
     )
-    .max(VAULT_MAX_ENTRIES),
-}) satisfies z.ZodType<UnsentVault>;
+    .check(z.maxLength(VAULT_MAX_ENTRIES)),
+}) satisfies z.ZodMiniType<UnsentVault>;
 
 export const emptyVault = (): UnsentVault => ({ version: 1, entries: [] });
 
@@ -71,7 +71,7 @@ export interface Recheck {
 export const recheckSchema = z.object({
   version: z.literal(1),
   recheckAt: z.iso.datetime(),
-}) satisfies z.ZodType<Recheck>;
+}) satisfies z.ZodMiniType<Recheck>;
 
 export function recheckFrom(now: Date): Recheck {
   return {

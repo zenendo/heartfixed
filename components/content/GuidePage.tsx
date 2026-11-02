@@ -93,6 +93,7 @@ export function GuidePage({ route }: { route: string }) {
 
       <ToolBlock
         tool={meta.tool}
+        guide={route.split("/").filter(Boolean).pop()}
         heading={guide.toolBlock?.heading}
         body={guide.toolBlock?.body}
         className="mt-12"

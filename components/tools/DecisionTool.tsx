@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useEffect, useState, type ReactNode } from "react";
 import { DecisionOutcome } from "@/components/tools/DecisionOutcome";
 import { DraftCheck } from "@/components/tools/DraftCheck";
@@ -158,15 +159,18 @@ export function DecisionTool() {
       (step === 2 && !answers.purpose) ||
       (step === 3 && (answers.alcohol === null || answers.draftedAndDeleted === null));
     if (missing) return setError(t.chooseError);
-    if (step === 1) {
-      // TODO(session-13): decision_started analytics event.
-    }
+    if (step === 1) track({ name: "decision_started", params: {} });
     if (step === 4) {
       const input = complete(answers)!;
       const at = new Date();
-      setDecision(decide(input, answers.draft || null, at));
+      const result = decide(input, answers.draft || null, at);
+      setDecision(result);
       setDecidedAt(at);
-      // TODO(session-13): decision_completed { outcome, draft_check_used } — never draft text.
+      // Outcome code and a yes/no only — never the draft.
+      track({
+        name: "decision_completed",
+        params: { outcome: result.outcome, draft_check_used: answers.draft.trim() !== "" },
+      });
     }
     goTo(step + 1);
   }
@@ -238,7 +242,7 @@ export function DecisionTool() {
             focusSoon(step === TOTAL_STEPS ? "outcome-heading" : `step-${step}-heading`);
           }}
           onComplete={() => {
-            // TODO(session-13): urge_timer_completed { from } analytics event.
+            track({ name: "urge_timer_completed", params: { from: mode.from } });
             setMode({ name: "timer-done", from: mode.from });
             focusSoon("timer-done-heading");
           }}

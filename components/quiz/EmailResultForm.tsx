@@ -5,8 +5,9 @@ import { Honeypot } from "@/components/content/EmailSignup";
 import { Button } from "@/components/ui/Button";
 import { formCopy } from "@/content/emails/forms";
 import { encodeShareToken, type QuizResult } from "@/lib/quiz";
+import { track } from "@/lib/analytics";
 import { postEmail } from "@/lib/email/client";
-import { checkEmail } from "@/lib/email/validate";
+import { checkEmail } from "@/lib/email/rules";
 
 const f = formCopy.result;
 
@@ -19,8 +20,8 @@ type Status =
  * Email the full result — Sections 10.3 (item 7) and 13.1 (a). Sends the share token
  * only (two scores + version, never answers). The list checkbox is separate and
  * unchecked by default; ticking it is the only way this form joins the list.
- * Placed on the result view in Session 5. TODO(session-13): email_result_* events with
- * an error code only.
+ * Placed on the result view in Session 5. Sends email_result_* events, with an error code
+ * only; and newsletter_signup { placement: "result" } when the list box joined.
  */
 export function EmailResultForm({
   result,
@@ -38,6 +39,7 @@ export function EmailResultForm({
     const problem = checkEmail(email);
     if (problem) return setStatus({ kind: "error", message: problem });
     setStatus({ kind: "sending" });
+    track({ name: "email_result_submit", params: {} });
     const res = await postEmail({
       action: "send_result",
       email,
@@ -45,6 +47,12 @@ export function EmailResultForm({
       alsoJoinList,
       website,
     });
+    if (res.ok) {
+      track({ name: "email_result_success", params: {} });
+      if (res.listJoined) track({ name: "newsletter_signup", params: { placement: "result" } });
+    } else {
+      track({ name: "email_result_error", params: { error: res.error } });
+    }
     setStatus(
       res.ok
         ? { kind: "done", email: email.trim(), listJoined: res.listJoined }

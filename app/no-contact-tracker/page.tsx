@@ -36,7 +36,7 @@ export default function NoContactTrackerPage() {
       </Card>
 
       <div className="print:hidden">
-        <CrisisBlock className="mt-8" />
+        <CrisisBlock className="mt-8" placement="tracker" />
 
         <section aria-labelledby="explainer-heading" className="mt-12">
           <h2 id="explainer-heading" className="text-xl font-semibold">

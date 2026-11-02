@@ -185,7 +185,7 @@ export function DecisionOutcome({
 
       {outcome === "dont_send" && <AffiliateSlot id="decision-dont-send" />}
 
-      <CrisisBlock />
+      <CrisisBlock placement="decision" />
     </div>
   );
 }

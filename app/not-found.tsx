@@ -10,7 +10,7 @@ export const metadata = notFoundMetadata;
 /** Section 12.2: a real 404 page linking the three tools and the crisis page. */
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 md:py-16">
+    <div className="mx-auto max-w-3xl px-4 py-10 md:py-16" data-page-not-found>
       <h1>{t.h1}</h1>
       <p className="mt-4 text-lg">{t.body}</p>
 

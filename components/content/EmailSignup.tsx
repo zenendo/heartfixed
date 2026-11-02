@@ -3,8 +3,9 @@
 import { useId, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { formCopy as f } from "@/content/emails/forms";
+import { track } from "@/lib/analytics";
 import { postEmail } from "@/lib/email/client";
-import { checkEmail, type Placement } from "@/lib/email/validate";
+import { checkEmail, type Placement } from "@/lib/email/rules";
 
 type Status = { kind: "idle" | "sending" | "done" } | { kind: "error"; message: string };
 
@@ -30,8 +31,7 @@ export function Honeypot({ value, onChange }: { value: string; onChange: (v: str
 /**
  * Join the email list — Section 13.1 (b) only. The footer's version (Section 13.3) is
  * the one pre-value form on the site; the tracker shows it once a streak exists.
- * One field, inline success, no redirect. TODO(session-13): newsletter_signup event
- * with `placement` only.
+ * One field, inline success, no redirect. Sends newsletter_signup { placement } only.
  */
 export function EmailSignup({
   placement,
@@ -53,6 +53,7 @@ export function EmailSignup({
     if (problem) return setStatus({ kind: "error", message: problem });
     setStatus({ kind: "sending" });
     const res = await postEmail({ action: "join_list", email, placement, website });
+    if (res.ok) track({ name: "newsletter_signup", params: { placement } });
     setStatus(res.ok ? { kind: "done" } : { kind: "error", message: f.errors[res.error] });
   }
 

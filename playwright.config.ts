@@ -18,7 +18,14 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     // The memory provider records email actions; nothing is sent from tests.
-    env: { EMAIL_PROVIDER: "memory", EMAIL_RATE_LIMIT: "1000" },
+    // A test measurement id turns analytics on so tests can inspect the real
+    // /api/collect/ payloads; with no GA4_API_SECRET, the server forwards nothing.
+    env: {
+      EMAIL_PROVIDER: "memory",
+      EMAIL_RATE_LIMIT: "1000",
+      ANALYTICS_RATE_LIMIT: "100000",
+      NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-TEST000000",
+    },
   },
   projects: [
     // Section 8.1: designed at 360px, must be usable at 320px.

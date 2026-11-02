@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { draftCheck as rules } from "@/config/content";
 
 /**
@@ -27,7 +27,7 @@ export const decisionInputSchema = z.object({
   sinceContact: z.enum(CONTACT_BANDS),
   purpose: z.enum(PURPOSES),
   alcohol: z.boolean(),
-  intensity: z.number().int().min(0).max(10),
+  intensity: z.int().check(z.minimum(0), z.maximum(10)),
   draftedAndDeleted: z.boolean(),
 });
 export type DecisionInput = z.infer<typeof decisionInputSchema>;
