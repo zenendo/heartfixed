@@ -17,6 +17,7 @@ export {
 export { attentionCheck, checkQuestionBank, questions, renderStem } from "./questions";
 export {
   checkProfileCopy,
+  profileCopy,
   profileCopyRules,
   profiles,
   type NextStep,

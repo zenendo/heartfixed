@@ -417,3 +417,100 @@ doesn't need to reset the counter.
 - Outcome reasons, step wording and FAQ in `content/decision.ts` and `content/faqs.ts`.
 - The extra pressure and ultimatum phrases in `config/content.ts` (from Session 3).
 - The logistics template pattern.
+
+## Session 8 — Profile pages and attachment hub (2026-11-01)
+
+**Shipped**
+
+- `/attachment-styles/`, the hub. It has:
+  - four profile cards;
+  - "Two scores, not four boxes", with a table showing which pattern each band
+    combination lands in;
+  - the anxious–avoidant trap;
+  - "Patterns, not labels";
+  - a quiz block;
+  - "Where to read more", naming _Attached_ and _Anxiously Attached_ with no links;
+  - a methodology link and a 4-question FAQ.
+- `/attachment-styles/[profile]/`, statically generated for `secure`, `anxious`,
+  `avoidant` and `fearful-avoidant`. Any other slug is a 404. Each page has:
+  - the band combinations that land on it;
+  - a "Check your own scores" quiz block;
+  - what the pattern is (with all three lean paragraphs on the secure page);
+  - how it shows up in a relationship;
+  - after a breakup, and the no-contact risk with a tracker link;
+  - watch-outs and strengths;
+  - what helps, and "patterns can shift";
+  - two next steps and the methodology link;
+  - the other three profiles, and a 3-question FAQ.
+- **Profile copy for all four profiles** is in `lib/quiz/profiles.ts` as `profileCopy`,
+  so the Session 5 result view can reuse it. Each profile has a headline, a description
+  (145–152 words), after-a-breakup, no-contact risk, three watch-outs, three strengths,
+  two next steps, and the leans for secure. It is gender-neutral by rule.
+- Long-form page copy is in `content/attachment-styles.ts`; the FAQs are in
+  `content/faqs.ts` (`attachmentStyles`, `profiles`).
+- **Band combinations are computed with `profileFor` from `lib/quiz`.** The hub table
+  and each profile's list can't disagree with scoring.
+- `validateJsonLd` in `lib/seo/schema.ts` structurally checks FAQPage and
+  BreadcrumbList. It also rejects Section 12.2 prohibited types and any type not on the
+  allow-list.
+- Metadata for the five routes is in `lib/seo/metadata.ts`.
+- Tests:
+  - 269 unit tests pass (3 `todo`s). They cover:
+    - `checkProfileCopy` on all four profiles;
+    - the Section 9.4 risk wording (message-checking, reconciliation fantasies, delayed
+      grief, rebound dating, oscillation);
+    - gender-neutral profile copy;
+    - next steps on Section 6 routes;
+    - the Section 14.2 terms over every page string (including "disorder" and
+      "guarantee"), identity claims and timeline promises;
+    - the quiz framing phrase;
+    - FAQ and breadcrumb schema validity, and that the validator rejects bad schema.
+  - 300 Playwright tests pass. The 43 new tests × 3 viewports check:
+    - on each page: one h1, the canonical, the JSON-LD validating, the FAQ schema
+      matching the visible FAQ, no prohibited term in the rendered body or `<head>`,
+      the quiz and methodology links, no horizontal scroll, and 44px standalone links;
+    - the hub's four profile links, and the band table matching the engine and fitting
+      320px;
+    - the other-profile and tracker links on each profile page;
+    - the secure leans;
+    - the 404 for an unknown slug.
+- Mutation check: a prohibited term in an FAQ answer, a `Person` author in the FAQ
+  schema, and a missing other-profile link are each caught.
+- Size: 106 kB first-load JS on all five pages (static, no client components).
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **Profile copy written now, not in Session 5.** Section 18 says Session 8 reuses
+  "profile data extended with long-form content", but that data was still a Session 5
+  TODO. I drafted it in `lib/quiz/profiles.ts`, where Section 9.4 puts it. It still
+  needs the founder's word-by-word review before Session 5's result view ships.
+- **No Block A on profile pages.** Section 14.3 places Block A on the quiz page, the
+  result and methodology. It contains "therapy" and "diagnosis", which would break this
+  session's done-when (no prohibited term on these pages). The pages instead use the
+  Section 14.2 framing phrase ("a self-reflection assessment informed by attachment
+  research") and link to methodology.
+- **FAQ on the hub.** Section 12.2 lists FAQPage for the profile pages, not the hub. I
+  added one anyway because it is visible content, not schema-only.
+- **Band table at 320px.** The corner header is read only by screen readers; the caption
+  explains the rows and columns. The table uses a fixed layout and 13px header labels.
+- **Two links point at pages not built yet.** `/attachment-style-quiz/` (Session 4) and
+  `/methodology/` (Session 11) return 404 until then. So do the guides
+  `/guides/attachment-styles-after-a-breakup/` and
+  `/guides/how-long-does-a-breakup-take/` (Session 10).
+- **The production server logs `NoFallbackError` for an unknown slug.** This is Next
+  15's normal `dynamicParams = false` path, and the response is a correct 404.
+
+**Deferred**
+
+- Linking the hub from the homepage → Session 10, the homepage hub. Until then the hub is
+  reachable only from the profile pages' breadcrumbs.
+- WebSite, Organization and Article schema, and OG images → Session 12.
+- Lighthouse and axe on these pages → Session 13.
+
+**For founder review now:**
+
+- All four profiles' copy in `lib/quiz/profiles.ts`. This is the product's voice at its
+  most exposed (Section 18, Week 2).
+- The page copy in `content/attachment-styles.ts`, in particular the claim that secure is
+  "the most common pattern in the research".
+- The profile and hub FAQs in `content/faqs.ts`.
