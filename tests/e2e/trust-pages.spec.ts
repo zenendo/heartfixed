@@ -4,7 +4,7 @@ import { routes } from "../../config/site";
 import { affiliateDisclosure, blockA, blockB } from "../../content/compliance";
 import { contactPage } from "../../content/trust";
 import { profileFor, profiles, type Band } from "../../lib/quiz";
-import { validateJsonLd } from "../../lib/seo/schema";
+import { SITEWIDE_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
 
 /** Session 11 — the seven legal and trust pages (Sections 6, 14). */
 
@@ -32,7 +32,10 @@ for (const route of PAGES) {
       const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
       expect(new URL(canonical!).pathname).toBe(route);
       const raw = await page.locator('script[type="application/ld+json"]').allTextContents();
-      const blocks = raw.map((t) => JSON.parse(t) as Record<string, unknown>);
+      // Page-level schema only: the sitewide WebSite/Organization are checked in seo.spec.ts.
+      const blocks = raw
+        .map((t) => JSON.parse(t) as Record<string, unknown>)
+        .filter((b) => !(SITEWIDE_SCHEMA_TYPES as readonly unknown[]).includes(b["@type"]));
       expect(blocks.map((b) => b["@type"])).toEqual(["BreadcrumbList"]);
       for (const block of blocks) expect(validateJsonLd(block)).toEqual([]);
     });

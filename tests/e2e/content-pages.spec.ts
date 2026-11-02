@@ -5,7 +5,7 @@ import { honestFraming } from "../../content/compliance";
 import { guideContent } from "../../content/guides";
 import { resourcesPage } from "../../content/resources";
 import { profiles } from "../../lib/quiz";
-import { validateJsonLd } from "../../lib/seo/schema";
+import { SITEWIDE_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
 
 /**
  * Session 10 — homepage hub, guides, situational template, resources. Section 18's
@@ -20,7 +20,10 @@ const toolHref = (key: string) => tools.find((t) => t.key === key)!.href;
 
 async function jsonLdBlocks(page: Page) {
   const raw = await page.locator('script[type="application/ld+json"]').allTextContents();
-  return raw.map((text) => JSON.parse(text) as Record<string, unknown>);
+  // Page-level schema only: the sitewide WebSite/Organization are checked in seo.spec.ts.
+  return raw
+    .map((text) => JSON.parse(text) as Record<string, unknown>)
+    .filter((b) => !(SITEWIDE_SCHEMA_TYPES as readonly unknown[]).includes(b["@type"]));
 }
 
 async function internalLinks(request: APIRequestContext, route: string): Promise<string[] | null> {

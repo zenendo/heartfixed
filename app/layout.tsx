@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { JsonLd } from "@/components/content/JsonLd";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { defaultMetadata } from "@/lib/seo/metadata";
+import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import "./globals.css";
 
 export const metadata: Metadata = defaultMetadata;
 
-// TODO(session-12): WebSite + Organization JSON-LD, favicon set, manifest.
+// No web app manifest: Section 5.2 rules out a PWA install prompt. Icons are file-based
+// (app/icon.svg, app/apple-icon.tsx).
 // TODO(session-13): analytics (lib/analytics.ts) — no sensitive content, ever (Section 16.1).
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -25,6 +28,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {children}
         </main>
         <Footer />
+        <JsonLd data={websiteSchema()} />
+        <JsonLd data={organizationSchema()} />
       </body>
     </html>
   );

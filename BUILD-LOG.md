@@ -803,3 +803,108 @@ noopener"`.
   used it; the disclosure page then says so.
 - **The About facts** in `content/trust.ts`.
 - **A lawyer's review** of Privacy and Terms before any paid promotion (Section 14).
+
+## Session 12 — SEO infrastructure (2026-11-01)
+
+**Shipped**
+
+- **Metadata audit (Section 12.2).** Every Section 6 route now has an entry in
+  `lib/seo/metadata.ts`, including the quiz and results routes, ready for Sessions 4–5.
+  Each entry has:
+  - a unique title (≤ 60 characters, keyword first, brand last) and a unique
+    description (≤ 155);
+  - the free / no-signup fact on the three tool pages;
+  - a canonical URL from config;
+  - OG and Twitter cards (`summary_large_image`) with an image.
+  - Only the results shell is `noindex`.
+- **Per-tool OG images.** `site`, `quiz`, `tracker` and `decision` cards render with
+  `next/og` (its bundled font, no network font) at `/og/<key>/`. They are statically
+  generated, and their copy is in `content/og.ts`. The tracker, decision tool and quiz
+  each get their own card; every other page uses the site card.
+- **Icons:** `app/icon.svg` (the favicon) and a 180px touch icon at
+  `/apple-touch-icon/`, which is also the Organization logo.
+- **Sitewide JSON-LD.** WebSite and Organization are in the root layout. They are
+  faceless (no Person), and `sameAs` comes from `site.social` and is omitted while
+  empty. `validateJsonLd` now covers WebSite and Organization as well.
+- **`/sitemap.xml`** lists exactly the Section 6 indexable routes, as absolute URLs.
+  Guides and legal pages carry their real `lastModified`; other routes omit it rather
+  than guess.
+- **`/robots.txt`** allows all, disallows `/api/` and the results shell, and names the
+  sitemap.
+- **A real 404** (`app/not-found.tsx`). It returns 404 with Next's `noindex`, has its
+  own title, links the three tools and Crisis Resources, and keeps the footer crisis
+  line.
+- **Redirect rules.** `config/redirects.ts` is checked by `checkRedirects`:
+  - sources are lowercase, slash-ended paths;
+  - a source never shadows a live route;
+  - destinations are Section 6 routes;
+  - no duplicates and no chains.
+  - The list is empty at launch.
+  - www → apex, http → https and the defensive domain stay at the host (Section 17.5).
+- **Planning notes.** `docs/planning/keyword-pull.md` holds the founder's table for the
+  five unverified strings (Section 3.1).
+- **New dev dependency:** `@axe-core/playwright` 4.14.0, pinned exactly. It was
+  published 2026-10-15; `axe-core` 4.14.0 was published 2026-10-05.
+- Tests:
+  - 374 unit tests pass (4 launch checks skipped, 3 `todo`s). The new ones cover:
+    - metadata for every route, unique titles and descriptions, the tool free/no-signup
+      fact;
+    - canonical, OG and Twitter per route; card mapping; noindex only on the results
+      shell;
+    - the OG copy language;
+    - sitemap equals the indexable routes, with real dates;
+    - the robots rules;
+    - the redirect checker, plus 5 rejection cases;
+    - WebSite and Organization validity.
+  - 756 Playwright tests pass. 6 are marked `fixme` (the quiz routes).
+    `seo.spec.ts` covers:
+    - **Every built page:** title, description, canonical, og:title, og:description,
+      og:url, og:image, twitter:card and twitter:image match `lib/seo/metadata.ts`, with
+      no robots tag.
+    - **Every built page's JSON-LD:** exactly one WebSite and one Organization, every
+      block valid, no prohibited type.
+    - **Axe:** zero critical violations on every built page, the 404, a running tracker
+      streak, and the decision tool's outcome view.
+    - **No `{{`** in any page's HTML (Section 19.1).
+    - **Images:** every OG card and the touch icon return 200 PNG with no redirect.
+    - **Sitemap and robots:** the live `sitemap.xml` and `robots.txt`.
+- Mutation check: each of these is caught by both unit and Playwright tests, except the
+  404 button, which only Playwright's axe check can see:
+  - the results shell added to the sitemap;
+  - an unlabelled button on the 404 (a critical axe violation);
+  - a `Person` in the Organization schema.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **OG images come from a route handler, not the `opengraph-image` file convention.**
+  Next emits those URLs without a trailing slash (`/opengraph-image?hash`), and
+  `trailingSlash: true` then 308-redirects them. The route handler is served at
+  `/og/<key>/` with a 200, and metadata references that exact URL. The touch icon works
+  the same way.
+- **Page metadata always sets `og:image` explicitly.** A page-level `openGraph` object
+  replaces the inherited root image, so guide pages had none until this was done.
+- **No web app manifest.** Section 5.2 rules out a PWA install prompt, and a manifest
+  can make the site installable.
+- **The sitemap includes the quiz route, which 404s until Session 4.** The spec says
+  "exactly the Section 6 indexable routes". It is submitted to Search Console only at
+  launch.
+- **Earlier specs check page-level schema only.** The attachment, content and trust
+  specs asserted each page's exact JSON-LD types. They now set aside the sitewide
+  WebSite and Organization, which `seo.spec.ts` checks on every page instead.
+- **The axe gate is critical-only,** per Section 16.4's wording. Session 13 runs the
+  full axe and Lighthouse pass.
+
+**Deferred**
+
+- Lighthouse budgets, analytics, and the full Section 16.4 QA record → Session 13.
+- The quiz and results pages' SEO checks → Sessions 4–5. Their metadata and the quiz
+  card already exist.
+- Host redirects (www → apex, http → https, fixedheart.com) and the Search Console
+  sitemap submission → Session 14.
+
+**For founder:**
+
+- **Keyword pull.** Fill in `docs/planning/keyword-pull.md` from a paid Semrush or
+  Ahrefs session before planning month two.
+- **Review** the OG card copy in `content/og.ts` and the 404 copy in
+  `content/notFound.ts`.

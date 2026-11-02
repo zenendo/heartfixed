@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { copy } from "@/config/copy";
-import { baseUrl, routes, site } from "@/config/site";
+import { baseUrl, noindexRoutes, routes, site } from "@/config/site";
+import { APPLE_ICON_PATH, OG_SIZE, ogAlt, ogImagePath, ogKeyFor } from "@/lib/seo/ogConfig";
 
 const Subject = copy.partner.subject.charAt(0).toUpperCase() + copy.partner.subject.slice(1);
 
@@ -8,6 +9,7 @@ const Subject = copy.partner.subject.charAt(0).toUpperCase() + copy.partner.subj
  * Per-route metadata — Section 12.2. No metadata literals inside page components.
  * Titles: ≤ 60 chars including the brand suffix, keyword first, brand last.
  * Descriptions: ≤ 155 chars; tool pages state the free / no-signup fact.
+ * OG images: each tool has its own card, every other page the site card (lib/seo/og).
  */
 export interface RouteMeta {
   title: string;
@@ -120,26 +122,46 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
     description:
       "Questions, corrections, or a request about your email data. Replies within a few days. This site can't help in an emergency — see Crisis Resources.",
   },
-  // TODO(session-12): metadata for the quiz routes, plus per-tool OG images.
+  // The quiz routes are built in Sessions 4–5; their metadata is ready here.
+  [routes.quiz]: {
+    title: "Attachment Style Quiz for Men: Free Results",
+    description:
+      "A free attachment style quiz for men: 24 questions about what you actually do in relationships. About 3 minutes. Full result free, no signup, no email.",
+  },
+  [routes.quizResults]: {
+    title: "Your Attachment Quiz Result",
+    description:
+      "Your attachment pattern and scores from the free attachment style quiz for men. Take the quiz to get your own result.",
+  },
 };
 
 export const fullTitle = (title: string) => `${title} | ${site.name}`;
+
+/** The not-found page. Next adds noindex to it on its own. */
+export const notFoundMetadata: Metadata = {
+  title: fullTitle("Page not found"),
+};
 
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(baseUrl),
   applicationName: site.name,
   title: site.name,
   openGraph: { siteName: site.name, type: "website", locale: "en_US" },
+  icons: { apple: APPLE_ICON_PATH },
 };
 
 export function metadataFor(route: string): Metadata {
   const meta = routeMetadata[route];
   if (!meta) throw new Error(`No metadata defined for route ${route}`);
   const title = fullTitle(meta.title);
+  const key = ogKeyFor(route);
+  const image = { url: ogImagePath(key), ...OG_SIZE, alt: ogAlt(key) };
   return {
     title,
     description: meta.description,
     alternates: { canonical: route },
+    // Shared-result shells are noindex (Sections 6, 9.6); everything else is indexable.
+    ...(noindexRoutes.includes(route) && { robots: { index: false, follow: true } }),
     openGraph: {
       siteName: site.name,
       type: "website",
@@ -147,7 +169,13 @@ export function metadataFor(route: string): Metadata {
       url: route,
       title,
       description: meta.description,
+      images: [image],
     },
-    twitter: { card: "summary", title, description: meta.description },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: meta.description,
+      images: [image],
+    },
   };
 }
