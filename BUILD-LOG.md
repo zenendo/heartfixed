@@ -465,12 +465,12 @@ doesn't need to reset the counter.
       "guarantee"), identity claims and timeline promises;
     - the quiz framing phrase;
     - FAQ and breadcrumb schema validity, and that the validator rejects bad schema.
-  - 300 Playwright tests pass. The 43 new tests × 3 viewports check:
+  - 303 Playwright tests pass. The 44 new tests × 3 viewports check:
     - on each page: one h1, the canonical, the JSON-LD validating, the FAQ schema
       matching the visible FAQ, no prohibited term in the rendered body or `<head>`,
       the quiz and methodology links, no horizontal scroll, and 44px standalone links;
     - the hub's four profile links, and the band table matching the engine and fitting
-      320px;
+      320px in the default and a wide font;
     - the other-profile and tracker links on each profile page;
     - the secure leans;
     - the 404 for an unknown slug.
@@ -492,7 +492,11 @@ doesn't need to reset the counter.
 - **FAQ on the hub.** Section 12.2 lists FAQPage for the profile pages, not the hub. I
   added one anyway because it is visible content, not schema-only.
 - **Band table at 320px.** The corner header is read only by screen readers; the caption
-  explains the rows and columns. The table uses a fixed layout and 13px header labels.
+  explains the rows and columns. The table uses a fixed layout, 13px text below the `sm`
+  breakpoint, and regular-weight band labels. Cells may wrap rather than clip.
+  - CI caught the first version: on Linux's wider fonts, bold "moderate" clipped by a
+    few pixels. The e2e test now also runs with a forced wide font (DejaVu Sans, or
+    Verdana on macOS), and fails if the table overflows or any word breaks mid-word.
 - **Two links point at pages not built yet.** `/attachment-style-quiz/` (Session 4) and
   `/methodology/` (Session 11) return 404 until then. So do the guides
   `/guides/attachment-styles-after-a-breakup/` and

@@ -118,16 +118,30 @@ for (const id of IDS) {
   });
 }
 
-test("band table fits a 320px screen with no clipped cells", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 800 });
-  await page.goto(routes.attachmentStyles);
-  const fit = await page.getByTestId("band-table").evaluate((table) => ({
-    tooWide: table.scrollWidth > table.parentElement!.clientWidth,
-    clipped: [...table.querySelectorAll("th, td")].filter((c) => c.scrollWidth > c.clientWidth)
-      .length,
-  }));
-  expect(fit).toEqual({ tooWide: false, clipped: 0 });
-});
+for (const font of [null, "DejaVu Sans, Verdana"]) {
+  test(`band table fits 320px without breaking words (${font ?? "default font"})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto(routes.attachmentStyles);
+    // CI's Linux fonts run wider than macOS's; the wide-font pass guards against that.
+    if (font) await page.addStyleTag({ content: `* { font-family: ${font} !important; }` });
+    const fit = await page.getByTestId("band-table").evaluate((table) => {
+      const brokenWords = [...table.querySelectorAll("th, td")].filter((cell) => {
+        const range = document.createRange();
+        range.selectNodeContents(cell);
+        const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size;
+        const words = cell.textContent!.trim().match(/[^\s-]+/g)?.length ?? 0;
+        return words > 0 && lines > words;
+      });
+      return {
+        tooWide: table.scrollWidth > table.parentElement!.clientWidth,
+        brokenWords: brokenWords.map((c) => c.textContent),
+      };
+    });
+    expect(fit).toEqual({ tooWide: false, brokenWords: [] });
+  });
+}
 
 test("secure page shows all three lean paragraphs and four score combinations", async ({
   page,

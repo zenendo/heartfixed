@@ -73,7 +73,7 @@ export default function AttachmentStylesPage() {
         ))}
         <div className="mt-4 overflow-x-auto">
           <table
-            className="w-full table-fixed border-collapse text-left text-sm"
+            className="w-full table-fixed border-collapse text-left text-small sm:text-sm [&_td]:break-words [&_th]:break-words"
             data-testid="band-table"
           >
             <caption className="mb-2 text-left text-muted">{h.dimensions.tableCaption}</caption>
@@ -86,7 +86,7 @@ export default function AttachmentStylesPage() {
                   <th
                     key={avoidance}
                     scope="col"
-                    className="border-b border-muted px-1 py-2 text-small"
+                    className="border-b border-muted px-1 py-2 font-normal text-muted"
                   >
                     {avoidance}
                   </th>
@@ -98,7 +98,7 @@ export default function AttachmentStylesPage() {
                 <tr key={anxiety}>
                   <th
                     scope="row"
-                    className="border-b border-panel py-2 pr-1 text-small font-semibold"
+                    className="border-b border-panel py-2 pr-1 font-normal text-muted"
                   >
                     {anxiety}
                   </th>
