@@ -518,3 +518,147 @@ doesn't need to reset the counter.
 - The page copy in `content/attachment-styles.ts`, in particular the claim that secure is
   "the most common pattern in the research".
 - The profile and hub FAQs in `content/faqs.ts`.
+
+## Session 10 — Homepage, guides, and resources (2026-11-01)
+
+**Shipped**
+
+- **Homepage hub (`/`).** It now has:
+  - the three tools;
+  - "Understand your pattern": four profile cards plus a link to `/attachment-styles/`;
+  - "Guides for the hard moments": all five guide cards;
+  - a resources block;
+  - "How this site works" (free in full, stays on your device, rules not a chatbot),
+    linking Methodology and About.
+- **Guide template.** One `GuidePage` renders both kinds of guide:
+  - breadcrumbs, the H1, a visible "Last reviewed" date from content metadata, the
+    intro and the sections;
+  - then the tool block (`ToolBlock`) and one sibling guide (Section 6);
+  - FAQ only where a guide has one;
+  - no byline anywhere (Section 12.5);
+  - Article and BreadcrumbList schema, plus FAQPage when there are FAQs.
+- **Guide content is typed data, not MDX.** The five guides are files in
+  `content/guides/`, with block types for paragraphs, lists, bold-lead lists, callouts,
+  links and affiliate slots. Their metadata is in `config/content.ts` (`guides`): route,
+  kind, tool, sibling and both dates.
+- **All Section 12.3 launch content:**
+  - `/no-contact-rule/` (Guide 1, the cluster hub, with 4 FAQs). Its "What counts as
+    contact" and 30/60/90 sections reuse the tracker's own definitions, so the two pages
+    can't disagree.
+  - `/guides/attachment-styles-after-a-breakup/` (Guide 2). Each profile section starts
+    from `profileCopy`, plus the anxious–avoidant trap; the tool block is the quiz.
+  - `/guides/how-long-does-a-breakup-take/` (Guide 3):
+    - honest ranges and what makes it longer;
+    - the first 90 days, plus the 30-day-stretches framing for the later programme;
+    - what helps, with the disabled in-content slot;
+    - "When it's more than a breakup", linking Crisis Resources.
+  - `/guides/no-contact-day-14/` and `/guides/she-texted-me-during-no-contact/`, the two
+    situational instances.
+- **Situational template.** The section order is in `config/content.ts`
+  (`situationalTemplate`): why it spikes, what's normal, the three mistakes, the next 24
+  hours. A page may override a heading for its moment.
+  - Adding a situational page means three things: a content file, a `guides` entry and a
+    metadata entry. No component changes.
+- **`/recommended-resources/`.** Organised by moment:
+  - **For the first two weeks:** the site's own tools and the no-contact rule.
+  - **For understanding your pattern:** _Attached_ and _Anxiously Attached_.
+  - **Programmes that go deeper:** Personal Development School and Chris Seiter's Ex
+    Recovery Program, with the Section 13.4 honest-framing line above them.
+  - One slot per resource, all four disabled. There are no URLs, prices or payouts on
+    the page.
+- **Affiliate infrastructure.**
+  - `lib/affiliates.ts`: `renderableSlot`, which throws on an unknown id and returns
+    nothing for disabled or incomplete slots; plus `checkSlotCopy` and `slotLimitFor`.
+  - `components/content/AffiliateSlot.tsx`: the Section 14.5 disclosure directly above
+    the slot in body-size text, in the same container, with `rel="sponsored nofollow
+noopener"`.
+  - Wired, still disabled, into the tracker (`tracker-after-explainer`), the decision
+    tool's don't-send outcome (`decision-dont-send`), Guide 3 and the resources page.
+  - The Section 14.5 disclosure and the Section 13.4 honest-framing line are verbatim in
+    `content/compliance.ts`.
+- **`FounderNote`** is defined and tested, with an optional `media` slot that renders
+  nothing when empty. It is used on zero pages.
+- `ProfileCard` and `GuideCard` are shared components; the attachment hub now uses
+  `ProfileCard`.
+- Metadata for the six new routes is in `lib/seo/metadata.ts`. `validateJsonLd` now also
+  checks Article: headline length, ISO dates, modified not before published, and
+  Organization author and publisher.
+- Tests:
+  - 316 unit tests pass (3 `todo`s). The new ones cover:
+    - the guide registry, tools and siblings;
+    - links and dates;
+    - the situational template and both instances;
+    - Section 14.2 terms, timeline promises and bylines over all new copy;
+    - no hardcoded partner pronouns in the new content source;
+    - no URL or price on the resources page;
+    - both verbatim lines;
+    - the slot rules (all disabled, per-page limits, ids exist, disabled and incomplete
+      slots render nothing, an enabled slot puts the disclosure first with the sponsored
+      rel, copy rules);
+    - `FounderNote` rendering, and that it is unused;
+    - Article and FAQ schema.
+  - 411 Playwright tests pass.
+    - **No orphan routes:** a crawl from `/` reaches every indexable Section 6 route
+      within two clicks. Every internal link on every built page is a Section 6 route.
+      The tracker and the decision tool link each other.
+    - **Homepage:** it links the tools, the hub, all profiles, all guides and the
+      resources page.
+    - **Each guide:**
+      - its H1 and last-reviewed `<time>`;
+      - the tool block, then exactly one sibling;
+      - the JSON-LD validating, with dates matching config;
+      - no prohibited term, no byline and no slot;
+      - no overflow, and 44px links.
+    - **Situational pages:** headings in template order, and three mistakes.
+    - **Resources:**
+      - it is organised by moment, with 4 resources and no slot;
+      - the framing line sits above the programmes;
+      - there are no outbound links;
+      - the breadcrumb validates.
+- Mutation check: each of these is caught by its own test:
+  - removing the homepage resources link (orphans the page);
+  - a link to a non-Section-6 `/guides/`;
+  - enabling a slot.
+- Size: 106 kB first-load JS on every content page.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **Typed TypeScript content instead of MDX or Markdown.** Section 7.2 allows "MDX or
+  Markdown". Typed data needs no new dependency and is checked by the compiler and
+  tests. A new guide is still a content-only task.
+- **Guide breadcrumbs are Home › Guide.** Section 6 has no `/guides/` index route, so
+  there is no middle crumb.
+- **Article schema now, not in Session 12.** It came with the guide template. Author and
+  publisher are the site as an Organization, never a Person.
+- **The resources page allows four slots.** Section 13.4 says "never more than two per
+  page" but also "up to 4, one per resource" on this page. The page-specific rule wins
+  (`slotLimitFor`).
+- **No outbound links on the resources page** while every slot is disabled, because
+  URLs may live only in config. The entries name each resource so it can be found.
+- **The homepage "How this site works" block avoids Block B's wording.** The homepage
+  isn't a tool page, and Block B contains Section 14.2 terms.
+- **Guide dates are 2026-11-01** for both published and last reviewed. Change
+  `lastReviewed` in `config/content.ts` only when the content changes.
+
+**Deferred**
+
+- The footer email signup → Session 9.
+- WebSite and sitewide Organization schema, sitemap and robots, OG images → Session 12.
+- Analytics (`guide_tool_click`, `affiliate_slot_view`, `affiliate_click`) → Session 13.
+- Lighthouse and axe on these pages → Session 13.
+
+**For founder review now (required before this session closes, per Section 12.3):**
+
+- **All five guides** in `content/guides/`, for accuracy and voice. In particular:
+  - the first-month texture in the no-contact rule;
+  - the 90-day ranges in Guide 3;
+  - the co-parenting lines.
+- **`content/resources.ts`.** Confirm that each resource is one you've used, and check
+  each description, before any slot is enabled. In particular, check the programme
+  name "Ex Recovery Program" and how it is described.
+- **The homepage copy** in `content/home.ts`.
+- **Your choice of byline line.** None is used now. "Reviewed by HeartFixed editors"
+  can be added only if you approve that exact line (Section 12.5).
+- **One Session 6 line to fix.** The tracker FAQ in `content/faqs.ts` still says "She
+  reaching out doesn't reset your counter". I left it as it is, since it is outside this
+  session. The guides now say "When she reaches out…".

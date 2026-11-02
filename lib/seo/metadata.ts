@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { copy } from "@/config/copy";
 import { baseUrl, routes, site } from "@/config/site";
+
+const Subject = copy.partner.subject.charAt(0).toUpperCase() + copy.partner.subject.slice(1);
 
 /**
  * Per-route metadata — Section 12.2. No metadata literals inside page components.
@@ -51,6 +54,36 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
     title: "Fearful-Avoidant Attachment in Men: The Signs",
     description:
       "The push-pull of fearful-avoidant attachment in men, how it swings after a breakup, and what helps. Check your own scores free.",
+  },
+  [routes.noContactRule]: {
+    title: "The No Contact Rule: How Long, and Exceptions",
+    description:
+      "What counts as contact, 30, 60 or 90 days, the real exceptions (children, housing, money), and what to do if it breaks. Plus a free tracker.",
+  },
+  [routes.guideAfterBreakup]: {
+    title: "Attachment Styles After a Breakup, for Men",
+    description:
+      "How anxious, avoidant, fearful-avoidant and secure patterns behave after a breakup, why the anxious–avoidant loop keeps running, and what helps.",
+  },
+  [routes.guideHowLong]: {
+    title: "How Long Does a Breakup Take? Honest Answers",
+    description:
+      "No fixed date, but honest ranges: what makes a breakup take longer, what the first 90 days tend to feel like, and what actually helps.",
+  },
+  [routes.guideDay14]: {
+    title: "No Contact Day 14: Why It Gets Harder Now",
+    description:
+      "Why the second week of no contact can be harder than the first, what's normal, the three common mistakes, and a plan for the next 24 hours.",
+  },
+  [routes.guideSheTexted]: {
+    title: `${Subject} Texted Me During No Contact: What Now?`,
+    description:
+      "Your ex texted during no contact. Why it feels so urgent, the three mistakes to avoid, and exactly what to do in the next 24 hours.",
+  },
+  [routes.resources]: {
+    title: "Breakup Books and Programmes, by Moment",
+    description:
+      "Books and programmes for getting through a breakup, organised by the moment you're in: the first weeks, understanding your pattern, going deeper.",
   },
   // TODO(session-12): metadata for every other Section 6 route, plus per-tool OG images.
 };

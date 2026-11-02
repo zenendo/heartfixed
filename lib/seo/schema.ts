@@ -1,4 +1,4 @@
-import { baseUrl } from "@/config/site";
+import { baseUrl, site } from "@/config/site";
 
 /**
  * JSON-LD builders — Section 12.2. FAQPage is generated from the same content/faqs.ts
@@ -15,7 +15,35 @@ export const PROHIBITED_SCHEMA_TYPES = [
   "AggregateRating",
 ] as const;
 
-// TODO(session-12): WebSite + Organization (sitewide) and Article (guides).
+// TODO(session-12): WebSite + Organization (sitewide).
+
+export interface ArticleInput {
+  route: string;
+  headline: string;
+  description: string;
+  /** ISO dates (YYYY-MM-DD) from config/content.ts. */
+  datePublished: string;
+  dateModified: string;
+}
+
+/**
+ * Article schema for guides (Section 12.2). Faceless (Section 12.5): author and
+ * publisher are the site as an Organization — never a Person.
+ */
+export function articleSchema(a: ArticleInput) {
+  const org = { "@type": "Organization", name: site.name, url: absolute("/") };
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: a.headline,
+    description: a.description,
+    datePublished: a.datePublished,
+    dateModified: a.dateModified,
+    mainEntityOfPage: absolute(a.route),
+    author: org,
+    publisher: org,
+  };
+}
 
 export interface Crumb {
   name: string;
@@ -66,7 +94,9 @@ export const ALLOWED_SCHEMA_TYPES = [
   "FAQPage",
   "Question",
   "Answer",
-  // TODO(session-12): "WebSite", "Organization", "Article".
+  "Article",
+  "Organization",
+  // TODO(session-12): "WebSite".
 ] as const;
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
@@ -131,6 +161,24 @@ export function validateJsonLd(data: unknown): string[] {
           problems.push(`itemListElement[${i}] item must be an absolute URL`);
         }
       });
+    }
+  } else if (data["@type"] === "Article") {
+    if (!nonEmpty(data.headline) || String(data.headline).length > 110) {
+      problems.push("Article needs a headline of at most 110 characters");
+    }
+    for (const key of ["datePublished", "dateModified"] as const) {
+      if (typeof data[key] !== "string" || Number.isNaN(Date.parse(data[key] as string))) {
+        problems.push(`Article ${key} must be an ISO date`);
+      }
+    }
+    if (Date.parse(String(data.dateModified)) < Date.parse(String(data.datePublished))) {
+      problems.push("Article dateModified is before datePublished");
+    }
+    for (const key of ["author", "publisher"] as const) {
+      const org = data[key];
+      if (!isRecord(org) || org["@type"] !== "Organization" || !nonEmpty(org.name)) {
+        problems.push(`Article ${key} must be an Organization with a name`);
+      }
     }
   } else {
     problems.push(`unexpected root type ${String(data["@type"])}`);
