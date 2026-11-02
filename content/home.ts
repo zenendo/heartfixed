@@ -25,4 +25,39 @@ export const home = {
       cta: "Check before you send",
     },
   } satisfies Record<ToolKey, { summary: string; cta: string }>,
+  patterns: {
+    heading: "Understand your pattern",
+    intro:
+      "Four attachment patterns describe how you tend to act when a relationship feels close, distant or under threat. Read about each, or take the quiz to see where your own scores land.",
+    cardLink: "Read more",
+    hubLink: "All four attachment styles, explained",
+  },
+  guides: {
+    heading: "Guides for the hard moments",
+    intro: "Short, specific, and written for the week you're actually in.",
+  },
+  resources: {
+    heading: "When you want to go deeper",
+    body: "The books and programmes worth your time, organised by the moment you're in — not by what pays.",
+    link: "Recommended resources",
+  },
+  howItWorks: {
+    heading: "How this site works",
+    points: [
+      {
+        term: "Free in full",
+        text: "Every tool and every result is free. No paywall, no blurred report, no account.",
+      },
+      {
+        term: "Stays on your device",
+        text: "Quiz answers, your streak and any draft you check stay in your browser. Nothing is sent to us.",
+      },
+      {
+        term: "Rules, not a chatbot",
+        text: "The tools are fixed rules written in advance. No AI, and nothing pretending to be a person.",
+      },
+    ],
+    methodology: "How the quiz works",
+    about: "About this site",
+  },
 };

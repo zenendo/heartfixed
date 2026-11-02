@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AffiliateSlot } from "@/components/content/AffiliateSlot";
 import { CrisisBlock, ToolDisclaimer } from "@/components/content/ComplianceBlocks";
 import { Faq } from "@/components/content/Faq";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -89,8 +90,7 @@ export default function NoContactTrackerPage() {
           </ButtonLink>
         </Card>
 
-        {/* TODO(session-10): affiliate slot "tracker-after-explainer" (Section 13.4) —
-            ships disabled and renders nothing until the founder enables it. */}
+        <AffiliateSlot id="tracker-after-explainer" className="mt-12" />
 
         <div className="mt-12">
           <Faq heading={p.faqHeading} items={faqs.tracker} />

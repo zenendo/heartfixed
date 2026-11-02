@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Faq } from "@/components/content/Faq";
+import { ProfileCard } from "@/components/content/ProfileCard";
 import { QuizCta } from "@/components/content/QuizCta";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { routes } from "@/config/site";
-import { hubCopy as h, profilePageCopy, profilePages } from "@/content/attachment-styles";
+import { hubCopy as h, profilePageCopy } from "@/content/attachment-styles";
 import { faqs } from "@/content/faqs";
 import { profileFor, profiles, type Band, type ProfileId } from "@/lib/quiz";
 import { metadataFor } from "@/lib/seo/metadata";
@@ -47,16 +47,7 @@ export default function AttachmentStylesPage() {
         <ul className="mt-4 grid gap-4 sm:grid-cols-2">
           {PROFILE_ORDER.map((id) => (
             <li key={id}>
-              <Card className="flex h-full flex-col" data-testid="profile-card">
-                <h3 className="text-lg font-semibold">{profiles[id].label}</h3>
-                <p className="mt-2 flex-1 text-muted">{profilePages[id].summary}</p>
-                <Link
-                  href={profiles[id].route}
-                  className="mt-3 inline-flex min-h-11 items-center font-semibold text-primary underline"
-                >
-                  {h.readProfile(profiles[id].name)}
-                </Link>
-              </Card>
+              <ProfileCard id={id} linkLabel={h.readProfile(profiles[id].name)} />
             </li>
           ))}
         </ul>

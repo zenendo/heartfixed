@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { AffiliateSlot } from "@/components/content/AffiliateSlot";
 import { CrisisBlock } from "@/components/content/ComplianceBlocks";
 import { DraftObservations, PRIVATE_TEXTAREA } from "@/components/tools/DraftCheck";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -182,8 +183,7 @@ export function DecisionOutcome({
         </section>
       )}
 
-      {/* TODO(session-10): affiliate slot "decision-dont-send" (Section 13.4) — "don't
-          send" outcome only, ships disabled. */}
+      {outcome === "dont_send" && <AffiliateSlot id="decision-dont-send" />}
 
       <CrisisBlock />
     </div>

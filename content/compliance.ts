@@ -42,3 +42,19 @@ export const blockD: readonly Segment[] = [
 export const blockE = {
   text: "Your draft stays in this browser. It is not sent anywhere, not stored after you leave this page, not used to train anything, and never seen by a person. The checks below run on your device.",
 } as const;
+
+/**
+ * Section 14.5 — affiliate disclosure (proximity rule). Renders directly above every
+ * affiliate slot, in body-size text, inside the same container.
+ */
+export const affiliateDisclosure = {
+  text: "We may earn a commission if you buy through links on this page. It doesn't change what we recommend first or what you'll pay.",
+} as const;
+
+/**
+ * Section 13.4 — the honest-framing line. Required wherever an ex-back programme is
+ * presented, so it is never framed as the site's own recommendation.
+ */
+export const honestFraming = {
+  text: "Some men want to try to reconcile; some want to move on. These are different goals — pick the resource for the goal you actually have.",
+} as const;
