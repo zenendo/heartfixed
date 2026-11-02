@@ -20,7 +20,7 @@ const NOT_BUILT_YET: Record<string, string> = {
 const LEGAL = new Set<string>([routes.privacy, routes.terms, routes.affiliateDisclosure]);
 
 const PROHIBITED =
-  /therap|counsell?ing|treatment|diagnos|clinically proven|mental-health assessment|get your ex back|regret leaving|make her miss you/i;
+  /therap|counsell?ing|treatment|diagnos|clinically proven|mental-health assessment|get (your ex|her|him|them) back|regret leaving|make her miss you/i;
 
 /** Where Section 14.1/16.4 require each block, by test id. */
 const REQUIRED: Record<string, string[]> = {

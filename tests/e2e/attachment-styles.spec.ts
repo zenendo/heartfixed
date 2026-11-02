@@ -14,7 +14,7 @@ import { SITEWIDE_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
 const IDS = Object.keys(profiles) as ProfileId[];
 const BANDS: Band[] = ["low", "moderate", "high"];
 const PROHIBITED =
-  /therap|counsell?ing|treatment|diagnos|clinically proven|mental-health assessment|disorder|get your ex back|regret leaving|make her miss you/i;
+  /therap|counsell?ing|treatment|diagnos|clinically proven|mental-health assessment|disorder|get (your ex|her|him|them) back|regret leaving|make her miss you/i;
 
 async function jsonLdBlocks(page: Page) {
   const raw = await page.locator('script[type="application/ld+json"]').allTextContents();

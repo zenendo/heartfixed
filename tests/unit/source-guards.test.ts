@@ -63,7 +63,7 @@ describe("source guards", () => {
 
   it("contains no Section 14.2 prohibited terms outside legal copy", () => {
     const prohibited =
-      /therap(y|ist)|counsell?ing|treatment|diagnos(is|e)|clinically proven|mental-health assessment|get your ex back|regret leaving|make her miss you/i;
+      /therap(y|ist)|counsell?ing|treatment|diagnos(is|e)|clinically proven|mental-health assessment|get (your ex|her|him|them) back|regret leaving|make her miss you/i;
     // Legal pages and the verbatim compliance blocks explain these terms by necessity.
     const allowed = (rel: string) =>
       rel.startsWith("content/legal/") || rel === "content/compliance.ts";

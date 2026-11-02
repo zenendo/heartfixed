@@ -13,7 +13,7 @@ import { SITEWIDE_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
  */
 
 const PROHIBITED =
-  /therap|counsell?ing|treatment|diagnos|clinically proven|mental-health assessment|disorder|get your ex back|regret leaving|make her miss you/i;
+  /therap|counsell?ing|treatment|diagnos|clinically proven|mental-health assessment|disorder|get (your ex|her|him|them) back|regret leaving|make her miss you/i;
 const SECTION_6 = new Set<string>(Object.values(routes));
 const INDEXABLE = [...SECTION_6].filter((r) => !noindexRoutes.includes(r));
 const toolHref = (key: string) => tools.find((t) => t.key === key)!.href;
