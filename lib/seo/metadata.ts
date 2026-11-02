@@ -27,6 +27,31 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
     description:
       "About to text your ex? Work through five short steps and check your draft first. Free, no signup, and your draft never leaves your browser.",
   },
+  [routes.attachmentStyles]: {
+    title: "Attachment Styles: The 4 Patterns, for Men",
+    description:
+      "Secure, anxious, avoidant and fearful-avoidant, explained by what men actually do in relationships and after a breakup. Plus a free quiz.",
+  },
+  [routes.profileSecure]: {
+    title: "Secure Attachment in Men: Signs and Strengths",
+    description:
+      "What a secure attachment pattern looks like in men, how it shows up after a breakup, its watch-outs and strengths. Check your own scores free.",
+  },
+  [routes.profileAnxious]: {
+    title: "Anxious Attachment in Men: Signs and Breakups",
+    description:
+      "The signs of anxious attachment in men, why no contact is so hard with it, and what helps after a breakup. Check your own scores free.",
+  },
+  [routes.profileAvoidant]: {
+    title: "Avoidant Attachment in Men: Signs and Breakups",
+    description:
+      "The signs of avoidant attachment in men, why the grief often arrives late, and what helps after a breakup. Check your own scores free.",
+  },
+  [routes.profileFearfulAvoidant]: {
+    title: "Fearful-Avoidant Attachment in Men: The Signs",
+    description:
+      "The push-pull of fearful-avoidant attachment in men, how it swings after a breakup, and what helps. Check your own scores free.",
+  },
   // TODO(session-12): metadata for every other Section 6 route, plus per-tool OG images.
 };
 
