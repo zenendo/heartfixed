@@ -1368,3 +1368,33 @@ No production deploy, DNS change or affiliate change was made.
   shell. The shared view is Session 5.
 - **The brief is excluded from Prettier**, like the spec: it's founder content, and the
   parity test reads it as written.
+
+## Session 4 follow-up — tool-page LCP and the methodology count (2026-11-02)
+
+**Shipped: lazy-loaded tool panels** (`session-04: lazy-load tracker and decision-tool panels`)
+
+- **The tracker and decision tool pass the LCP budget again: 1.89 s** (2.0 s budget).
+  They were 2.03 s after Session 4. Performance, Accessibility, Best Practices and SEO
+  are 100 on both. Home (1.72 s) and the quiz page (1.89 s) are unchanged.
+- **What loads later:** the panels a first visit doesn't show now load on their own,
+  through `next/dynamic`, and `lib/preload.ts` fetches them once the browser is idle.
+  - Tracker: check-in form, streak calendar, slip flow, reminder opt-in and email
+    signup. The setup form stays in the page script.
+  - Decision tool: outcome, draft check and urge timer. Step 1 and the unsent list stay
+    in the page script.
+  - Page script: tracker 8.57 → 6.32 kB, decision tool 10.6 → 7.78 kB.
+- **`formatWhen`** moved from `DecisionOutcome` to `lib/tools/decision.ts`. Otherwise the
+  step-1 code would import the whole outcome panel just to format the re-check time.
+- **Focus moves wait for a lazy heading.** `focusSoon` retries for up to about 2
+  seconds, so moving to the slip, timer or outcome heading still works if that panel is
+  still arriving.
+- **`tests/unit/lazy-panels.test.ts`** fails if any of those panels becomes a static
+  import again.
+- **Tests:**
+  - 855 Playwright tests pass (3 skipped: the results route, until Session 5). That
+    includes every tracker and decision-tool journey, focus test and axe check.
+  - Lighthouse, 3 runs, median: as above. `QA.md` and `LAUNCH.md` row 4 are updated.
+
+**Fixed: duplicated log.** The Session 4 commit had the whole log from Session 1 to
+Session 14 twice, from a splice of mine that matched Session 1's "Decisions and
+ambiguities" heading instead of Session 4's. It was fixed on PR #13 before merge.
