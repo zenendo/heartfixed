@@ -1555,10 +1555,8 @@ ambiguities" heading instead of Session 4's. It was fixed on PR #13 before merge
    - the share sentence, "Copy the share link", "Link copied.";
    - the shared view's "About the anxious pattern" heading;
    - "Take the quiz again" and the outdated-result notice.
-2. **The reads still call the reader "he".** Her four reads and the six dynamics are the
-   brief's text, in the third person ("when he tried to get her to open up"), while
-   every other section says "you". Your change covered the profile data only. Convert
-   these too?
+2. **The reads still call the reader "he".** Resolved 2026-11-03: the founder asked for
+   "you" here too (see the follow-up below).
 3. **"Woman"/"women"** in the dynamics and her fearful-avoidant read are written in, not
    from the partner dictionary — fine for `men-v1`, like q21's "a male friend".
 4. **The decode fallback line** says "the read below", but it renders after Acts 1 and 2. Keep, or change to "the read above"?
@@ -1572,3 +1570,20 @@ ambiguities" heading instead of Session 4's. It was fixed on PR #13 before merge
    tool pages; decide whether it should bind this noindex route too.
 8. **The programme line** ends with a full stop; the brief quotes it with a trailing
    comma.
+
+## Session 5 follow-up — the reads in the second person (2026-11-03)
+
+**Shipped** (`session-05: her reads and the dynamics speak to the reader as you`)
+
+- **Founder decision:** her four reads and the six dynamics now say "you" where the
+  brief says "he", "him" or "his", matching the rest of the result view.
+- 44 phrase changes, pronouns and verb agreement only ("his alarm fired and he pursued"
+  → "your alarm fired and you pursued"). The decodes and bridges already said "you".
+- Generic nouns stay as written: "a man who can name the pull", "keeps men hooked", "a
+  woman who's no longer there".
+- The parity test applies the same phrase list to the brief before comparing, checks
+  each phrase occurs exactly once in the brief, and fails if "he", "him", "his" or
+  "himself" appears in the reads or dynamics again.
+- The result email uses the same content, so it changes with the page.
+
+**Tests:** 544 unit tests pass (5 skipped); 933 Playwright tests pass.
