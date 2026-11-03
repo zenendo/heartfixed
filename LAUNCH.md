@@ -3,7 +3,7 @@
 Every item must be ticked **on https://heartfixed.com** before the site is announced
 anywhere. Session 14 is done when every row reads **Done**.
 
-Last checked: 2026-11-02, on `main` at `ca863ee` (Session 13).
+Last checked: 2026-11-02, on `main` at `ca863ee` (Session 13); rows 3, 4, 5 and 7 updated in Session 4.
 
 **Status key**
 
@@ -37,8 +37,7 @@ Last checked: 2026-11-02, on `main` at `ca863ee` (Session 13).
 - No international helplines marked as founder-verified.
 - Recommended resources without an own-use answer.
 
-**Quiz:** not built yet. Sessions 4–5 are waiting on the 24-question bank and Persona
-A's answers.
+**Quiz:** the page and runner are built (Session 4). The full result view is Session 5.
 
 ---
 
@@ -48,11 +47,11 @@ A's answers.
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | No `{{` placeholder token anywhere in the production build. Brand and domain come only from `config/site.ts`                                                                  | Ready                | Claude                         | `source-guards.test.ts` (source code, and brand only in config); `seo.spec.ts` (served HTML of every built route). Re-run against the live domain                                                                                                                                       |
 | 2   | All Section 6 routes live on https://heartfixed.com, with www → apex, http → https, and fixedheart.com 301-redirecting every path                                             | Blocked              | Founder, then Claude           | Waiting on: both domains pointed at Vercel; www → apex and http → https set in Vercel; fixedheart.com 301 on every path; the quiz routes built (Sessions 4–5). Claude then checks every route and redirect                                                                              |
-| 3   | All Section 16.2 fixtures and the full test suite green on the production build                                                                                               | Blocked              | Founder, then Claude           | 429 unit and 795 Playwright tests pass on the production build. Waiting on: Fixtures 1 and 4 (`it.todo`) need the launch question bank; the quiz Playwright routes are `fixme`                                                                                                          |
-| 4   | Lighthouse budgets met on all three tool pages; axe finds zero critical issues                                                                                                | Blocked              | Claude                         | Tracker and decision tool pass. LCP 1.88–1.89 s, Performance 100, Accessibility 100, CLS 0, axe clean (see `QA.md`). Waiting on: the quiz page (Session 4)                                                                                                                              |
-| 5   | Blocks A–E in every specified place; footer crisis line on every page (one page of each type, plus the 404)                                                                   | Blocked              | Claude                         | Blocks B–E and the footer line pass (`guardrails.spec.ts`, `decision.spec.ts`, `seo.spec.ts` for the 404). Waiting on: Block A under the result headline and Block D on the result (Session 5)                                                                                          |
+| 3   | All Section 16.2 fixtures and the full test suite green on the production build                                                                                               | Blocked              | Claude                         | Fixtures 1–6 and the brief's H1/H2 pass, including end to end on the quiz runner; 495 unit and 855 Playwright tests pass on the production build. Waiting on: Fixture 7's shared-result view and the results route (`fixme`) in Session 5                                               |
+| 4   | Lighthouse budgets met on all three tool pages; axe finds zero critical issues                                                                                                | Blocked              | Claude                         | Quiz page passes (LCP 1.89 s, Performance 100, Accessibility 100). axe clean on all three. **Tracker and decision tool LCP 2.03 s, 30–40 ms over** since Session 4 — cause and proposed fix in `QA.md`                                                                                  |
+| 5   | Blocks A–E in every specified place; footer crisis line on every page (one page of each type, plus the 404)                                                                   | Blocked              | Claude                         | Block A on the quiz page and under the Session 4 result headline; Blocks B–E and the footer line pass (`guardrails.spec.ts`, `quiz.spec.ts`, `decision.spec.ts`, `seo.spec.ts` for the 404). Waiting on: the full result view (Session 5)                                               |
 | 6   | Prohibited-terms sweep clean outside legal-page context; no "get her back" language in the site's own voice                                                                   | Ready                | Claude                         | `source-guards.test.ts`, plus the rendered-text sweeps in `guardrails.spec.ts` and `content-pages.spec.ts`. "Get her/him/them/your ex back" is in every sweep pattern. Re-run on the live domain                                                                                        |
-| 7   | Full quiz completable, with the whole result visible and no email entered; tracker and decision tool fully usable without email                                               | Blocked              | Claude                         | Tracker and decision tool need no email (`tracker.spec.ts`, `decision.spec.ts`). Waiting on: the quiz (Sessions 4–5)                                                                                                                                                                    |
+| 7   | Full quiz completable, with the whole result visible and no email entered; tracker and decision tool fully usable without email                                               | Blocked              | Claude                         | Quiz completable with no email, ending on headline, scores and Block A (`quiz.spec.ts`). Tracker and decision tool need no email. Waiting on: the full result view (Session 5)                                                                                                          |
 | 8   | Result email tested end to end from production into a real inbox, figures matching the screen; the transactional send creates no list subscription; list unsubscribe verified | Blocked              | Founder                        | Consent separation and unsubscribe links pass with the memory provider (`email.test.tsx`, `email.spec.ts`). Waiting on: the mailing address; the Resend domain, Topics and keys (`BUILD-LOG.md`, Session 9); the result view (Session 5); a decision on how daily reminders are sent    |
 | 9   | Analytics payload inspection re-run on production: no answers, notes, draft text or email addresses                                                                           | Blocked              | Claude, then Founder           | The automated journey passes locally (`analytics.spec.ts`). Waiting on: the live domain; `GA4_API_SECRET` in Vercel; the quiz events. The founder confirms in GA4 DebugView                                                                                                             |
 | 10  | Privacy, Terms, Disclosure, About, Contact, Methodology and Crisis Resources published and linked from the footer; the crisis page's international entries verified           | Blocked              | Founder                        | Pages built and in the footer (`site-config.test.ts`, `home.spec.ts`, `trust-pages.spec.ts`). Waiting on: the public contact email; the founder's verification of the international helplines (`npm run test:launch`)                                                                   |
@@ -64,8 +63,9 @@ A's answers.
 
 ## Founder to-do, in order
 
-1. **Quiz content.** The 24-question bank and Persona A's answers, which unblock
-   Sessions 4–5 (rows 2–5, 7, 9 and 13).
+1. **Quiz content.** Done 2026-11-02 (the quiz build brief). Still to review: the
+   Session 4 quiz-page copy and the open questions in `BUILD-LOG.md` (Session 4), which
+   Session 5 needs.
 2. **Config values** (send them and Claude sets them):
    - the public contact email;
    - the mailing address;

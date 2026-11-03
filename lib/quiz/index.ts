@@ -11,10 +11,32 @@ export {
   maxRawFor,
   normalize,
   profileFor,
+  scorePerceived,
   scoreQuiz,
+  selectedDecodes,
   type ScoreOptions,
 } from "./scoring";
-export { attentionCheck, checkQuestionBank, questions, renderStem } from "./questions";
+export {
+  attentionCheck,
+  checkQuestionBank,
+  herQuestions,
+  questions,
+  renderStem,
+  sinceBreakupSelectors,
+  type BankRules,
+} from "./questions";
+export {
+  completeAttempt,
+  emptyProgress,
+  isAttemptExpired,
+  isOptional,
+  opensPartnerSection,
+  scaleLabelsFor,
+  isResumable,
+  runnerSteps,
+  type LikertStep,
+  type RunnerStep,
+} from "./runner";
 export {
   checkProfileCopy,
   profileCopy,

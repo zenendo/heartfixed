@@ -73,6 +73,7 @@ export default function MethodologyPage() {
             <li key={label}>{label}</li>
           ))}
         </ol>
+        <p className="mt-3">{m.scale.partnerNote}</p>
       </section>
 
       <ListSection id="scoring-heading" heading={m.scoring.heading} items={m.scoring.items} />

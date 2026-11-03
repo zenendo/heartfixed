@@ -12,7 +12,7 @@ import { PROHIBITED_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
  * Plus the Section 19.1 `{{` sweep and the 404 page.
  */
 
-const NOT_BUILT_YET = new Set<string>([routes.quiz, routes.quizResults]); // Sessions 4–5
+const NOT_BUILT_YET = new Set<string>([routes.quizResults]); // Session 5: the full result view
 const BUILT = Object.values(routes).filter((r) => !NOT_BUILT_YET.has(r));
 const abs = (path: string) => new URL(path, baseUrl).toString();
 

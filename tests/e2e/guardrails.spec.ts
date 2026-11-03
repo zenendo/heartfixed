@@ -12,7 +12,6 @@ import { blockA, blockB, blockC } from "../../content/compliance";
  */
 
 const NOT_BUILT_YET: Record<string, string> = {
-  [routes.quiz]: "Session 4 — quiz page (Block A on the quiz page)",
   [routes.quizResults]: "Session 5 — result view (Block A under the headline, Block D)",
 };
 
@@ -24,6 +23,7 @@ const PROHIBITED =
 
 /** Where Section 14.1/16.4 require each block, by test id. */
 const REQUIRED: Record<string, string[]> = {
+  [routes.quiz]: ["self-reflection-disclaimer", "tool-disclaimer"],
   [routes.tracker]: ["tool-disclaimer", "crisis-block"],
   [routes.decision]: ["tool-disclaimer"],
   [routes.about]: ["tool-disclaimer"],

@@ -5,8 +5,13 @@ import {
   effectiveValue,
   leanFor,
   maxRawFor,
+  herQuestions,
   profileFor,
+  questions,
+  scorePerceived,
   scoreQuiz,
+  selectedDecodes,
+  sinceBreakupSelectors,
   type Band,
   type ProfileId,
   type QuizAnswer,
@@ -15,10 +20,13 @@ import {
   COMPLETED_AT,
   answersFromEffective,
   bandEdgeBank,
+  fixture1,
   fixture2,
   fixture3,
+  fixture4,
   fixture5,
   fixture6,
+  herFixtures,
   tempBank,
   uniformAnswers,
 } from "./fixtures";
@@ -26,7 +34,9 @@ import {
 const opts = { completedAt: COMPLETED_AT };
 
 describe("Section 16.2 quiz fixtures", () => {
-  it.todo("Fixture 1 — Persona A: 72/100 high, 18/100 low, anxious (Session 4, launch bank)");
+  it("Fixture 1 — Persona A: 72/100 high, 18/100 low, anxious (launch bank)", () => {
+    expect(scoreQuiz(fixture1.answers, questions, opts)).toMatchObject(fixture1.expected);
+  });
 
   it("Fixture 2 — all-neutral: half of maximum, 50/50 moderate, secure with mixed lean", () => {
     const result = scoreQuiz(fixture2.answers, tempBank, opts);
@@ -52,7 +62,14 @@ describe("Section 16.2 quiz fixtures", () => {
     expect(result).toMatchObject(fixture3.expected);
   });
 
-  it.todo("Fixture 4 — mirror personas: avoidant and fearful-avoidant (Session 4, launch bank)");
+  it("Fixture 4 — mirror personas: avoidant and fearful-avoidant (launch bank)", () => {
+    expect(scoreQuiz(fixture4.avoidant.answers, questions, opts)).toMatchObject(
+      fixture4.avoidant.expected,
+    );
+    expect(scoreQuiz(fixture4.fearfulAvoidant.answers, questions, opts)).toMatchObject(
+      fixture4.fearfulAvoidant.expected,
+    );
+  });
 
   describe("Fixture 5 — band edges at 33/34 and 66/67 on both dimensions", () => {
     it.each(fixture5.cases)("$name", ({ answers, expected }) => {
@@ -76,8 +93,54 @@ describe("Section 16.2 quiz fixtures", () => {
     expect(() => scoreQuiz(fixture6.answers, tempBank, opts)).toThrow(QuizScoringError);
     expect(() => scoreQuiz(fixture6.answers, tempBank, opts)).toThrow(fixture6.missingId);
   });
-  // Fixture 6's second half — the runner makes this state unreachable — is a UI test
-  // for Session 4. TODO(session-4)
+  // Fixture 6's second half — the runner makes this state unreachable — is in
+  // tests/e2e/quiz.spec.ts.
+});
+
+describe("her module — the brief's fixtures H1 and H2", () => {
+  it("H1: avoidant as experienced (her-avoidance 83 high, her-anxiety 13 low)", () => {
+    expect(scorePerceived(herFixtures.h1.answers, herQuestions)).toEqual(herFixtures.h1.expected);
+  });
+
+  it("H2: anxious as experienced (her-anxiety 88 high, her-avoidance 13 low)", () => {
+    expect(scorePerceived(herFixtures.h2.answers, herQuestions)).toEqual(herFixtures.h2.expected);
+  });
+
+  it("his and her answers never move each other's scores", () => {
+    const both = [...fixture1.answers, ...herFixtures.h1.answers];
+    expect(scoreQuiz(both, questions, opts)).toEqual(scoreQuiz(fixture1.answers, questions, opts));
+    expect(scorePerceived(both, herQuestions)).toEqual(herFixtures.h1.expected);
+  });
+
+  it("an incomplete her module throws rather than imputing", () => {
+    expect(() => scorePerceived(herFixtures.h1.answers.slice(0, 11), herQuestions)).toThrow(
+      QuizScoringError,
+    );
+  });
+});
+
+describe("since-the-breakup selectors (brief, Part A)", () => {
+  const answers = (values: number[]) =>
+    sinceBreakupSelectors.map((s, i) => ({ questionId: s.id, value: values[i]! }));
+
+  it("selects each item answered Sometimes (2) or higher, in order", () => {
+    expect(selectedDecodes(answers([2, 1, 4, 0, 3, 1]), sinceBreakupSelectors)).toEqual([
+      "a1",
+      "a3",
+      "a5",
+    ]);
+  });
+
+  it("selects nothing when no item reaches 2 (the fallback line)", () => {
+    expect(selectedDecodes(answers([1, 1, 0, 0, 1, 1]), sinceBreakupSelectors)).toEqual([]);
+  });
+
+  it("never changes his scores or hers", () => {
+    const withSelectors = [...fixture1.answers, ...answers([4, 4, 4, 4, 4, 4])];
+    expect(scoreQuiz(withSelectors, questions, opts)).toEqual(
+      scoreQuiz(fixture1.answers, questions, opts),
+    );
+  });
 });
 
 describe("Section 16.4 quiz-engine acceptance", () => {

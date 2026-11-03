@@ -4,10 +4,12 @@ import {
   type Band,
   type Dimension,
   type Lean,
+  type PerceivedResult,
   type ProfileId,
   type QuizAnswer,
   type QuizQuestion,
   type QuizResult,
+  type SelectorItem,
 } from "./types";
 
 /**
@@ -146,4 +148,39 @@ export function scoreQuiz(
     completedAt: options.completedAt,
     attentionFlag,
   };
+}
+
+/**
+ * Her pattern as he experienced it (quiz build brief, Part A): the her module scored
+ * by exactly the same steps — validation, normalization to 0–100, bands and the
+ * Section 9.4 table — so there is one scoring path, not two.
+ */
+export function scorePerceived(
+  answers: readonly QuizAnswer[],
+  herQuestions: readonly QuizQuestion[],
+): PerceivedResult {
+  const r = scoreQuiz(answers, herQuestions, { completedAt: "" });
+  return {
+    anxietyRaw: r.anxietyRaw,
+    avoidanceRaw: r.avoidanceRaw,
+    anxietyNorm: r.anxietyNorm,
+    avoidanceNorm: r.avoidanceNorm,
+    anxietyBand: r.anxietyBand,
+    avoidanceBand: r.avoidanceBand,
+    profileId: r.profileId,
+  };
+}
+
+/**
+ * Since-the-breakup selectors (brief, Part A): the ids answered at or above the
+ * threshold ("Sometimes"), in selector order. Each selects a decode section on the
+ * result page; none selected means the fallback line. Never touches any score.
+ */
+export function selectedDecodes(
+  answers: readonly QuizAnswer[],
+  selectors: readonly SelectorItem[],
+  threshold: number = quizConfig.selectorThreshold,
+): string[] {
+  const values = new Map(answers.map((a) => [a.questionId, a.value]));
+  return selectors.filter((s) => (values.get(s.id) ?? -1) >= threshold).map((s) => s.id);
 }
