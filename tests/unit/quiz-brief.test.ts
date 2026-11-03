@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { quizConfig } from "@/config/quiz";
 import { QUIZ_MINUTES, runnerCopy } from "@/content/quiz";
+import { QUIZ_QUESTION_COUNT } from "@/content/trust";
 import {
   attentionCheck,
   herQuestions,
@@ -100,6 +101,24 @@ describe("framing and scale (brief, Part A)", () => {
 });
 
 describe("time estimates", () => {
+  it(`every "N questions about what you actually did" says ${QUIZ_QUESTION_COUNT}`, () => {
+    const root = path.resolve(__dirname, "../..");
+    const found = ["app", "components", "content", "lib"].flatMap((dir) =>
+      readdirSync(path.join(root, dir), { recursive: true, encoding: "utf8" })
+        .filter((f) => /\.tsx?$/.test(f))
+        .flatMap((f) =>
+          [
+            ...readFileSync(path.join(root, dir, f), "utf8").matchAll(
+              /(\d+) questions about what you actually/gi,
+            ),
+          ].map((m) => `${dir}/${f}: ${m[1]}`),
+        ),
+    );
+    // The quiz meta description, the homepage card, the FAQ, the profile callout, the guide.
+    expect(found).toHaveLength(5);
+    expect(found.filter((f) => !f.endsWith(`: ${QUIZ_QUESTION_COUNT}`))).toEqual([]);
+  });
+
   it(`every "about N minutes" for the quiz says ${QUIZ_MINUTES}`, () => {
     const root = path.resolve(__dirname, "../..");
     const found = ["app", "components", "content", "lib"].flatMap((dir) =>
