@@ -13,7 +13,7 @@ export const privacyPolicy: LegalDoc = {
   h1: "Privacy Policy",
   intro: [
     `${site.name} is built so that the private things you do here stay on your device. This page explains exactly what that means, what we do collect, and what we never collect.`,
-    "The short version: your quiz answers, your tracker and any message you check stay in your browser. We only ever receive an email address if you choose to give us one, and anonymous usage counts.",
+    "The short version: your quiz answers, your tracker and any message you check stay in your browser. We only ever receive an email address if you choose to give us one, and anonymous usage counts. If you ask us to email your quiz result, that request includes your scores and the scores you gave for your partner, so the email can be generated.",
   ],
   sections: [
     {

@@ -1624,10 +1624,10 @@ the lean lines, the share copy) stays as drafted, in the founder's review pile.
 
 **Noted for the founder**
 
-- **The privacy policy's "short version"** says "We only ever receive an email address
-  if you choose to give us one, and anonymous usage counts." A result-email request has
-  always carried his scores as well, and now hers. The new Email-section sentence says
-  so; the summary line may want a matching clause. Legal wording is yours.
+- **The privacy policy's "short version"** now ends with the founder's sentence: "If
+  you ask us to email your quiz result, that request includes your scores and the
+  scores you gave for your partner, so the email can be generated." (added 2026-11-03,
+  before merge).
 - **"Man" and "men"** stay written in where they mean the reader's side, not the
   partner: "the next man who gets close enough", "keeps men hooked", "a man who can
   name the pull". They change with the audience, not the partner dictionary.
