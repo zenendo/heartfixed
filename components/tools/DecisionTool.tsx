@@ -1,23 +1,22 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { track } from "@/lib/analytics";
 import { useEffect, useState, type ReactNode } from "react";
-import { DecisionOutcome } from "@/components/tools/DecisionOutcome";
-import { DraftCheck } from "@/components/tools/DraftCheck";
 import { UnsentVault } from "@/components/tools/UnsentVault";
-import { UrgeTimer } from "@/components/tools/UrgeTimer";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { RadioCard } from "@/components/ui/RadioCard";
 import { routes } from "@/config/site";
 import { decisionCopy as t } from "@/content/decision";
-import { formatWhen } from "@/components/tools/DecisionOutcome";
+import { preloadWhenIdle } from "@/lib/preload";
 import { clearStored, readStored, storageKeys, writeStored } from "@/lib/storage";
 import {
   BREAKUP_BANDS,
   CONTACT_BANDS,
   PURPOSES,
   decide,
+  formatWhen,
   type Decision,
   type DecisionInput,
 } from "@/lib/tools/decision";
@@ -36,6 +35,19 @@ import {
 } from "@/lib/tools/unsent";
 
 const TOTAL_STEPS = 5;
+
+/**
+ * Step 1 shows none of these, so they load on their own (Section 16.3 LCP budget) and
+ * are preloaded once the browser is idle.
+ */
+const panels = {
+  outcome: () => import("@/components/tools/DecisionOutcome"),
+  draft: () => import("@/components/tools/DraftCheck"),
+  timer: () => import("@/components/tools/UrgeTimer"),
+};
+const DecisionOutcome = dynamic(() => panels.outcome().then((m) => m.DecisionOutcome));
+const DraftCheck = dynamic(() => panels.draft().then((m) => m.DraftCheck));
+const UrgeTimer = dynamic(() => panels.timer().then((m) => m.UrgeTimer));
 
 interface Answers {
   sinceBreakup: DecisionInput["sinceBreakup"] | null;
@@ -61,8 +73,13 @@ type TimerFrom = "tracker" | "decision" | "direct";
 type Mode =
   { name: "flow" } | { name: "timer"; from: TimerFrom } | { name: "timer-done"; from: TimerFrom };
 
-function focusSoon(id: string) {
-  requestAnimationFrame(() => document.getElementById(id)?.focus());
+function focusSoon(id: string, frames = 120) {
+  requestAnimationFrame(() => {
+    const el = document.getElementById(id);
+    // A lazily loaded panel may still be arriving: try again for up to ~2 seconds.
+    if (el) el.focus();
+    else if (frames > 0) focusSoon(id, frames - 1);
+  });
 }
 
 function complete(a: Answers): DecisionInput | null {
@@ -140,6 +157,7 @@ export function DecisionTool() {
     if (storedVault.status === "ok") setVault(storedVault.value);
     const storedRecheck = readStored(storageKeys.decisionRecheck, recheckSchema);
     if (storedRecheck.status === "ok") setRecheck(storedRecheck.value);
+    return preloadWhenIdle(Object.values(panels));
   }, []);
 
   const set = <K extends keyof Answers>(key: K, value: Answers[K]) => {
