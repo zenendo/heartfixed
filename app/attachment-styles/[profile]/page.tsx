@@ -7,7 +7,16 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { routes } from "@/config/site";
 import { profilePageCopy as t, profilePages } from "@/content/attachment-styles";
 import { faqs } from "@/content/faqs";
-import { profileCopy, profileFor, profiles, type Band, type ProfileId } from "@/lib/quiz";
+import {
+  leanWatchOuts,
+  profileCopy,
+  profileFor,
+  profiles,
+  type Band,
+  type ProfileId,
+} from "@/lib/quiz";
+
+const LEANS = ["anxious", "avoidant", "mixed"] as const;
 import { metadataFor } from "@/lib/seo/metadata";
 
 const PROFILE_IDS = Object.keys(profiles) as ProfileId[];
@@ -87,10 +96,15 @@ export default async function ProfilePage({ params }: { params: Params }) {
         </h2>
         <p className="mt-3">{core.description}</p>
         {core.leans &&
-          Object.values(core.leans).map((text) => (
-            <p key={text} className="mt-3">
-              {text}
-            </p>
+          LEANS.map((lean) => (
+            <div key={lean} className="mt-4">
+              <p className="font-semibold">{core.leans![lean]}</p>
+              <ul className="mt-2 list-disc space-y-1 pl-6">
+                {leanWatchOuts(lean).map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
           ))}
       </section>
 

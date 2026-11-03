@@ -18,15 +18,24 @@ type Status =
 
 /**
  * Email the full result — Sections 10.3 (item 7) and 13.1 (a). Sends the share token
- * only (two scores + version, never answers). The list checkbox is separate and
+ * (two scores + version, never answers) and, for the partner read and the dynamic
+ * (founder decision, 2026-11-02), the same-shaped token of the two perceived scores.
+ * Nothing else about the answers leaves the browser. The list checkbox is separate and
  * unchecked by default; ticking it is the only way this form joins the list.
  * Placed on the result view in Session 5. Sends email_result_* events, with an error code
  * only; and newsletter_signup { placement: "result" } when the list box joined.
  */
+type Scores = Pick<QuizResult, "version" | "anxietyNorm" | "avoidanceNorm">;
+
 export function EmailResultForm({
   result,
+  perceived,
+  note,
 }: {
-  result: Pick<QuizResult, "version" | "anxietyNorm" | "avoidanceNorm">;
+  result: Scores;
+  perceived?: Scores;
+  /** A line under the form's intro, such as the brief's programme line. */
+  note?: string;
 }) {
   const id = useId();
   const [email, setEmail] = useState("");
@@ -44,6 +53,7 @@ export function EmailResultForm({
       action: "send_result",
       email,
       token: encodeShareToken(result),
+      ...(perceived ? { perceived: encodeShareToken(perceived) } : {}),
       alsoJoinList,
       website,
     });
@@ -68,6 +78,7 @@ export function EmailResultForm({
       <p id={`${id}-body`} className="mt-2">
         {f.body}
       </p>
+      {note && <p className="mt-2 font-semibold">{note}</p>}
       {status.kind === "done" ? (
         <div role="status" className="mt-3 space-y-1">
           <p className="font-semibold text-success">{f.success(status.email)}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { lazyPanel } from "@/components/tools/lazyPanel";
 import { track } from "@/lib/analytics";
 import { useEffect, useState, type ReactNode } from "react";
 import { UnsentVault } from "@/components/tools/UnsentVault";
@@ -45,9 +45,9 @@ const panels = {
   draft: () => import("@/components/tools/DraftCheck"),
   timer: () => import("@/components/tools/UrgeTimer"),
 };
-const DecisionOutcome = dynamic(() => panels.outcome().then((m) => m.DecisionOutcome));
-const DraftCheck = dynamic(() => panels.draft().then((m) => m.DraftCheck));
-const UrgeTimer = dynamic(() => panels.timer().then((m) => m.UrgeTimer));
+const DecisionOutcome = lazyPanel(() => panels.outcome().then((m) => m.DecisionOutcome));
+const DraftCheck = lazyPanel(() => panels.draft().then((m) => m.DraftCheck));
+const UrgeTimer = lazyPanel(() => panels.timer().then((m) => m.UrgeTimer));
 
 interface Answers {
   sinceBreakup: DecisionInput["sinceBreakup"] | null;

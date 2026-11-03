@@ -30,22 +30,47 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 - Run against a production build (`next build` + `next start`) on localhost, with
   analytics switched on (`NEXT_PUBLIC_GA_MEASUREMENT_ID` set).
 - Chromium is Playwright's Chrome for Testing build 1248.
-- Each figure is the median of 3 runs. Rows marked (S4) were re-measured after
-  Session 4, and rows marked (lazy) after the panel lazy-loading fix; the others are
-  Session 13's figures.
+- Each figure is the median of 3 runs, re-measured after Session 5 (2026-11-03) on
+  every page Session 5 could affect.
 
-| Page                                    | Perf | A11y | Best Pr. | SEO | LCP (budget) | CLS |   TBT |
-| --------------------------------------- | ---: | ---: | -------: | --: | ------------ | --: | ----: |
-| `/attachment-style-quiz/` (lazy)        |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 36 ms |
-| `/no-contact-tracker/` (lazy)           |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 35 ms |
-| `/should-i-text-my-ex/` (lazy)          |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 35 ms |
-| `/` (home) (lazy)                       |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 | 10 ms |
-| `/no-contact-rule/`                     |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 |  8 ms |
-| `/guides/no-contact-day-14/` (S4)       |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 |  8 ms |
-| `/guides/how-long-does-a-breakup-take/` |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 |  8 ms |
+| Page                                           | Perf | A11y | Best Pr. | SEO | LCP (budget)           | CLS |   TBT |
+| ---------------------------------------------- | ---: | ---: | -------: | --: | ---------------------- | --: | ----: |
+| `/attachment-style-quiz/`                      |  100 |  100 |      100 | 100 | 1.89 s (2.0)           |   0 | 33 ms |
+| `/no-contact-tracker/`                         |  100 |  100 |      100 | 100 | 1.89 s (2.0)           |   0 | 34 ms |
+| `/should-i-text-my-ex/`                        |  100 |  100 |      100 | 100 | 1.89 s (2.0)           |   0 | 34 ms |
+| `/attachment-style-quiz/results/` (empty)      |   98 |  100 |      100 |  66 | **2.41 s** (see below) |   0 | 38 ms |
+| `/attachment-style-quiz/results/?v=…` (shared) |   98 |  100 |      100 |  66 | **2.33 s** (see below) |   0 | 16 ms |
+| `/` (home)                                     |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 | 11 ms |
+| `/no-contact-rule/`                            |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  9 ms |
+| `/guides/no-contact-day-14/`                   |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  8 ms |
+| `/guides/how-long-does-a-breakup-take/`        |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 | 10 ms |
+| `/guides/attachment-styles-after-a-breakup/`   |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  9 ms |
+| `/attachment-styles/anxious/`                  |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 | 10 ms |
+| `/methodology/`                                |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  9 ms |
 
 **Budgets**
 
+- **The results route (Session 5): LCP 2.33–2.41 s, recorded for the founder.**
+  - Section 6 makes it a client-rendered shell (its content comes from this browser's
+    storage or the share link), so its LCP is always after hydration, unlike every
+    other page. Section 16.3's 2.0 s applies to the three tool pages (`LAUNCH.md` row
+    4), which pass; whether it should also bind this noindex route is the founder's
+    call.
+  - Already done to keep it down: the full view (all of Part B) loads on its own; the
+    empty view's copy is in its own file; the shared view, which public links land on,
+    ships with the page so it needs no second request (lazy-loading it measured 2.93 s
+    and a 1.2 CLS).
+  - CLS is 0 on both, and an end-to-end test holds the saved-result and shared views to
+    ≤ 0.05 (Lighthouse can't seed storage).
+  - SEO 66 is Lighthouse penalising `noindex`, which Section 9.6 requires.
+- **Session 5 kept the tool pages in budget.**
+  - Session 5's new pages made the bundler move `next/dynamic`'s loader into each tool's
+    page chunk, putting the decision tool back at 2.04 s. The panels now use React's
+    `lazy()` (`components/tools/lazyPanel.tsx`), which needs no loader code.
+  - `package.json` now has `"sideEffects": ["*.css"]`, so code a page doesn't use is
+    dropped from it. The quiz page had been loading all of the profile copy.
+  - Measured against `main` on the same machine before the fix: decision tool 1.89 s on
+    `main`, 2.04 s on the branch; after the fix, 1.89 s.
 - **LCP on the tracker and decision tool: pass, 1.89 s** (was 2.03 s after Session 4).
   - Session 4 left both pages about 150 bytes over a TCP window boundary in
     Lighthouse's simulated network, which adds a round trip (about 150 ms). Prefetching
@@ -58,8 +83,9 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
     import again.
 
 - **Total JS on a tool page:** pass.
-  - Next reports 126 kB gzipped first-load JS for the quiz page, 126 kB for the
-    tracker and 128 kB for the decision tool, against a 180 kB budget.
+  - Next reports 125 kB gzipped first-load JS for the quiz page, 126 kB for the
+    tracker, 127 kB for the decision tool and 130 kB for the results route, against a
+    180 kB budget.
   - Lighthouse saw 144 kB of script transferred in total. That figure includes the
     other tools' chunks, which Next prefetches after load.
   - Every other page is 106 kB.
@@ -73,7 +99,7 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 - **Best Practices = 100** since Session 4: the quiz page exists, so the prefetch 404
   is gone.
 - **Quiz page INP:** not yet measured in the lab; the runner is one radio choice and
-  one button per screen. To run with the Session 13 Event Timing script in Session 5.
+  one button per screen. Still open after Session 5.
 
 **Fixes made to meet the budgets (Session 13)**
 
@@ -95,31 +121,31 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 
 ## Guardrails
 
-| Criterion                                                             | Status                                                                                       | Evidence                                                                                                                                  |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Block A under every result headline                                   | Pass for the Session 4 result headline; full view Open (Session 5)                           | `quiz.spec.ts`: Block A is the element straight after the scores. The results route stays `fixme` in `guardrails.spec.ts` until Session 5 |
-| Block B on every tool page                                            | Pass (quiz, tracker, decision tool)                                                          | `guardrails.spec.ts` (`tool-disclaimer`)                                                                                                  |
-| Block C in every footer                                               | Pass                                                                                         | `guardrails.spec.ts` checks every built route, plus `compliance.test.tsx`                                                                 |
-| Block D on result, decision outcome and tracker                       | Pass (tracker, decision outcome)                                                             | `guardrails.spec.ts`, `tracker.spec.ts`, `decision.spec.ts` ("alcohol forces don't send … and Block D"). Result: Open (Session 5)         |
-| A quiz completed with the email field untouched gives the full result | Pass for the Session 4 result (headline, both scores, Block A); full result Open (Session 5) | `quiz.spec.ts`: every journey finishes and shows the result with no email field anywhere. Engine side: `scoreQuiz` takes the answers only |
-| No Section 14.2 prohibited terms outside legal-page context           | Pass                                                                                         | `source-guards.test.ts` (source code) and `guardrails.spec.ts` (rendered text on every built route)                                       |
-| No chat UI anywhere                                                   | Pass                                                                                         | `source-guards.test.ts` (no AI or chat code paths) and `guardrails.spec.ts` (no `role=log` or chat labels)                                |
+| Criterion                                                             | Status                              | Evidence                                                                                                                                                                |
+| --------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Block A under every result headline                                   | Pass                                | `result.spec.ts` and `quiz.spec.ts`: Block A is the element straight after the scores, on the full and the shared view; `guardrails.spec.ts` now runs the results route |
+| Block B on every tool page                                            | Pass (quiz, tracker, decision tool) | `guardrails.spec.ts` (`tool-disclaimer`)                                                                                                                                |
+| Block C in every footer                                               | Pass                                | `guardrails.spec.ts` checks every built route, plus `compliance.test.tsx`                                                                                               |
+| Block D on result, decision outcome and tracker                       | Pass                                | `guardrails.spec.ts` (results route seeded), `result.spec.ts`, `tracker.spec.ts`, `decision.spec.ts`                                                                    |
+| A quiz completed with the email field untouched gives the full result | Pass                                | `quiz.spec.ts`: the Fixture 1 + H1 run ends on the full Part B view (her read, the dynamic, the decodes) with no email entered; `result.spec.ts` covers every section   |
+| No Section 14.2 prohibited terms outside legal-page context           | Pass                                | `source-guards.test.ts` (source code) and `guardrails.spec.ts` (rendered text on every built route)                                                                     |
+| No chat UI anywhere                                                   | Pass                                | `source-guards.test.ts` (no AI or chat code paths) and `guardrails.spec.ts` (no `role=log` or chat labels)                                                              |
 
 ## Quiz engine
 
-| Criterion                                                             | Status                                                                                                                                        | Evidence                                                                                                                                    |
-| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| All Section 16.2 quiz fixtures pass                                   | Pass: 1 to 6, plus the brief's H1 and H2. Fixture 7 partly (token round trip and the tampered-token shell pass; the shared view is Session 5) | `scoring.test.ts`, `runner.test.ts`, `share.test.ts`, and end to end in `quiz.spec.ts` (Fixtures 1 and 4, H1, H2, the tampered-token shell) |
-| Determinism: the same answers scored 100 times give identical results | Pass                                                                                                                                          | `scoring.test.ts`                                                                                                                           |
-| Profile matches the Section 9.4 table for all nine band combinations  | Pass                                                                                                                                          | `scoring.test.ts` (`it.each` over the table)                                                                                                |
+| Criterion                                                             | Status                                   | Evidence                                                                                                                                      |
+| --------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| All Section 16.2 quiz fixtures pass                                   | Pass: 1 to 7, plus the brief's H1 and H2 | `scoring.test.ts`, `runner.test.ts`, `share.test.ts`, `dynamics.test.ts`; end to end in `quiz.spec.ts` and `result.spec.ts` (the shared view) |
+| Determinism: the same answers scored 100 times give identical results | Pass                                     | `scoring.test.ts`                                                                                                                             |
+| Profile matches the Section 9.4 table for all nine band combinations  | Pass                                     | `scoring.test.ts` (`it.each` over the table)                                                                                                  |
 
 ## Assessment page
 
-| Criterion                                                                   | Status | Evidence                                                                                                                     |
-| --------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| In-progress answers restore after a browser restart                         | Pass   | `quiz.spec.ts` "restores after a browser restart" (a new browser context from the saved storage), plus the 7-day discard     |
-| Context questions don't change scores                                       | Pass   | `scoring.test.ts` "context answers demonstrably do not alter scores"; the selectors and her module are tested the same way   |
-| A shared link shows the right profile, is `noindex`, and exposes no answers | Partly | Token: `share.test.ts` (scores and version only). `noindex`: `seo.spec.ts` and the sitemap test. Rendering: Open (Session 5) |
+| Criterion                                                                   | Status | Evidence                                                                                                                                                 |
+| --------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| In-progress answers restore after a browser restart                         | Pass   | `quiz.spec.ts` "restores after a browser restart" (a new browser context from the saved storage), plus the 7-day discard                                 |
+| Context questions don't change scores                                       | Pass   | `scoring.test.ts` "context answers demonstrably do not alter scores"; the selectors and her module are tested the same way                               |
+| A shared link shows the right profile, is `noindex`, and exposes no answers | Pass   | `result.spec.ts`: the shared view shows the profile and scores and nothing about the partner; `noindex`; the copied link carries scores and version only |
 
 ## Tracker
 
@@ -141,12 +167,12 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 
 ## Email flows
 
-| Criterion                                                             | Status                                         | Evidence                                                                                                  |
-| --------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| A result send creates no list subscription, confirmed in the provider | Pass in code; provider check Open (founder)    | `email.test.tsx` consent-separation tests (memory provider). The Resend check needs the Session 9 setup   |
-| A list join works from the footer, result and tracker                 | Pass for footer and tracker; result form built | `email.spec.ts` (exact request bodies). `EmailResultForm` gets placed on the result view in Session 5     |
-| Reminder opt-in is independent of list membership                     | Pass in code                                   | `email.spec.ts` "the tracker list join is its own action" and `email.test.tsx`                            |
-| Unsubscribe from any stream works in one click                        | Template Pass; live check Open (founder)       | `email.test.tsx` (one-click unsubscribe link in every marketing email). The live test needs Resend Topics |
+| Criterion                                                             | Status                                      | Evidence                                                                                                  |
+| --------------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| A result send creates no list subscription, confirmed in the provider | Pass in code; provider check Open (founder) | `email.test.tsx` consent-separation tests (memory provider). The Resend check needs the Session 9 setup   |
+| A list join works from the footer, result and tracker                 | Pass                                        | `email.spec.ts` (footer, tracker) and `result.spec.ts` (the result form's separate box)                   |
+| Reminder opt-in is independent of list membership                     | Pass in code                                | `email.spec.ts` "the tracker list join is its own action" and `email.test.tsx`                            |
+| Unsubscribe from any stream works in one click                        | Template Pass; live check Open (founder)    | `email.test.tsx` (one-click unsubscribe link in every marketing email). The live test needs Resend Topics |
 
 The founder's steps for the email items are in `BUILD-LOG.md`, under Session 9, "Not
 done — needs the founder".

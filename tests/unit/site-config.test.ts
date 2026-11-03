@@ -88,6 +88,11 @@ describe("config/quiz.ts and config/copy.ts", () => {
 
   it("defaults partner references to she/her for the men's beachhead (Section 2.3)", () => {
     expect(copy.audience).toBe("men");
-    expect(copy.partner).toEqual({ subject: "she", object: "her", possessive: "her" });
+    expect(copy.partner).toEqual({
+      subject: "she",
+      object: "her",
+      reflexive: "herself",
+      possessive: "her",
+    });
   });
 });

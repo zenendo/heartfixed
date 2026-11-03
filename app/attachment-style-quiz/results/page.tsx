@@ -6,7 +6,8 @@ export const metadata = metadataFor(routes.quizResults);
 
 /**
  * /attachment-style-quiz/results/ — noindex (Section 9.6). The result is read from
- * this browser's storage, so the page renders on the client. TODO(session-5).
+ * this browser's storage, or from a share link's scores, so the page renders on the
+ * client (components/quiz/ResultShell.tsx).
  */
 export default function QuizResultsPage() {
   return (

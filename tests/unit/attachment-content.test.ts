@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { routes } from "@/config/site";
 import { hubCopy, profilePageCopy, profilePages } from "@/content/attachment-styles";
@@ -44,16 +46,30 @@ describe("profile copy — Section 9.4", () => {
   });
 
   it("risk paragraphs name what Section 9.4 requires", () => {
-    expect(profileCopy.anxious.noContactRisk).toMatch(/message-checking/);
-    expect(profileCopy.anxious.noContactRisk).toMatch(/reconciliation fantasies/);
-    expect(profileCopy.avoidant.noContactRisk).toMatch(/delayed grief/);
-    expect(profileCopy.avoidant.noContactRisk).toMatch(/rebound dating/);
-    expect(profileCopy["fearful-avoidant"].noContactRisk).toMatch(/oscillation/);
+    expect(profileCopy.anxious.noContactRisk).toMatch(/message-checking/i);
+    expect(profileCopy.anxious.noContactRisk).toMatch(/reconciliation fantasies/i);
+    expect(profileCopy.avoidant.noContactRisk).toMatch(/delayed grief/i);
+    expect(profileCopy.avoidant.noContactRisk).toMatch(/rebound dating/i);
+    expect(profileCopy["fearful-avoidant"].noContactRisk).toMatch(/oscillation/i);
   });
 
-  it("is gender-neutral, so a future audience can reuse it (Section 2.3)", () => {
-    const text = strings(profileCopy).join("\n");
-    expect(text).not.toMatch(/\b(she|her|hers|he|him|his|girlfriend|boyfriend)\b/i);
+  it("takes every partner pronoun from config/copy.ts, so a future audience can reuse it (Section 2.3)", () => {
+    // Founder decision (Session 5): the brief's copy replaces the gender-neutral drafts,
+    // with partner pronouns resolved through the dictionary rather than written in.
+    const source = readFileSync(path.resolve(__dirname, "../../lib/quiz/profiles.ts"), "utf8");
+    expect(source).not.toMatch(/\b(she|her|hers|herself|he|him|his|girlfriend|boyfriend)\b/i);
+    expect(source).toMatch(/\$\{object\}/);
+  });
+
+  it("speaks to the reader in the second person (founder decision, Session 5)", () => {
+    const lines = IDS.flatMap((id) => [
+      profileCopy[id].description,
+      profileCopy[id].afterBreakup,
+      ...profileCopy[id].watchOuts,
+      ...profileCopy[id].strengths,
+    ]);
+    expect(lines.filter((l) => /\b(he|him|his|himself)\b/i.test(l))).toEqual([]);
+    for (const id of IDS) for (const s of profileCopy[id].strengths) expect(s).toMatch(/^You/);
   });
 
   it("next steps point at Section 6 routes", () => {

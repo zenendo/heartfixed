@@ -39,6 +39,7 @@ export {
 } from "./runner";
 export {
   checkProfileCopy,
+  leanWatchOuts,
   profileCopy,
   profileCopyRules,
   profiles,
@@ -46,6 +47,7 @@ export {
   type ProfileCopy,
   type ProfileMeta,
 } from "./profiles";
+export { dynamicFor, type DynamicId, type DynamicPick } from "./dynamics";
 export {
   decodeShareToken,
   encodeShareToken,

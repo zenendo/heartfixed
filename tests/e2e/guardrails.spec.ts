@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { routes } from "../../config/site";
 import { blockA, blockB, blockC } from "../../content/compliance";
+import { savedQuiz, seed } from "./support/savedQuiz";
 
 /**
  * The Section 16.4 guardrail acceptance sweep, run over every Section 6 route. Routes
@@ -11,8 +12,11 @@ import { blockA, blockB, blockC } from "../../content/compliance";
  * to drive the tool to reach them.
  */
 
-const NOT_BUILT_YET: Record<string, string> = {
-  [routes.quizResults]: "Session 5 — result view (Block A under the headline, Block D)",
+const NOT_BUILT_YET: Record<string, string> = {};
+
+/** Routes that render from this browser's storage get a saved state first. */
+const SEEDED: Record<string, Record<string, unknown>> = {
+  [routes.quizResults]: { "heartfixed-quiz-v1": savedQuiz() },
 };
 
 /** Legal pages may explain prohibited terms (Section 14.2, legal-page context). */
@@ -29,6 +33,7 @@ const REQUIRED: Record<string, string[]> = {
   [routes.about]: ["tool-disclaimer"],
   [routes.crisis]: ["crisis-block"],
   [routes.methodology]: ["self-reflection-disclaimer"],
+  [routes.quizResults]: ["self-reflection-disclaimer", "crisis-block"],
 };
 
 for (const route of Object.values(routes)) {
@@ -38,6 +43,7 @@ for (const route of Object.values(routes)) {
   }
 
   test(`${route}: guardrails`, async ({ page }) => {
+    if (SEEDED[route]) await seed(page, SEEDED[route]);
     const response = await page.goto(route);
     expect(response?.status(), "route is built").toBe(200);
 

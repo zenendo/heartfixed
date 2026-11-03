@@ -37,6 +37,9 @@ const SMALL = `margin:0 0 12px;font-size:14px;line-height:21px;color:${c.muted};
 
 export const html = {
   p: (text: string, style = P) => `<p style="${style}">${escapeHtml(text)}</p>`,
+  /** A paragraph whose *asterisks* mark emphasis (the brief's result reads). */
+  rich: (text: string, lead?: string) =>
+    `<p style="${P}">${lead ? `<strong>${escapeHtml(lead)}</strong> ` : ""}${escapeHtml(text).replace(/\*([^*]+)\*/g, "<em>$1</em>")}</p>`,
   h2: (text: string) => `<h2 style="${H2}">${escapeHtml(text)}</h2>`,
   link: (label: string, href: string) =>
     `<p style="${P}"><a href="${escapeHtml(href)}" style="${A}">${escapeHtml(label)}</a></p>`,

@@ -38,4 +38,24 @@
   }
 }
 
-/* TODO(session-5): print stylesheet for the quiz result; TODO(session-6): tracker summary. */
+/*
+ * Print — the quiz result (Session 5): ink on white, sections kept whole. Controls carry
+ * print:hidden; Block A, the crisis block and the footer's crisis line stay.
+ * TODO(session-6): tracker summary.
+ */
+@media print {
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+  a {
+    color: #000;
+  }
+  section,
+  li,
+  p {
+    break-inside: avoid;
+  }
+}

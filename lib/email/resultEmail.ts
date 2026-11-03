@@ -2,8 +2,18 @@ import { routes } from "@/config/site";
 import { actionLists } from "@/content/emails/actionLists";
 import { resultEmailCopy as t } from "@/content/emails/result";
 import {
+  caveat,
+  dynamicLeanLines,
+  dynamics,
+  herReads,
+  plain,
+  resultCopy,
+} from "@/content/quiz-result";
+import {
   decodeShareToken,
+  dynamicFor,
   leanFor,
+  leanWatchOuts,
   profileCopy,
   profiles,
   shareLink,
@@ -12,9 +22,11 @@ import {
 import { absoluteUrl, crisisFooter, escapeHtml, html, layout, type RenderedEmail } from "./render";
 
 /**
- * The quiz result email — Section 13.2. Built on the server from the share token alone
- * (two scores + version): bands and profile come from the engine via decodeShareToken,
- * never from anything the browser claims. Transactional: no unsubscribe link needed,
+ * The quiz result email — Section 13.2. Built on the server from the share token (two
+ * scores + version) and, when sent, the same-shaped token for the partner read: bands
+ * and profiles come from the engine via decodeShareToken, never from anything the
+ * browser claims. Founder decision (2026-11-02): the email carries the partner read and
+ * the dynamic; share links never do. Transactional: no unsubscribe link needed,
  * and sending it never subscribes him to anything (Section 13.1).
  */
 
@@ -38,11 +50,44 @@ const READING: Record<SharedResult["profileId"], (keyof typeof t.reading)[]> = {
   "fearful-avoidant": ["attached", "anxiouslyAttached"],
 };
 
-export function buildResultEmail(result: SharedResult): RenderedEmail {
+/** Her read (caveat first) and the dynamic, as on the result view's Act 1. */
+function partnerSection(result: SharedResult, perceived: SharedResult) {
+  const read = herReads[perceived.profileId];
+  const pick = dynamicFor(result, perceived);
+  const dynamic = dynamics[pick.id];
+  const leanLines = dynamicLeanLines(pick);
+  const headline = resultCopy.herHeadline(profiles[perceived.profileId].label);
+  return {
+    html: [
+      html.h2(headline),
+      html.panel(html.rich(caveat.body, caveat.lead)),
+      ...read.paragraphs.map((x) => html.rich(x)),
+      html.rich(read.means, resultCopy.meansLead),
+      html.rich(read.since, resultCopy.sinceLead),
+      html.h2(`${resultCopy.dynamicHeading}: ${dynamic.title}`),
+      ...leanLines.map((x) => html.p(x)),
+      ...dynamic.paragraphs.map((x) => html.rich(x)),
+    ],
+    text: [
+      headline,
+      `${caveat.lead} ${plain(caveat.body)}`,
+      ...read.paragraphs.map(plain),
+      `${resultCopy.meansLead} ${plain(read.means)}`,
+      `${resultCopy.sinceLead} ${plain(read.since)}`,
+      `${resultCopy.dynamicHeading}: ${dynamic.title}`,
+      ...leanLines,
+      ...dynamic.paragraphs.map(plain),
+    ],
+  };
+}
+
+export function buildResultEmail(result: SharedResult, perceived?: SharedResult): RenderedEmail {
   const meta = profiles[result.profileId];
   const copy = profileCopy[result.profileId];
   const lean = leanFor(result);
   const leanText = lean !== "none" ? copy.leans?.[lean] : undefined;
+  const leanList = lean !== "none" ? leanWatchOuts(lean) : [];
+  const partner = perceived ? partnerSection(result, perceived) : { html: [], text: [] };
   const share = absoluteUrl(shareLink(result));
   const tracker = absoluteUrl(routes.tracker);
   const resources = absoluteUrl(routes.resources);
@@ -62,10 +107,11 @@ export function buildResultEmail(result: SharedResult): RenderedEmail {
     html.h2(t.scoresHeading),
     html.list(scores),
     html.h2(t.whatItMeans),
-    ...(leanText ? [html.p(leanText)] : []),
+    ...(leanText ? [html.p(leanText), html.list(leanList)] : []),
     html.p(copy.description),
     html.h2(t.watchOutsHeading),
     html.list(copy.watchOuts),
+    ...partner.html,
     html.h2(t.planHeading),
     ...plan.flatMap((stage) => [
       html.p(stage.days, "margin:0 0 8px;font-weight:600;"),
@@ -94,9 +140,10 @@ export function buildResultEmail(result: SharedResult): RenderedEmail {
     copy.headline,
     `${t.scoresHeading}\n${scores.join("\n")}`,
     t.whatItMeans,
-    ...(leanText ? [leanText] : []),
+    ...(leanText ? [leanText, leanList.map((w) => `- ${w}`).join("\n")] : []),
     copy.description,
     `${t.watchOutsHeading}\n${copy.watchOuts.map((w) => `- ${w}`).join("\n")}`,
+    ...partner.text,
     `${t.planHeading}\n${plan.map((s) => `${s.days}\n${s.actions.map((a) => `- ${a}`).join("\n")}`).join("\n\n")}`,
     `${t.trackerHeading}\n${t.trackerBody}\n${t.trackerLink}: ${tracker}`,
     `${t.readingHeading}\n${reading.map((r) => `- ${r}`).join("\n")}\n${t.resourcesLink}: ${resources}`,

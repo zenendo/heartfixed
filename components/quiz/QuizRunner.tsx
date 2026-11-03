@@ -57,9 +57,10 @@ function resumeLabel(index: number): string {
 }
 
 /** Section 16.1 quiz_view source: categories only, never the referrer itself. */
-function viewSource(): "organic" | "internal" | "email" {
+function viewSource(): "organic" | "internal" | "share" | "email" {
   const params = new URLSearchParams(window.location.search);
   if (params.get("utm_medium") === "email") return "email";
+  if (params.get("from") === "share") return "share";
   try {
     if (document.referrer && new URL(document.referrer).origin === window.location.origin) {
       return "internal";
@@ -68,7 +69,6 @@ function viewSource(): "organic" | "internal" | "email" {
     // An unreadable referrer counts as organic.
   }
   return "organic";
-  // TODO(session-5): "share" when arriving from a shared result view.
 }
 
 function focusSoon(id: string) {

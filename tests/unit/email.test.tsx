@@ -38,7 +38,8 @@ import { buildResultEmail, resultFromToken } from "@/lib/email/resultEmail";
 import { EMAIL_PATTERN, checkEmail } from "@/lib/email/rules";
 import { emailRequestSchema, emailSchema } from "@/lib/email/validate";
 import { z } from "zod";
-import { encodeShareToken, profileCopy } from "@/lib/quiz";
+import { caveat, dynamics, herReads, plain, resultCopy } from "@/content/quiz-result";
+import { encodeShareToken, leanWatchOuts, profileCopy } from "@/lib/quiz";
 
 /** Session 9 — email flows: Sections 13.1–13.4, 14.4, 14.5 and 16.1. */
 
@@ -298,11 +299,75 @@ describe("the result email — Section 13.2", () => {
   it("shows the lean paragraph for a secure result with a moderate dimension", () => {
     const secure = buildResultEmail(resultFromToken(tokenFor(50, 20)));
     expect(secure.text).toContain(profileCopy.secure.leans!.anxious);
+    for (const w of leanWatchOuts("anxious")) expect(secure.text).toContain(`- ${w}`);
   });
 
   it("is escaped HTML with no raw angle brackets from content", () => {
     expect(email.html).not.toMatch(/<script/i);
     expect(email.html).toContain("Your pattern: Anxious (preoccupied)");
+  });
+});
+
+describe("the partner read in the result email — founder decision, Session 5", () => {
+  const you = resultFromToken(tokenFor(72, 18));
+  // Her perceived scores, as from H1: avoidant 83 / anxiety 13.
+  const her = resultFromToken(tokenFor(13, 83));
+  const email = buildResultEmail(you, her);
+  const read = herReads.avoidant;
+
+  it("carries her read with the caveat first, then the dynamic", () => {
+    const at = (s: string) => email.text.indexOf(s);
+    expect(at("Her pattern, as you experienced it: Avoidant (dismissive)")).toBeGreaterThan(-1);
+    expect(at(caveat.lead)).toBeGreaterThan(at("Her pattern, as you experienced it"));
+    expect(at(plain(read.paragraphs[0]!))).toBeGreaterThan(at(caveat.lead));
+    expect(email.text).toContain(
+      `${resultCopy.dynamicHeading}: ${dynamics["anxious-avoidant"].title}`,
+    );
+    for (const p of dynamics["anxious-avoidant"].paragraphs) expect(email.text).toContain(plain(p));
+    expect(email.html).toContain("<em>you experienced</em>");
+  });
+
+  it("leaves both out when no partner token is sent", () => {
+    const without = buildResultEmail(you);
+    expect(without.text).not.toContain("as you experienced it");
+    expect(without.text).not.toContain(resultCopy.dynamicHeading);
+  });
+
+  it("the share link in it still carries only his scores", () => {
+    expect(email.text).toContain(`v=${VERSION}&a=72&v2=18`);
+    expect(email.text).not.toContain("a=13");
+  });
+
+  it("the endpoint takes the partner token, and rejects a malformed one", async () => {
+    const ok = memoryProvider();
+    const sent = await handleEmailRequest(
+      {
+        action: "send_result",
+        email: EMAIL,
+        token: tokenFor(72, 18),
+        perceived: tokenFor(13, 83),
+        alsoJoinList: false,
+      },
+      "ip",
+      deps(ok),
+    );
+    expect(sent).toEqual({ status: 200, body: { ok: true } });
+    expect(JSON.stringify(ok.calls)).toContain("as you experienced it");
+
+    const bad = memoryProvider();
+    const refused = await handleEmailRequest(
+      {
+        action: "send_result",
+        email: EMAIL,
+        token: tokenFor(72, 18),
+        perceived: tokenFor(13, 83).replace("83", "830"),
+        alsoJoinList: false,
+      },
+      "ip",
+      deps(bad),
+    );
+    expect(refused.body).toEqual({ ok: false, error: "invalid_request" });
+    expect(bad.calls).toEqual([]);
   });
 });
 

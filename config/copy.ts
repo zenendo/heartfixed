@@ -11,6 +11,8 @@ export interface PartnerTerms {
   object: string;
   /** "her" (as in "her profile") */
   possessive: string;
+  /** "herself" */
+  reflexive: string;
 }
 
 export interface AudienceCopy {
@@ -24,5 +26,6 @@ export const copy: AudienceCopy = {
     subject: "she",
     object: "her",
     possessive: "her",
+    reflexive: "herself",
   },
 };
