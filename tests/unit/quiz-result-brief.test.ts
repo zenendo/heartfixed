@@ -22,6 +22,7 @@ import { profileCopy, sinceBreakupSelectors, type ProfileId } from "@/lib/quiz";
  * - Section 14.2: "can't diagnose her" → "can't label her"; "manufacture a diagnosis"
  *   → "manufacture a villain".
  * - The profiles' third-person lines speak to the reader ("you"): PRONOUN_CHANGES.
+ * - So do her reads and the dynamics (founder decision, 2026-11-03): READ_CHANGES.
  */
 
 const brief = readFileSync(path.resolve(__dirname, "../../heartfixed-quiz-build-brief.md"), "utf8");
@@ -84,6 +85,64 @@ const PRONOUN_CHANGES: Record<string, string> = {
   "Knows what closeness costs — and what it is worth.":
     "You know what closeness costs — and what it is worth.",
 };
+/** Brief phrase → shipped phrase, for her reads and the dynamics. Each occurs once. */
+const READ_CHANGES: [string, string][] = [
+  ["heard his side", "heard your side"],
+  ["When he was upset", "When you were upset"],
+  ["checked up when he was out", "checked up when you were out"],
+  ["asked whether he still loved", "asked whether you still loved"],
+  ["felt him pull away", "felt you pull away"],
+  ["when he tried to get", "when you tried to get"],
+  ["in him, in the fit", "in you, in the fit"],
+  ["His vulnerability made", "Your vulnerability made"],
+  ["compartments he wasn't invited into", "compartments you weren't invited into"],
+  ["shutdowns predated him", "shutdowns predated you"],
+  [
+    "less-needy version of him would have fixed it",
+    "less-needy version of you would have fixed it",
+  ],
+  ["could pursue him hard", "could pursue you hard"],
+  ["needing to know he still loved", "needing to know you still loved"],
+  ["almost any move he made rang", "almost any move you made rang"],
+  ["a puzzle he failed to solve", "a puzzle you failed to solve"],
+  ["a message about him", "a message about you"],
+  ["restarts his own clock", "restarts your own clock"],
+  ["His pattern treats distance as danger", "Your pattern treats distance as danger"],
+  ["his alarm fired and he pursued", "your alarm fired and you pursued"],
+  ["the more he chased", "the more you chased"],
+  ["withdrawal was his alarm's loudest", "withdrawal was your alarm's loudest"],
+  ["still ringing his alarm every day", "still ringing your alarm every day"],
+  ["What protects him specifically", "What protects you specifically"],
+  ["and he's the only side he controls", "and you're the only side you control"],
+  ["with him in the other seat", "with you in the other seat"],
+  ["His pattern needed room", "Your pattern needed room"],
+  ["so he deflected", "so you deflected"],
+  ["confirmed his belief that closeness", "confirmed your belief that closeness"],
+  ["his distance confirmed", "your distance confirmed"],
+  ["Two things he deserves to hear plainly", "Two things you deserve to hear plainly"],
+  ["First: his withdrawal was a pattern", "First: your withdrawal was a pattern"],
+  ["he'll be tempted to cast himself as", "you'll be tempted to cast yourself as"],
+  ["His recovery risk in this pairing", "Your recovery risk in this pairing"],
+  ["His no-contact can't run", "Your no-contact can't run"],
+  ["the 1 a.m. version of him makes choices", "the 1 a.m. version of you makes choices"],
+  ["The risk for him now isn't contact", "The risk for you now isn't contact"],
+  ["the processing he skips", "the processing you skip"],
+  ["a code he failed to crack", "a code you failed to crack"],
+  ["and he can hand it back", "and you can hand it back"],
+  ["If it was him: his work starts", "If it was you: your work starts"],
+  ["If he leaned secure and", "If you leaned secure and"],
+  [
+    "didn't, his profile section holds his (smaller)",
+    "didn't, your profile section holds your (smaller)",
+  ],
+  [
+    "leaned secure and he didn't, his pattern did",
+    "leaned secure and you didn't, your pattern did",
+  ],
+  ["in his own read", "in your own read"],
+];
+const inReads = (text: string) => READ_CHANGES.reduce((t, [from, to]) => t.replace(from, to), text);
+
 const converted = (text: string) =>
   Object.entries(PRONOUN_CHANGES).reduce((t, [from, to]) => t.replace(from, to), text);
 
@@ -126,6 +185,12 @@ describe("his profiles (Act 2) match the brief", () => {
 
   it("every second-person change maps a line that is in the brief", () => {
     for (const from of Object.keys(PRONOUN_CHANGES)) expect(partB).toContain(from);
+    for (const [from] of READ_CHANGES) expect(partB.split(from)).toHaveLength(2);
+  });
+
+  it("her reads and the dynamics speak to the reader as you", () => {
+    const text = JSON.stringify({ herReads, dynamics });
+    expect(text).not.toMatch(/\b(he|him|his|himself)\b/i);
   });
 
   it("the secure lean lines use the brief's template", () => {
@@ -146,7 +211,9 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
   it("her four reads: paragraphs, means / doesn't mean, since the breakup", () => {
     const reads = sections("## Her reads", "## Since-the-breakup decodes");
     for (const [name, id] of Object.entries(IDS)) {
-      const lines = reads.get(`${name} (as experienced)`)!.split("\n").filter(Boolean);
+      const lines = inReads(reads.get(`${name} (as experienced)`)!)
+        .split("\n")
+        .filter(Boolean);
       const read = herReads[id];
       expect(read.paragraphs).toEqual(lines.filter((l) => !l.startsWith("**")));
       expect(`**Means / doesn't mean:** ${read.means}`).toBe(
@@ -176,7 +243,7 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
     for (const [head, body] of brief6) {
       const title = head.split(" — ")[1]!;
       const dynamic = shipped.find((d) => d.title.toLowerCase() === title.toLowerCase())!;
-      expect(dynamic.paragraphs).toEqual(approved(body).split("\n").filter(Boolean));
+      expect(dynamic.paragraphs).toEqual(inReads(approved(body)).split("\n").filter(Boolean));
     }
     expect(dynamics["secure-involved"].paragraphs[0]).toContain("manufacture a villain");
   });
