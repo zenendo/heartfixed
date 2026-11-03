@@ -21,6 +21,7 @@ import { profileCopy, sinceBreakupSelectors, type ProfileId } from "@/lib/quiz";
  * before comparing, and listed here so nothing else can drift:
  * - Section 14.2: "can't diagnose her" → "can't label her"; "manufacture a diagnosis"
  *   → "manufacture a villain".
+ * - The decode fallback says "the read above", since it renders after the reads.
  * - The profiles' third-person lines speak to the reader ("you"): PRONOUN_CHANGES.
  * - So do her reads and the dynamics (founder decision, 2026-11-03): READ_CHANGES.
  */
@@ -31,6 +32,8 @@ const partB = brief.slice(brief.indexOf("# Part B"), brief.indexOf("# Part C"));
 const SUBSTITUTIONS: [string, string][] = [
   ["it can't diagnose her", "it can't label her"],
   ["manufacture a diagnosis", "manufacture a villain"],
+  // The fallback renders after Acts 1 and 2, so the read is above it (2026-11-03).
+  ["changes the read below", "changes the read above"],
 ];
 const approved = (text: string) =>
   SUBSTITUTIONS.reduce((t, [from, to]) => t.replace(from, to), text);
@@ -233,7 +236,7 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
       const [id, heading] = head.split(" — ");
       expect(decodes[id!]).toEqual({ heading, body });
     }
-    expect(brief).toContain(`the result shows: "${decodeFallback}"`);
+    expect(approved(brief)).toContain(`the result shows: "${decodeFallback}"`);
   });
 
   it("the six dynamic reads", () => {
@@ -291,6 +294,15 @@ describe("Section 14.2 over the result content", () => {
     expect(all).not.toMatch(
       /therap|counsell?ing|treatment|diagnos|clinically|mental-health assessment|disorder|\bcure\b|guarantee|get (your ex|her|him|them) back|win (her|him|them) back|regret leaving|make her miss you/i,
     );
+  });
+
+  it("takes partner pronouns and nouns from config/copy.ts, never writes them in", () => {
+    const source = readFileSync(path.resolve(__dirname, "../../content/quiz-result.ts"), "utf8");
+    // The text only: every string and template literal in the file.
+    const code = source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    const text = (code.match(/`[^`]*`|"[^"\n]*"/g) ?? []).join("\n");
+    expect(text.length).toBeGreaterThan(10_000);
+    expect(text).not.toMatch(/\b(she|her|hers|herself|woman|women)\b/i);
   });
 
   it("resolves every partner token", () => {

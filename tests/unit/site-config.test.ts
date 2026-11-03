@@ -92,6 +92,8 @@ describe("config/quiz.ts and config/copy.ts", () => {
       subject: "she",
       object: "her",
       reflexive: "herself",
+      noun: "woman",
+      nounPlural: "women",
       possessive: "her",
     });
   });

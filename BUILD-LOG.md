@@ -1559,15 +1559,15 @@ ambiguities" heading instead of Session 4's. It was fixed on PR #13 before merge
    "you" here too (see the follow-up below).
 3. **"Woman"/"women"** in the dynamics and her fearful-avoidant read are written in, not
    from the partner dictionary — fine for `men-v1`, like q21's "a male friend".
-4. **The decode fallback line** says "the read below", but it renders after Acts 1 and 2. Keep, or change to "the read above"?
+   Resolved 2026-11-03: routed through the dictionary (review follow-up below).
+4. **The decode fallback line** says "the read below", but it renders after Acts 1 and 2. Resolved 2026-11-03: "the read above".
 5. **A secure partner with a lean**: her read is the secure read, while the dynamic
-   borrows her lean's loop (with a lean line saying so). Is that the reading you want?
+   borrows her lean's loop (with a lean line saying so). Resolved 2026-11-03: kept as
+   built.
 6. **The privacy policy** says what a shared link carries, but not what the result
-   email request carries. It now includes her two perceived scores (never answers). A
-   sentence in the legal copy may be worth adding; legal wording is yours.
-7. **The results route's LCP** (2.33–2.41 s): it's client-rendered by design (Section
-   6), so it can't paint before its script. The tool-page budget is met on the three
-   tool pages; decide whether it should bind this noindex route too.
+   email request carries. Resolved 2026-11-03: disclosure added.
+7. **The results route's LCP** (2.33–2.41 s). Resolved 2026-11-03: its own 2.5 s
+   budget; optimising it is a post-launch item.
 8. **The programme line** ends with a full stop; the brief quotes it with a trailing
    comma.
 
@@ -1587,3 +1587,49 @@ ambiguities" heading instead of Session 4's. It was fixed on PR #13 before merge
 - The result email uses the same content, so it changes with the page.
 
 **Tests:** 544 unit tests pass (5 skipped); 933 Playwright tests pass.
+
+## Session 5 review follow-up (2026-11-03)
+
+**Shipped** (`session-05: review follow-up — results budget, fallback, privacy, partner nouns`)
+
+- **Results route budget** (founder decision): its own 2.5 s LCP budget in `QA.md`. It
+  measures 2.41 s empty and 2.33 s from a shared link. It's the payoff page, viewed once,
+  and client-rendered by design (Section 6). Optimising it is under "After launch" in
+  `LAUNCH.md`, and Session 14's live re-run includes it.
+- **Decode fallback:** "Nothing she's done since the breakup changes the read above —
+  and that's information too." It renders after Acts 1 and 2. The parity test carries
+  it as an approved substitution, like the two Section 14.2 changes.
+- **Privacy policy** (Email section): asking for the result by email sends his two
+  scores and the quiz version, and the two scores for the pattern he experienced from
+  her — never answers; they're used only to write that one email and aren't stored.
+  - Each legal page now has its own "Last updated" date (`config/legal.ts`, keyed by
+    route), so only the privacy policy moves to 2026-11-03. One shared date would have
+    shown Terms and the Affiliate Disclosure as changed too. The sitemap uses the same
+    dates.
+- **Partner nouns:** `config/copy.ts` gains `noun` ("woman") and `nounPlural` ("women").
+  The reads use them ("two different women", "aimed at a woman who's no longer
+  there"). A source check fails if the reads' text writes a partner pronoun or noun in
+  directly; a one-word mutation confirmed it.
+
+**Decision recorded: a secure partner with a lean** (founder, 2026-11-03)
+
+- Kept as built. Her read is the secure read; the dynamic keys off her lean, because
+  the dynamics describe behaviour.
+- Where the lean shows: in the dynamic section, as the line "As you experienced her,
+  she was broadly secure, with an anxious lean — under stress, the loop below is the
+  one she tended to run." Her read's own headline names only the profile ("Secure").
+
+**Unchanged by decision:** the Session 5 supplementary wording (the dynamic heading,
+the lean lines, the share copy) stays as drafted, in the founder's review pile.
+
+**Noted for the founder**
+
+- **The privacy policy's "short version"** says "We only ever receive an email address
+  if you choose to give us one, and anonymous usage counts." A result-email request has
+  always carried his scores as well, and now hers. The new Email-section sentence says
+  so; the summary line may want a matching clause. Legal wording is yours.
+- **"Man" and "men"** stay written in where they mean the reader's side, not the
+  partner: "the next man who gets close enough", "keeps men hooked", "a man who can
+  name the pull". They change with the audience, not the partner dictionary.
+
+**Tests:** 545 unit tests pass (5 skipped); 933 Playwright tests pass.

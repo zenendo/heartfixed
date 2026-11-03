@@ -10,7 +10,8 @@ import type { DynamicId, DynamicPick, NextStep, ProfileId } from "@/lib/quiz";
  * (Session 5). Every read below is the brief's text word for word, checked by
  * tests/unit/quiz-result-brief.test.ts, with two founder-approved substitutions for
  * Section 14.2 (2026-11-02): the caveat's "can't label her", and the Secure-involved
- * dynamic's "manufacture a villain". Partner pronouns resolve through config/copy.ts
+ * dynamic's "manufacture a villain"; and (2026-11-03) "the read above" in the decode
+ * fallback, which renders after the reads. Partner pronouns resolve through config/copy.ts
  * (Section 2.3); *asterisks* mark the brief's emphasis.
  *
  * The view's headings and short UI lines are in content/quiz-result-ui.ts.
@@ -65,7 +66,7 @@ export const herReads: Record<ProfileId, HerRead> = {
   },
   "fearful-avoidant": {
     paragraphs: [
-      `In this relationship, ${p.subject} wanted closeness and feared it, sometimes in the same day. ${cap(p.subject)} could pursue you hard — needing the argument settled tonight, needing to know you still loved ${p.object} — and then panic at the very closeness ${p.subject}'d demanded, and vanish into silence or fault-finding. The relationship felt like weather: warmth you couldn't trust, distance you couldn't predict. That wasn't two different women. It was one pattern with two alarms wired to the same bell — terrified of being left, terrified of being trapped — and almost any move you made rang one of them.`,
+      `In this relationship, ${p.subject} wanted closeness and feared it, sometimes in the same day. ${cap(p.subject)} could pursue you hard — needing the argument settled tonight, needing to know you still loved ${p.object} — and then panic at the very closeness ${p.subject}'d demanded, and vanish into silence or fault-finding. The relationship felt like weather: warmth you couldn't trust, distance you couldn't predict. That wasn't two different ${p.nounPlural}. It was one pattern with two alarms wired to the same bell — terrified of being left, terrified of being trapped — and almost any move you made rang one of them.`,
     ],
     means: `the chaos wasn't a puzzle you failed to solve; consistency is the one thing this pattern cannot produce, no matter who the partner is. It does not mean the hot phases were the "real" relationship and the cold ones an aberration. The intensity was real *and* the instability was real. Intensity is not compatibility.`,
     since: `the swing, continuing without the relationship. A reach-out full of feeling, then regret, then silence, then another reach-out. Each swing will feel like a message about you — it isn't. It's ${p.possessive} pattern running its loop in an empty room, and every round of it restarts your own clock.`,
@@ -99,7 +100,7 @@ export const decodes: Record<string, Decode> = {
   },
 };
 
-export const decodeFallback = `Nothing ${p.subject}'s done since the breakup changes the read below — and that's information too.`;
+export const decodeFallback = `Nothing ${p.subject}'s done since the breakup changes the read above — and that's information too.`;
 
 export const dynamics: Record<DynamicId, Dynamic> = {
   "anxious-avoidant": {
@@ -113,7 +114,7 @@ export const dynamics: Record<DynamicId, Dynamic> = {
     title: `The mirror loop`,
     paragraphs: [
       `The same machine, with you in the other seat. ${cap(p.possessive)} pattern needed contact to feel safe, so ${p.subject} asked, checked, escalated. Your pattern needed room to feel safe, so you deflected, went quiet, found reasons. ${cap(p.possessive)} escalation confirmed your belief that closeness means pressure; your distance confirmed ${p.possessive} belief that ${p.subject} was about to be left. Both were, from inside their own wiring, being reasonable.`,
-      `Two things you deserve to hear plainly. First: your withdrawal was a pattern, not cruelty — you'll be tempted to cast yourself as the cold villain of this story, and that rewrite is its own distortion. Second: ${p.subject} probably left more times in ${p.possessive} head than ${p.subject} ever said out loud — anxious patterns often rehearse the exit for months before using it — so ${p.possessive} leaving, if ${p.subject} left, wasn't as sudden as it looked. Your recovery risk in this pairing is the delayed wave: it may hit weeks late, aimed at a woman who's no longer there to receive it. That's grief arriving, not a mistake to fix.`,
+      `Two things you deserve to hear plainly. First: your withdrawal was a pattern, not cruelty — you'll be tempted to cast yourself as the cold villain of this story, and that rewrite is its own distortion. Second: ${p.subject} probably left more times in ${p.possessive} head than ${p.subject} ever said out loud — anxious patterns often rehearse the exit for months before using it — so ${p.possessive} leaving, if ${p.subject} left, wasn't as sudden as it looked. Your recovery risk in this pairing is the delayed wave: it may hit weeks late, aimed at a ${p.noun} who's no longer there to receive it. That's grief arriving, not a mistake to fix.`,
     ],
   },
   "anxious-anxious": {

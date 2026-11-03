@@ -13,6 +13,10 @@ export interface PartnerTerms {
   possessive: string;
   /** "herself" */
   reflexive: string;
+  /** "woman" (as in "a woman who's no longer there") */
+  noun: string;
+  /** "women" */
+  nounPlural: string;
 }
 
 export interface AudienceCopy {
@@ -27,5 +31,7 @@ export const copy: AudienceCopy = {
     object: "her",
     possessive: "her",
     reflexive: "herself",
+    noun: "woman",
+    nounPlural: "women",
   },
 };
