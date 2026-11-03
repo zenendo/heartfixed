@@ -1,12 +1,8 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { EmailSignup } from "@/components/content/EmailSignup";
-import { CheckInForm } from "@/components/tools/CheckInForm";
-import { ReminderOptIn } from "@/components/tools/ReminderOptIn";
-import { SlipFlow } from "@/components/tools/SlipFlow";
-import { StreakCalendar } from "@/components/tools/StreakCalendar";
 import { TrackerSetup } from "@/components/tools/TrackerSetup";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
@@ -15,6 +11,7 @@ import { formCopy } from "@/content/emails/forms";
 import { trackerCopy as t } from "@/content/tracker";
 import { dayBand, track } from "@/lib/analytics";
 import { downloadText } from "@/lib/download";
+import { preloadWhenIdle } from "@/lib/preload";
 import { clearStored, exportStored, readStored, storageKeys, writeStored } from "@/lib/storage";
 import {
   TrackerError,
@@ -48,9 +45,31 @@ type View =
 
 const CALENDAR_DAYS = 14;
 
+/**
+ * A first visit shows only the setup form, so the streak view's panels load on their
+ * own (Section 16.3 LCP budget) and are preloaded once the browser is idle.
+ */
+const panels = {
+  checkIn: () => import("@/components/tools/CheckInForm"),
+  reminder: () => import("@/components/tools/ReminderOptIn"),
+  slip: () => import("@/components/tools/SlipFlow"),
+  calendar: () => import("@/components/tools/StreakCalendar"),
+  email: () => import("@/components/content/EmailSignup"),
+};
+const CheckInForm = dynamic(() => panels.checkIn().then((m) => m.CheckInForm));
+const ReminderOptIn = dynamic(() => panels.reminder().then((m) => m.ReminderOptIn));
+const SlipFlow = dynamic(() => panels.slip().then((m) => m.SlipFlow));
+const StreakCalendar = dynamic(() => panels.calendar().then((m) => m.StreakCalendar));
+const EmailSignup = dynamic(() => panels.email().then((m) => m.EmailSignup));
+
 /** Moves focus to a view's heading after it renders (Section 8.4). */
-function focusSoon(id: string) {
-  requestAnimationFrame(() => document.getElementById(id)?.focus());
+function focusSoon(id: string, frames = 120) {
+  requestAnimationFrame(() => {
+    const el = document.getElementById(id);
+    // A lazily loaded panel may still be arriving: try again for up to ~2 seconds.
+    if (el) el.focus();
+    else if (frames > 0) focusSoon(id, frames - 1);
+  });
 }
 
 /**
@@ -73,12 +92,14 @@ export function Tracker() {
     if (stored.status === "ok") setState(stored.value);
     if (stored.status === "unavailable") setCanPersist(false);
     setLoad(stored.status === "corrupt" ? "corrupt" : "ready");
+    const cancelPreload = preloadWhenIdle(Object.values(panels));
     // The day can roll over while the tab stays open.
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
+      cancelPreload();
     };
   }, []);
 

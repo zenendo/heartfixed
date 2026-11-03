@@ -31,35 +31,35 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
   analytics switched on (`NEXT_PUBLIC_GA_MEASUREMENT_ID` set).
 - Chromium is Playwright's Chrome for Testing build 1248.
 - Each figure is the median of 3 runs. Rows marked (S4) were re-measured after
-  Session 4; the others are Session 13's figures.
+  Session 4, and rows marked (lazy) after the panel lazy-loading fix; the others are
+  Session 13's figures.
 
-| Page                                    | Perf | A11y | Best Pr. | SEO | LCP (budget)     | CLS |   TBT |
-| --------------------------------------- | ---: | ---: | -------: | --: | ---------------- | --: | ----: |
-| `/attachment-style-quiz/` (S4)          |  100 |  100 |      100 | 100 | 1.89 s (2.0)     |   0 | 33 ms |
-| `/no-contact-tracker/` (S4)             |   99 |  100 |      100 | 100 | **2.03 s (2.0)** |   0 | 30 ms |
-| `/should-i-text-my-ex/` (S4)            |   99 |  100 |      100 | 100 | **2.03 s (2.0)** |   0 | 32 ms |
-| `/` (home) (S4)                         |  100 |  100 |      100 | 100 | 1.73 s (1.8)     |   0 | 11 ms |
-| `/no-contact-rule/`                     |  100 |  100 |       96 | 100 | 1.72 s (1.8)     |   0 |  8 ms |
-| `/guides/no-contact-day-14/` (S4)       |  100 |  100 |      100 | 100 | 1.72 s (1.8)     |   0 |  8 ms |
-| `/guides/how-long-does-a-breakup-take/` |  100 |  100 |       96 | 100 | 1.72 s (1.8)     |   0 |  8 ms |
+| Page                                    | Perf | A11y | Best Pr. | SEO | LCP (budget) | CLS |   TBT |
+| --------------------------------------- | ---: | ---: | -------: | --: | ------------ | --: | ----: |
+| `/attachment-style-quiz/` (lazy)        |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 36 ms |
+| `/no-contact-tracker/` (lazy)           |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 35 ms |
+| `/should-i-text-my-ex/` (lazy)          |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 35 ms |
+| `/` (home) (lazy)                       |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 | 10 ms |
+| `/no-contact-rule/`                     |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 |  8 ms |
+| `/guides/no-contact-day-14/` (S4)       |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 |  8 ms |
+| `/guides/how-long-does-a-breakup-take/` |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 |  8 ms |
 
 **Budgets**
 
-- **LCP on the tracker and decision tool: Fail, by 30–40 ms** (2.03 s against 2.0 s).
-  - Their initial script is within about 150 bytes of Session 13's, when they measured
-    1.88–1.89 s. Lighthouse's simulated network adds a whole round trip (about 150 ms)
-    once a page's initial scripts cross a TCP window boundary, and these two pages
-    sit right on it. The quiz page, with slightly less script, measures 1.89 s.
-  - Ruled out: the quiz chunks other pages now prefetch (turning prefetch off didn't
-    change the result), and the zod chunk (trimmed back to its Session 13 size).
-  - Proposed fix, not yet made (it changes Session 6–7 behaviour): lazy-load what
-    those tools don't render on first load — the streak view before setup on the
-    tracker; the draft check, outcome, unsent list and timer before their steps on
-    the decision tool. That moves several KB off first load, well clear of the line.
+- **LCP on the tracker and decision tool: pass, 1.89 s** (was 2.03 s after Session 4).
+  - Session 4 left both pages about 150 bytes over a TCP window boundary in
+    Lighthouse's simulated network, which adds a round trip (about 150 ms). Prefetching
+    and the zod chunk were ruled out by experiment.
+  - Fix: the panels a first visit doesn't show load on their own and are preloaded once
+    the browser is idle. Tracker: check-in, calendar, slip flow, reminder and email
+    signup. Decision tool: outcome, draft check and urge timer. Page script went from
+    8.57 to 6.32 kB (tracker) and 10.6 to 7.78 kB (decision tool).
+  - A unit test (`tests/unit/lazy-panels.test.ts`) fails if any of them becomes a static
+    import again.
 
 - **Total JS on a tool page:** pass.
-  - Next reports 125 kB gzipped first-load JS for the quiz page, 127 kB for the
-    tracker and 129 kB for the decision tool, against a 180 kB budget.
+  - Next reports 126 kB gzipped first-load JS for the quiz page, 126 kB for the
+    tracker and 128 kB for the decision tool, against a 180 kB budget.
   - Lighthouse saw 144 kB of script transferred in total. That figure includes the
     other tools' chunks, which Next prefetches after load.
   - Every other page is 106 kB.

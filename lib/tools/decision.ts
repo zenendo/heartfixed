@@ -149,3 +149,11 @@ export function decide(input: DecisionInput, draft: string | null, sentAt: Date)
   const rule = decisionRules.find((r) => r.when(valid, check))!;
   return { outcome: rule.outcome, ruleId: rule.id, draft: check };
 }
+
+/** "Sunday at 2:00 PM" in the visitor's local time. */
+export function formatWhen(iso: string): string {
+  const d = new Date(iso);
+  const day = d.toLocaleDateString("en-US", { weekday: "long" });
+  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${day} at ${time}`;
+}

@@ -7,18 +7,10 @@ import { DraftObservations, PRIVATE_TEXTAREA } from "@/components/tools/DraftChe
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { routes } from "@/config/site";
 import { decisionCopy } from "@/content/decision";
-import type { Decision, DecisionInput } from "@/lib/tools/decision";
+import { formatWhen, type Decision, type DecisionInput } from "@/lib/tools/decision";
 import { VAULT_TEXT_MAX } from "@/lib/tools/unsent";
 
 const t = decisionCopy.outcome;
-
-/** "Sunday at 2:00 PM" in the visitor's local time. */
-export function formatWhen(iso: string): string {
-  const d = new Date(iso);
-  const day = d.toLocaleDateString("en-US", { weekday: "long" });
-  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  return `${day} at ${time}`;
-}
 
 function reasonFor(decision: Decision, input: DecisionInput): string {
   if (decision.ruleId === "default") return t.reasons.default[input.purpose];
