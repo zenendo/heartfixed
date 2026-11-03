@@ -12,8 +12,7 @@ import { PROHIBITED_SCHEMA_TYPES, validateJsonLd } from "../../lib/seo/schema";
  * Plus the Section 19.1 `{{` sweep and the 404 page.
  */
 
-const NOT_BUILT_YET = new Set<string>([routes.quizResults]); // Session 5: the full result view
-const BUILT = Object.values(routes).filter((r) => !NOT_BUILT_YET.has(r));
+const BUILT = Object.values(routes);
 const abs = (path: string) => new URL(path, baseUrl).toString();
 
 async function jsonLd(page: Page) {
@@ -45,7 +44,12 @@ for (const route of BUILT) {
       expect(await meta(page, "property", "og:image")).toBe(image);
       expect(await meta(page, "name", "twitter:card")).toBe("summary_large_image");
       expect(await meta(page, "name", "twitter:image")).toBe(image);
-      expect(await page.locator('meta[name="robots"]').count()).toBe(0);
+      // Section 9.6: the results route is noindex; every other route is indexable.
+      if (noindexRoutes.includes(route)) {
+        expect(await meta(page, "name", "robots")).toMatch(/noindex/);
+      } else {
+        expect(await page.locator('meta[name="robots"]').count()).toBe(0);
+      }
     });
 
     test("JSON-LD: sitewide WebSite + Organization, every block valid, none prohibited", async ({

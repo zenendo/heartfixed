@@ -1,6 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { lazyPanel } from "@/components/tools/lazyPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { TrackerSetup } from "@/components/tools/TrackerSetup";
@@ -56,11 +56,11 @@ const panels = {
   calendar: () => import("@/components/tools/StreakCalendar"),
   email: () => import("@/components/content/EmailSignup"),
 };
-const CheckInForm = dynamic(() => panels.checkIn().then((m) => m.CheckInForm));
-const ReminderOptIn = dynamic(() => panels.reminder().then((m) => m.ReminderOptIn));
-const SlipFlow = dynamic(() => panels.slip().then((m) => m.SlipFlow));
-const StreakCalendar = dynamic(() => panels.calendar().then((m) => m.StreakCalendar));
-const EmailSignup = dynamic(() => panels.email().then((m) => m.EmailSignup));
+const CheckInForm = lazyPanel(() => panels.checkIn().then((m) => m.CheckInForm));
+const ReminderOptIn = lazyPanel(() => panels.reminder().then((m) => m.ReminderOptIn));
+const SlipFlow = lazyPanel(() => panels.slip().then((m) => m.SlipFlow));
+const StreakCalendar = lazyPanel(() => panels.calendar().then((m) => m.StreakCalendar));
+const EmailSignup = lazyPanel(() => panels.email().then((m) => m.EmailSignup));
 
 /** Moves focus to a view's heading after it renders (Section 8.4). */
 function focusSoon(id: string, frames = 120) {

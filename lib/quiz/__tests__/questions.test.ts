@@ -55,9 +55,14 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
   it("supports other dictionaries, overrides and a capitalised sentence start (Section 2.3)", () => {
     const h5 = herQuestions.find((q) => q.id === "h5")!;
     expect(renderStem(h5)).toMatch(/^She often asked whether I still loved her/);
-    expect(renderStem(h5, { subject: "they", object: "them", possessive: "their" })).toMatch(
-      /^They often asked whether I still loved them/,
-    );
+    expect(
+      renderStem(h5, {
+        subject: "they",
+        object: "them",
+        possessive: "their",
+        reflexive: "themselves",
+      }),
+    ).toMatch(/^They often asked whether I still loved them/);
     expect(renderStem({ ...h5, partnerTerms: { subject: "he", object: "him" } })).toMatch(
       /^He often asked whether I still loved him/,
     );

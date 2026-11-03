@@ -55,6 +55,11 @@ export const emailRequestSchema = z.discriminatedUnion("action", [
     email: emailSchema,
     /** The Section 9.6 share token — scores and version only, never answers. */
     token: z.string().min(1).max(200),
+    /**
+     * The partner read, in the same token shape (her two perceived scores + version).
+     * Founder decision (2026-11-02): the result email carries her read and the dynamic.
+     */
+    perceived: z.string().min(1).max(200).optional(),
     /** The separate, unchecked-by-default list checkbox (Section 13.1 b). */
     alsoJoinList: z.boolean(),
     website: honeypot,

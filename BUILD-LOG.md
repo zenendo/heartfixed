@@ -1350,7 +1350,7 @@ No production deploy, DNS change or affiliate change was made.
 3. **q21's "a male friend"** is audience-specific wording that the partner dictionary
    can't swap. It's fine for `men-v1`; it needs a variant if the audience changes.
 4. **For Session 5 (from the brief):** whether the result email carries her content.
-   Decided: it does (see the follow-up entry below).
+   Decided: it does (see the follow-up entry below). Built in Session 5.
 5. **Tracker and decision-tool LCP** (above): founder approved the lazy-load fix as its
    own PR after this one merges.
 
@@ -1433,8 +1433,142 @@ No production deploy, DNS change or affiliate change was made.
 - **Still saying "24 questions"** in the site's own copy, flagged for founder wording: the
   homepage quiz card (`content/home.ts`), the quiz FAQ in `content/faqs.ts`, the profile
   pages' quiz callout (`content/attachment-styles.ts`), and the attachment-styles guide's
-  closing callout.
+  closing callout. Fixed in Session 5 with the founder's wording.
 
 **Fixed: duplicated log.** The Session 4 commit had the whole log from Session 1 to
 Session 14 twice, from a splice of mine that matched Session 1's "Decisions and
 ambiguities" heading instead of Session 4's. It was fixed on PR #13 before merge.
+
+## Session 5 — Result experience (2026-11-02 → 2026-11-03)
+
+**Shipped**
+
+- **The founder's quiz count in the site's own copy** (first commit): the homepage
+  card, the quiz FAQ, the profile callout and the attachment-styles guide now say "44
+  questions about what you actually did — and what she did — in your last
+  relationship". A sweep test keeps every such count equal to the quiz total.
+- **Profile copy, site-wide** (founder decision, 2026-11-02). The brief's four profiles
+  (Part B) replace the Session 8 drafts in `lib/quiz/profiles.ts`, so the result view,
+  the four profile pages, the attachment-styles guide and the result email read one
+  source.
+  - The brief's third-person lines are in the second person (founder decision): "You
+    can usually name what you miss". Only pronouns and verb agreement changed.
+  - Partner pronouns resolve through `config/copy.ts`; a `reflexive` term ("herself")
+    was added for the reads.
+  - Next steps follow the brief. The secure lean lines use the brief's template, and
+    each is followed by the watch-outs it names (`leanWatchOuts`).
+- **The full result view** (`/attachment-style-quiz/results/`), in the brief's order:
+  1. Headline, both dimension bars with their scores and bands in text, and Block A
+     directly beneath.
+  2. "Why it happened": her read under its caveat, then the dynamic read for his × her
+     pairing.
+  3. "Your pattern in this relationship": the lean (if any), the description, after a
+     breakup, the no-contact risk with the one-click tracker offer, watch-outs and
+     strengths.
+  4. "Since the breakup": the decodes the selectors chose (an answer of "Sometimes" or
+     more), or the brief's single fallback line.
+  5. "Getting over her, with your pattern": the bridge, its two tools, then the email
+     form with the programme line.
+  6. Share, then "Go deeper" (exactly the profile's two next steps, plus the only
+     affiliate position, below the email form), then Block D.
+- **Two founder-approved substitutions** for Section 14.2: the caveat's "it can't label
+  her", and the Secure-involved dynamic's "manufacture a villain".
+- **The dynamic composition rule** (`lib/quiz/dynamics.ts`): fearful-avoidant on either
+  side is "the swing"; a secure lean borrows its pattern and the view names that lean
+  above the read; any other secure side (low/low or the mixed lean) is "secure
+  involved"; the rest are his × her. Tested over all 81 band pairings.
+- **One-click tracker offer** (Section 10.3 item 5): starts a streak today with the
+  default 30-day goal. Nothing is written until it's pressed, and an existing streak
+  is shown, never replaced. Its copy reuses the tracker's.
+- **Share** (Section 9.6): copies the link (scores and version only) with "My attachment
+  pattern: [name] — [site]". Sends `quiz_result_shared`.
+- **The shared view**: the banner, the sharer's headline, scores, Block A and profile
+  content — never her read, the dynamic, the decodes, the email form or the tracker
+  offer. A tampered token gets the generic shell (Fixture 7). Its quiz link adds
+  `?from=share`, which `quiz_view` now reports as `source: "share"`.
+- **The result email** (founder decision, 2026-11-02) now carries her read and the
+  dynamic. The form sends her two perceived scores in the same token shape as the share
+  link; the server recomputes her profile and rejects a malformed token. Share links
+  still carry only his profile and scores.
+- **Print stylesheet**: ink on white, sections kept whole; the controls, the email form
+  and the tracker offer don't print; Block A, Block D and the footer's crisis line do.
+- **Performance** (see `QA.md`):
+  - The tracker and decision tool use React's `lazy()` for their later panels
+    (`components/tools/lazyPanel.tsx`). Session 5's new pages had made the bundler move
+    `next/dynamic`'s loader into each tool's page chunk, putting the decision tool back
+    at 2.04 s; measured against `main` to confirm, then fixed (1.89 s).
+  - `package.json` now declares `"sideEffects": ["*.css"]`, so pages drop code they
+    don't use: the quiz page had been loading all the profile copy.
+  - The results route loads the full view on its own; the empty and shared views
+    don't load Part B's reads. Height is held from first paint, so CLS is 0.
+
+**Tests**
+
+- 543 unit tests pass (5 skipped). New:
+  - `tests/unit/quiz-result-brief.test.ts` (21): every Part B text against the brief,
+    word for word, with the approved substitutions and second-person changes listed in
+    the test. A one-word mutation fails it.
+  - `lib/quiz/__tests__/dynamics.test.ts` (13): the archetypes and all 81 pairings.
+  - `email.test.tsx`: her read and the dynamic in the email, and the endpoint's
+    handling of the partner token.
+- 933 Playwright tests pass, none skipped: the results route's guardrail and SEO
+  checks, `fixme` since Session 4, now run.
+  - New `tests/e2e/result.spec.ts` (22 tests × 3 viewports): order, every section, the
+    lean, the decodes and fallback, the tracker offer (start, decline, existing),
+    share and the shared view, the email and list-join requests, print, the outdated
+    notice, axe, 44 px targets, no horizontal scroll, and CLS ≤ 0.05.
+  - `quiz.spec.ts`: the Fixture 1 + H1 and H2 runs now end on the full view (her read,
+    the dynamic, the decodes from the real answers).
+- Mutation checks, all caught and restored: the dynamic pairing reversed (3 unit
+  failures, the e2e Act 1 check), the partner token dropped from the email request,
+  and share-link detection disabled.
+- Lighthouse, median of 3: the three tool pages 1.89 s, home and guides 1.72 s, every
+  score 100. The results route: 2.41 s empty, 2.33 s shared, CLS 0.
+
+**Decisions and ambiguities (resolved with spec defaults)**
+
+- **Section headings** come from the brief's Part B structure ("Why it happened" and
+  so on); the Act 2 subheadings follow Section 10.3.
+- **The secure lean's watch-outs**: the brief says the lean paragraph "names that
+  dimension's watch-outs", so the anxious or avoidant profile's three follow the lean
+  line, and the mixed lean shows both sets. The secure profile page shows all three
+  leans this way.
+- **Go deeper** shows exactly the profile's two next steps (Section 10.3 item 9), so
+  the link to the profile page moved to the shared view only.
+- **The empty-results copy** moved to `content/quiz-result-empty.ts`, and the view's
+  UI lines to `content/quiz-result-ui.ts`, so the views that don't need Part B don't
+  load it.
+- **Found, not fixed:** the decision tool's outcome heading uses `text-2xl`, which the
+  site's type scale doesn't define, so it renders at body size. Pre-existing (Session
+  7); the result view had the same bug and is fixed.
+
+**For founder review**
+
+1. **Wording of mine** in `content/quiz-result-ui.ts`, where neither the brief nor the
+   spec gives any:
+   - "The dynamic between you";
+   - the lean lines above a dynamic a lean selected ("You're broadly secure, with an
+     anxious lean — under breakup stress, the loop below is the one to watch.", and
+     the version about her);
+   - the mixed-lean line ("Broadly secure, with a mixed lean — under breakup stress,
+     both patterns below are the ones to watch.");
+   - the share sentence, "Copy the share link", "Link copied.";
+   - the shared view's "About the anxious pattern" heading;
+   - "Take the quiz again" and the outdated-result notice.
+2. **The reads still call the reader "he".** Her four reads and the six dynamics are the
+   brief's text, in the third person ("when he tried to get her to open up"), while
+   every other section says "you". Your change covered the profile data only. Convert
+   these too?
+3. **"Woman"/"women"** in the dynamics and her fearful-avoidant read are written in, not
+   from the partner dictionary — fine for `men-v1`, like q21's "a male friend".
+4. **The decode fallback line** says "the read below", but it renders after Acts 1 and 2. Keep, or change to "the read above"?
+5. **A secure partner with a lean**: her read is the secure read, while the dynamic
+   borrows her lean's loop (with a lean line saying so). Is that the reading you want?
+6. **The privacy policy** says what a shared link carries, but not what the result
+   email request carries. It now includes her two perceived scores (never answers). A
+   sentence in the legal copy may be worth adding; legal wording is yours.
+7. **The results route's LCP** (2.33–2.41 s): it's client-rendered by design (Section
+   6), so it can't paint before its script. The tool-page budget is met on the three
+   tool pages; decide whether it should bind this noindex route too.
+8. **The programme line** ends with a full stop; the brief quotes it with a trailing
+   comma.

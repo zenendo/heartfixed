@@ -44,7 +44,10 @@ export async function handleEmailRequest(
       case "send_result": {
         let email;
         try {
-          email = buildResultEmail(resultFromToken(req.token));
+          email = buildResultEmail(
+            resultFromToken(req.token),
+            req.perceived === undefined ? undefined : resultFromToken(req.perceived),
+          );
         } catch (err) {
           if (err instanceof ResultTokenError) return fail(400, "invalid_request");
           throw err;

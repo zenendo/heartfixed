@@ -157,6 +157,17 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     );
     await expect(scores.locator("xpath=following-sibling::*[1]")).toHaveText(blockA.text);
     await expect(page.getByTestId("crisis-block")).toBeVisible();
+    // The full Part B view from the real run: her read, the dynamic, the decodes.
+    await expect(page.getByTestId("partner-read").locator("h3")).toHaveText(
+      "Her pattern, as you experienced it: Avoidant (dismissive)",
+    );
+    await expect(page.getByTestId("dynamic")).toHaveAttribute("data-dynamic", "anxious-avoidant");
+    expect(
+      await page
+        .getByTestId("decodes")
+        .locator("[data-decode]")
+        .evaluateAll((els) => els.map((e) => e.getAttribute("data-decode"))),
+    ).toEqual(["a2", "a4", "a6"]);
 
     // What saved: his result, her perceived pattern, every answer, context.
     const saved = await stored(page, "heartfixed-quiz-v1");
@@ -192,6 +203,10 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     expect(saved!.result).toMatchObject(fixture1.expected);
     expect(saved!.perceived).toEqual(herFixtures.h2.expected);
     expect(saved!.context).toEqual({});
+    await expect(page.getByTestId("partner-read").locator("h3")).toHaveText(
+      "Her pattern, as you experienced it: Anxious (preoccupied)",
+    );
+    await expect(page.getByTestId("dynamic")).toHaveAttribute("data-dynamic", "anxious-anxious");
   });
 
   test("Fixture 4 — avoidant, with a wrong attention answer flagged silently", async ({ page }) => {
@@ -206,7 +221,9 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     );
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject({ ...fixture4.avoidant.expected, attentionFlag: true });
-    await expect(page.getByRole("main").getByText(/attention|reading/i)).toHaveCount(0);
+    // The flag is never shown: no mention of the check itself (the result copy may
+    // still say "reading" in its own sense, as in "rereading old messages").
+    await expect(page.getByRole("main").getByText(/attention|reading check/i)).toHaveCount(0);
   });
 
   test("Fixture 4 — fearful-avoidant", async ({ page }) => {

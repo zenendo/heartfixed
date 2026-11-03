@@ -1,60 +1,80 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CrisisBlock, SelfReflectionDisclaimer } from "@/components/content/ComplianceBlocks";
+import { SharedResultView } from "@/components/quiz/SharedResultView";
+import { lazyPanel } from "@/components/tools/lazyPanel";
 import { ButtonLink } from "@/components/ui/Button";
+import { quizConfig } from "@/config/quiz";
 import { routes } from "@/config/site";
-import { readProfileLabel } from "@/content/attachment-styles";
-import { resultShellCopy as t } from "@/content/quiz";
-import { profiles, savedQuizSchema, type QuizResult } from "@/lib/quiz";
+import { resultEmptyCopy as t } from "@/content/quiz-result-empty";
+import { decodeShareToken, savedQuizSchema, type SavedQuiz, type SharedResult } from "@/lib/quiz";
 import { readStored, storageKeys } from "@/lib/storage";
 
+type View =
+  | { kind: "loading" }
+  | { kind: "empty" }
+  | { kind: "shared"; result: SharedResult }
+  | { kind: "own"; saved: SavedQuiz };
+
 /**
- * The result view, Session 4 minimum: the profile headline, both scores and Block A
- * directly under them (Sections 9.5, 10.3), from the result saved in this browser.
- * With nothing saved, the generic shell with a "take the assessment" prompt.
- * TODO(session-5): the full Part B result view, shared-token views, print, email, share.
- * Founder decision (2026-11-02): the result email includes the partner read and the
- * dynamic summary; share links carry the visitor's profile and two scores only.
+ * The full view carries all of Part B, so it loads on its own; the shared view, which
+ * public links land on, ships with the page so it paints without a second request.
+ */
+const ResultView = lazyPanel(() =>
+  import("@/components/quiz/ResultView").then((m) => m.ResultView),
+);
+
+/** A screen's height held from first paint, so nothing below jumps (Section 16.3 CLS). */
+const HOLD = "min-h-screen";
+
+/** Any share-token parameter in the URL makes this a shared-link visit (Section 9.6). */
+const SHARE_PARAMS = ["v", "a", "v2"];
+
+/**
+ * /attachment-style-quiz/results/ — Sections 9.6 and 10.3.
+ *
+ * - A share link renders the sharer's profile view under the Section 9.6 banner: scores and
+ *   profile only, no partner read, no decodes, no email form. A tampered or malformed
+ *   token gets the generic shell (Fixture 7), never an error page.
+ * - Otherwise the result saved in this browser renders in full.
+ * - With neither, the generic shell with a "take the assessment" prompt.
  */
 export function ResultShell() {
-  const [result, setResult] = useState<QuizResult | null | undefined>(undefined);
+  const [view, setView] = useState<View>({ kind: "loading" });
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (SHARE_PARAMS.some((key) => params.has(key))) {
+      const decoded = decodeShareToken(params);
+      setView(decoded.ok ? { kind: "shared", result: decoded.result } : { kind: "empty" });
+      return;
+    }
     const saved = readStored(storageKeys.quiz, savedQuizSchema);
-    setResult(saved.status === "ok" ? saved.value.result : null);
+    setView(saved.status === "ok" ? { kind: "own", saved: saved.value } : { kind: "empty" });
   }, []);
 
-  if (result === undefined) return <div className="min-h-[24rem]" aria-busy="true" />;
+  if (view.kind === "loading") return <div className={HOLD} aria-busy="true" />;
 
-  if (result === null) {
+  if (view.kind === "own") {
     return (
-      <div className="min-h-[24rem]" data-testid="result-empty">
-        <h1>{t.empty.heading}</h1>
-        <p className="mt-3 text-lg">{t.empty.body}</p>
-        <ButtonLink href={routes.quiz} className="mt-6">
-          {t.empty.cta}
-        </ButtonLink>
+      <div className={HOLD}>
+        <ResultView
+          saved={view.saved}
+          outdated={view.saved.version !== quizConfig.questionSetVersion}
+        />
       </div>
     );
   }
 
-  const profile = profiles[result.profileId];
+  if (view.kind === "shared") return <SharedResultView result={view.result} />;
+
   return (
-    <div className="min-h-[24rem]" data-testid="result">
-      <h1>{t.headline(profile.label)}</h1>
-      <ul className="mt-4 space-y-1 text-lg font-semibold" data-testid="result-scores">
-        <li>{t.score("anxiety", result.anxietyNorm, result.anxietyBand)}</li>
-        <li>{t.score("avoidance", result.avoidanceNorm, result.avoidanceBand)}</li>
-      </ul>
-      <SelfReflectionDisclaimer className="mt-4" />
-      <div className="mt-6 flex flex-wrap gap-3">
-        <ButtonLink href={profile.route}>{readProfileLabel(profile.name)}</ButtonLink>
-        <ButtonLink href={routes.quiz} variant="secondary">
-          {t.retake}
-        </ButtonLink>
-      </div>
-      <CrisisBlock placement="result" className="mt-10" />
+    <div className={HOLD} data-testid="result-empty">
+      <h1>{t.heading}</h1>
+      <p className="mt-3 text-lg">{t.body}</p>
+      <ButtonLink href={routes.quiz} className="mt-6">
+        {t.cta}
+      </ButtonLink>
     </div>
   );
 }

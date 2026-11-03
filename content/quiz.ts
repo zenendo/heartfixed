@@ -127,20 +127,3 @@ export const runnerCopy = {
   storageUnavailable:
     "This browser isn't saving data, so your progress won't be kept if you leave the page. The quiz still works.",
 } as const;
-
-/**
- * The result view's minimum for Session 4: headline, both scores, Block A directly
- * under them (Sections 9.5, 10.3). Session 5 builds the full view from the brief's
- * Part B. TODO(session-5)
- */
-export const resultShellCopy = {
-  headline: (label: string) => `Your pattern: ${label}`,
-  score: (dimension: "anxiety" | "avoidance", score: number, band: string) =>
-    `Attachment ${dimension} ${score}/100 — ${band}`,
-  retake: "Back to the quiz",
-  empty: {
-    heading: "Your attachment quiz result",
-    body: "There's no quiz result saved in this browser. Take the assessment to get your own — the full result is free.",
-    cta: "Take the quiz",
-  },
-} as const;
