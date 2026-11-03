@@ -197,6 +197,9 @@ describe("About, Contact, Methodology", () => {
     expect(routeMetadata[routes.methodology]!.description).toContain(
       `its ${QUIZ_QUESTION_COUNT} questions`,
     );
+    expect(routeMetadata[routes.quiz]!.description).toBe(
+      `A free attachment style quiz for men: ${QUIZ_QUESTION_COUNT} questions about what you actually did — and what she did — in your last relationship. Full result free, no signup.`,
+    );
   });
 
   it("Methodology describes the partner read in the founder's wording", () => {
