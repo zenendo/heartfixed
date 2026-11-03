@@ -1346,11 +1346,11 @@ No production deploy, DNS change or affiliate change was made.
 
 1. **Quiz-page copy** in `content/quiz.ts` — founder reviewing separately.
 2. **The methodology page** still counts only the 24 scored and 2 context questions; it
-   doesn't describe her 12 or the 6 selectors.
+   doesn't describe her 12 or the 6 selectors. Fixed in the follow-up below.
 3. **q21's "a male friend"** is audience-specific wording that the partner dictionary
    can't swap. It's fine for `men-v1`; it needs a variant if the audience changes.
-4. **For Session 5 (from the brief):** whether the result email carries her content. The
-   brief's default is the share-link privacy rule.
+4. **For Session 5 (from the brief):** whether the result email carries her content.
+   Decided: it does (see the follow-up entry below).
 5. **Tracker and decision-tool LCP** (above): founder approved the lazy-load fix as its
    own PR after this one merges.
 
@@ -1394,6 +1394,37 @@ No production deploy, DNS change or affiliate change was made.
   - 855 Playwright tests pass (3 skipped: the results route, until Session 5). That
     includes every tracker and decision-tool journey, focus test and axe check.
   - Lighthouse, 3 runs, median: as above. `QA.md` and `LAUNCH.md` row 4 are updated.
+
+**Shipped: the methodology page counts the full quiz** (`session-04: methodology counts the full quiz`)
+
+- **"The questions"** now opens with the total, 44 questions in four parts, and covers
+  each part:
+  - the 24 about you, which give your scores;
+  - the 12 about how she showed up, 6 for each dimension, scored the same way and not
+    changing your scores;
+  - the 6 since-the-breakup questions, which aren't scored, and an answer of
+    "Sometimes" or more adds a section to the result;
+  - the 2 optional context questions.
+- Every figure comes from the question data and `config/quiz.ts`. The page still never
+  mentions the attention check.
+- The methodology meta description says "its 44 questions", not "its 24 questions". A
+  unit test ties it to the count.
+
+**Founder decision for Session 5 (2026-11-02)**
+
+- **The result email includes her pattern read and the dynamic summary.** It goes to his
+  own inbox.
+- **Share links stay limited** to his profile and his two scores.
+- This settles the brief's open point (Part C). Recorded in `ResultShell.tsx` next to the
+  Session 5 TODO.
+
+**For founder review**
+
+- **The methodology "How it scores" list** still says each dimension's answers "are
+  added up". It doesn't mention that q23 and q24 count half. The wording isn't wrong,
+  but it's less exact than the rest of the page. Tell me if you want a sentence added.
+- **The quiz page's meta description** says "24 questions about what you actually do".
+  It's part of the quiz-page copy you're reviewing.
 
 **Fixed: duplicated log.** The Session 4 commit had the whole log from Session 1 to
 Session 14 twice, from a splice of mine that matched Session 1's "Decisions and
