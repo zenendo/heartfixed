@@ -6,13 +6,14 @@ import { SelfReflectionDisclaimer } from "@/components/content/ComplianceBlocks"
 import { legal } from "@/config/legal";
 import { quizConfig } from "@/config/quiz";
 import { routes } from "@/config/site";
+import { routeMetadata } from "@/lib/seo/metadata";
 import { affiliateDisclosure, blockA, blockB } from "@/content/compliance";
 import { crisisPage, verifiedInternationalLines, type InternationalLine } from "@/content/crisis";
 import type { Block, Section } from "@/content/guides/types";
 import { affiliateDisclosurePage } from "@/content/legal/affiliate-disclosure";
 import { privacyPolicy } from "@/content/legal/privacy";
 import { termsOfUse } from "@/content/legal/terms";
-import { aboutPage, contactPage, methodologyPage } from "@/content/trust";
+import { QUIZ_QUESTION_COUNT, aboutPage, contactPage, methodologyPage } from "@/content/trust";
 
 /** Session 11 — the legal and trust pages against Sections 14.1–14.5. */
 
@@ -174,13 +175,28 @@ describe("About, Contact, Methodology", () => {
   it("Methodology takes every number from config/quiz.ts", () => {
     const text = strings(methodologyPage).join("\n");
     const { bankRules, bands } = quizConfig;
-    expect(text).toContain(`${bankRules.scoredItems} scored questions`);
+    expect(text).toContain(`${bankRules.scoredItems} questions about you`);
     expect(text).toContain(`${bankRules.itemsPerDimension} for attachment anxiety`);
     expect(text).toContain(`low (0–${bands.lowMax})`);
     expect(text).toContain(`high (${bands.moderateMax + 1}–100)`);
     expect(methodologyPage.scale.labels).toEqual(quizConfig.likert.labels);
     expect(text).toContain(quizConfig.contextNote);
     expect(text).toContain(quizConfig.likert.partnerLabels.join(", "));
+  });
+
+  it("Methodology counts the full quiz: 24 + 12 + 6 + 2", () => {
+    const text = strings(methodologyPage).join("\n");
+    expect(QUIZ_QUESTION_COUNT).toBe(44);
+    expect(text).toContain("44 questions in all");
+    expect(text).toContain("24 questions about you");
+    expect(text).toContain("12 questions about how she showed up");
+    expect(text).toContain("6 for each of the same two dimensions");
+    expect(text).toContain("6 questions about what she's done since the breakup");
+    expect(text).toContain('"Sometimes" or more');
+    expect(text).toContain("2 optional context questions");
+    expect(routeMetadata[routes.methodology]!.description).toContain(
+      `its ${QUIZ_QUESTION_COUNT} questions`,
+    );
   });
 
   it("Methodology describes the partner read in the founder's wording", () => {
