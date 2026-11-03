@@ -14,6 +14,8 @@ import { readStored, storageKeys } from "@/lib/storage";
  * directly under them (Sections 9.5, 10.3), from the result saved in this browser.
  * With nothing saved, the generic shell with a "take the assessment" prompt.
  * TODO(session-5): the full Part B result view, shared-token views, print, email, share.
+ * Founder decision (2026-11-02): the result email includes the partner read and the
+ * dynamic summary; share links carry the visitor's profile and two scores only.
  */
 export function ResultShell() {
   const [result, setResult] = useState<QuizResult | null | undefined>(undefined);

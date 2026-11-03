@@ -100,7 +100,7 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
   [routes.methodology]: {
     title: "How the Attachment Quiz Works: Methodology",
     description:
-      "What the attachment quiz measures, how its 24 questions are written and scored, the score bands, and what a self-reflection assessment can't tell you.",
+      "What the attachment quiz measures, how its 44 questions are written and scored, the score bands, and what a self-reflection assessment can't tell you.",
   },
   [routes.privacy]: {
     title: "Privacy Policy",
