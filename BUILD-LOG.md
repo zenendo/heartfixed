@@ -1423,8 +1423,17 @@ No production deploy, DNS change or affiliate change was made.
 - **The methodology "How it scores" list** still says each dimension's answers "are
   added up". It doesn't mention that q23 and q24 count half. The wording isn't wrong,
   but it's less exact than the rest of the page. Tell me if you want a sentence added.
-- **The quiz page's meta description** says "24 questions about what you actually do".
-  It's part of the quiz-page copy you're reviewing.
+- **The quiz page's meta description** now uses the founder's count: "44 questions about
+  what you actually did — and what she did — in your last relationship." Founder copy
+  only, and Section 12.2's 155-character limit and the free/no-signup rule are both
+  enforced by tests. So the ending is "Full result free, no signup." (exactly 155),
+  without the "About 5 minutes" and "no email" that were there before.
+- **Founder decided:** no sentence about the half-weight items. The methodology page
+  describes what the quiz measures, and item weights are an internal scoring detail.
+- **Still saying "24 questions"** in the site's own copy, flagged for founder wording: the
+  homepage quiz card (`content/home.ts`), the quiz FAQ in `content/faqs.ts`, the profile
+  pages' quiz callout (`content/attachment-styles.ts`), and the attachment-styles guide's
+  closing callout.
 
 **Fixed: duplicated log.** The Session 4 commit had the whole log from Session 1 to
 Session 14 twice, from a splice of mine that matched Session 1's "Decisions and

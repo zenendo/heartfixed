@@ -125,8 +125,7 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
   // The quiz routes are built in Sessions 4–5; their metadata is ready here.
   [routes.quiz]: {
     title: "Attachment Style Quiz for Men: Free Results",
-    description:
-      "A free attachment style quiz for men: 24 questions about what you actually do in relationships. About 5 minutes. Full result free, no signup, no email.",
+    description: `A free attachment style quiz for men: 44 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship. Full result free, no signup.`,
   },
   [routes.quizResults]: {
     title: "Your Attachment Quiz Result",
