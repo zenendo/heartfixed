@@ -145,7 +145,7 @@ export const profilePageCopy = {
   dimensionsIntro: "This pattern is where these combinations of the two scores land:",
   quizCta: {
     heading: "Check your own scores",
-    body: `This page describes the pattern in general. The quiz is ${QUIZ_FRAMING}: 24 questions about what you actually do, about 3 minutes, and the full result is free.`,
+    body: `This page describes the pattern in general. The quiz is ${QUIZ_FRAMING}: 24 questions about what you actually do, about 5 minutes, and the full result is free.`,
     cta: "Take the quiz",
   },
   sections: {
@@ -166,6 +166,9 @@ export const profilePageCopy = {
   faqHeading: "Questions people ask",
 } as const;
 
+/** "Read about the anxious pattern" — shared by the hub and the quiz page. */
+export const readProfileLabel = (name: string) => `Read about the ${name.toLowerCase()} pattern`;
+
 export const hubCopy = {
   h1: "Attachment Styles, Explained for Men",
   intro: [
@@ -174,7 +177,7 @@ export const hubCopy = {
   ],
   quizCta: "Find your pattern",
   profilesHeading: "The four patterns",
-  readProfile: (name: string) => `Read about the ${name.toLowerCase()} pattern`,
+  readProfile: readProfileLabel,
   dimensions: {
     heading: "Two scores, not four boxes",
     paragraphs: [

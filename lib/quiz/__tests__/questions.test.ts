@@ -1,50 +1,66 @@
 import { describe, expect, it } from "vitest";
-import { copy } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import {
   attentionCheck,
   checkProfileCopy,
   checkQuestionBank,
+  herQuestions,
+  maxRawFor,
   profiles,
   questions,
-  quizQuestionSchema,
   renderStem,
+  sinceBreakupSelectors,
   type ProfileCopy,
 } from "@/lib/quiz";
 import { bandEdgeBank, tempBank } from "./fixtures";
 
-describe("sample questions (schema proof, Section 9.1)", () => {
-  it("ships two items per dimension, one reversed each", () => {
-    for (const dimension of ["anxiety", "avoidance"] as const) {
-      const items = questions.filter((q) => q.dimension === dimension);
-      expect(items).toHaveLength(2);
-      expect(items.filter((q) => q.reversed)).toHaveLength(1);
-    }
+describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
+  it("his 24 pass the Section 9.2 launch rules", () => {
+    expect(checkQuestionBank(questions)).toEqual([]);
   });
 
-  it.each(questions)("$id matches the schema and Section 9.2 framing limits", (q) => {
-    expect(quizQuestionSchema.safeParse(q).success).toBe(true);
-    expect(q.version).toBe(quizConfig.questionSetVersion);
-    expect(q.audience).toBe(quizConfig.audience);
-    expect(q.stem.split(/\s+/).length).toBeLessThanOrEqual(quizConfig.bankRules.maxStemWords);
-    // The only bank-rule problems for the samples are the 24-item shape counts.
-    expect(checkQuestionBank([q]).filter((p) => p.startsWith(q.id))).toEqual([]);
+  it("her 12 pass the her-module rules: 6 per dimension, none reversed, weight 1", () => {
+    expect(checkQuestionBank(herQuestions, quizConfig.herBankRules)).toEqual([]);
+    expect(herQuestions.every((q) => q.weight === 1 && !q.reversed)).toBe(true);
+  });
+
+  it("q23 and q24 are the only weight-0.5 items; max raw is 46 per dimension", () => {
+    expect(questions.filter((q) => q.weight !== 1).map((q) => [q.id, q.weight])).toEqual([
+      ["q23", 0.5],
+      ["q24", 0.5],
+    ]);
+    expect(maxRawFor(questions, "anxiety")).toBe(46);
+    expect(maxRawFor(questions, "avoidance")).toBe(46);
+    expect(maxRawFor(herQuestions, "anxiety")).toBe(24);
+  });
+
+  it("every id is unique across his, hers, the selectors, attention and context", () => {
+    const ids = [
+      ...questions.map((q) => q.id),
+      ...herQuestions.map((q) => q.id),
+      ...sinceBreakupSelectors.map((s) => s.id),
+      attentionCheck.id,
+      ...quizConfig.contextQuestions.map((c) => c.id),
+    ];
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("resolves partner references from config/copy.ts, never literals", () => {
-    for (const q of questions) {
-      expect(q.stem).not.toMatch(/\b(she|her|hers)\b/i);
-      expect(renderStem(q)).not.toMatch(/[{}]/);
+    for (const q of [...questions, ...herQuestions, ...sinceBreakupSelectors]) {
+      expect(q.stem, q.id).not.toMatch(/\b(she|her|hers|he|him|his)\b/i);
+      expect(renderStem(q), q.id).not.toMatch(/[{}]/);
     }
-    expect(renderStem(questions[0]!)).toContain(`for ${copy.partner.possessive} reply`);
   });
 
-  it("supports a per-question partner override and other dictionaries (Section 2.3)", () => {
-    const q = questions[1]!;
-    expect(renderStem(q, { subject: "they", object: "them", possessive: "their" })).toMatch(
-      /^When they asked/,
+  it("supports other dictionaries, overrides and a capitalised sentence start (Section 2.3)", () => {
+    const h5 = herQuestions.find((q) => q.id === "h5")!;
+    expect(renderStem(h5)).toMatch(/^She often asked whether I still loved her/);
+    expect(renderStem(h5, { subject: "they", object: "them", possessive: "their" })).toMatch(
+      /^They often asked whether I still loved them/,
     );
-    expect(renderStem({ ...q, partnerTerms: { subject: "he" } })).toMatch(/^When he asked/);
+    expect(renderStem({ ...h5, partnerTerms: { subject: "he", object: "him" } })).toMatch(
+      /^He often asked whether I still loved him/,
+    );
   });
 
   it("throws on an unknown token", () => {
@@ -63,6 +79,7 @@ describe("attention check (Section 9.2)", () => {
 
   it("is not a scored question", () => {
     expect(questions.some((q) => q.id === attentionCheck.id)).toBe(false);
+    expect(herQuestions.some((q) => q.id === attentionCheck.id)).toBe(false);
   });
 });
 
@@ -72,6 +89,7 @@ describe("Likert scale and context questions (Section 9.2)", () => {
       min: 0,
       max: 4,
       labels: ["Never like me", "Rarely", "Sometimes", "Often", "Almost always like me"],
+      partnerLabels: ["Never", "Rarely", "Sometimes", "Often", "Almost always"],
     });
   });
 
@@ -91,8 +109,6 @@ describe("checkQuestionBank (Section 9.2 launch rules)", () => {
     expect(checkQuestionBank(tempBank)).toEqual([]);
     expect(checkQuestionBank(bandEdgeBank)).toEqual([]);
   });
-
-  it.todo("passes the founder-reviewed launch bank (Session 4)");
 
   it("reports a short bank, an unbalanced bank, and wrong reversal counts", () => {
     const problems = checkQuestionBank(tempBank.slice(0, 23));

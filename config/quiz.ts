@@ -10,6 +10,8 @@ export const quizConfig = {
     min: 0,
     max: 4,
     labels: ["Never like me", "Rarely", "Sometimes", "Often", "Almost always like me"],
+    /** Her 12 and the since-the-breakup items: the visitor isn't describing himself. */
+    partnerLabels: ["Never", "Rarely", "Sometimes", "Often", "Almost always"],
   },
   /** Normalized 0–100 bands: low 0–33, moderate 34–66, high 67–100. */
   bands: {
@@ -24,6 +26,24 @@ export const quizConfig = {
     maxStemWords: 28,
     bannedStemTerms: ["hyperactivation", "deactivation", "protest behaviour", "protest behavior"],
   },
+  /**
+   * The perceived-pattern module about her (quiz build brief, Part A): 12 items, 6 per
+   * dimension, none reversed, all weight 1. Same scale, bands and profile table.
+   */
+  herBankRules: {
+    scoredItems: 12,
+    itemsPerDimension: 6,
+    reversedPerDimension: 0,
+    maxStemWords: 28,
+    bannedStemTerms: ["hyperactivation", "deactivation", "protest behaviour", "protest behavior"],
+  },
+  /**
+   * Since-the-breakup selectors (brief, Part A): unscored. An item answered at or above
+   * this value selects its decode section on the result page (Session 5).
+   */
+  selectorThreshold: 2,
+  /** Instruction line shown before question 1 (brief, Part A). */
+  instruction: "Answer thinking about your most recent relationship.",
   /** In-progress attempts older than this are discarded (Section 10.2). */
   inProgressMaxAgeDays: 7,
   /**

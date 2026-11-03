@@ -1,4 +1,5 @@
 import { legal } from "@/config/legal";
+import { copy } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { routes, site } from "@/config/site";
 
@@ -108,7 +109,8 @@ export const methodologyPage = {
   },
   scale: {
     heading: "How you answer",
-    intro: "Every question uses the same five-point scale:",
+    intro: "Every question about you uses the same five-point scale:",
+    partnerNote: `The questions about ${copy.partner.object} and about what's happened since use the same scale without "like me": ${likert.partnerLabels.join(", ")}.`,
     labels: likert.labels,
   },
   scoring: {
@@ -135,7 +137,9 @@ export const methodologyPage = {
   limits: {
     heading: "What it can't tell you",
     paragraphs: [
-      "It's not a clinical instrument. It describes how you've tended to act in relationships, based on your own answers, at one point in time. It can't account for everything that shaped a relationship, and it can't tell you anything about your ex.",
+      "It's not a clinical instrument. It describes how you've tended to act in relationships, based on your own answers, at one point in time. It can't account for everything that shaped a relationship.",
+      // Founder-approved (Session 4), with "label" for the brief's clinical verb: Section 14.2.
+      `The quiz also asks how your partner showed up in the same relationship. Those answers describe the pattern you experienced — they can't label ${copy.partner.object}, and only ${copy.partner.subject} could describe ${copy.partner.possessive} own pattern. We show that read because understanding the dynamic you were in is part of understanding the breakup.`,
       "Patterns aren't permanent. Stress shifts them, and so do time and experience. If you take it again in a few months, a different result can be real progress, not a mistake.",
     ],
   },

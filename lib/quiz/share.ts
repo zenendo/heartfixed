@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { quizConfig } from "@/config/quiz";
 import { routes } from "@/config/site";
 import { bandFor, profileFor } from "./scoring";
-import type { Band, ProfileId, QuizResult } from "./types";
+import { matching, type Band, type ProfileId, type QuizResult } from "./types";
 
 /**
  * Share tokens — Section 9.6. A token carries the two normalized scores and the
@@ -14,13 +14,10 @@ import type { Band, ProfileId, QuizResult } from "./types";
 const PARAM = { version: "v", anxiety: "a", avoidance: "v2" } as const;
 
 /** An integer 0–100 written canonically ("7", not "07", "7.0" or "+7"). */
-const scoreParam = z
-  .string()
-  .regex(/^(100|[1-9]?\d)$/)
-  .transform(Number);
+const scoreParam = matching(/^(100|[1-9]?\d)$/);
 
 const tokenSchema = z.object({
-  version: z.string().regex(/^[a-z0-9-]{1,32}$/),
+  version: matching(/^[a-z0-9-]{1,32}$/),
   anxiety: scoreParam,
   avoidance: scoreParam,
 });
@@ -77,7 +74,9 @@ export function decodeShareToken(input: string | URLSearchParams): ShareDecodeRe
   });
   if (!parsed.success) return { ok: false };
 
-  const { version, anxiety, avoidance } = parsed.data;
+  const { version } = parsed.data;
+  const anxiety = Number(parsed.data.anxiety);
+  const avoidance = Number(parsed.data.avoidance);
   const anxietyBand = bandFor(anxiety);
   const avoidanceBand = bandFor(avoidance);
   return {

@@ -126,7 +126,7 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
   [routes.quiz]: {
     title: "Attachment Style Quiz for Men: Free Results",
     description:
-      "A free attachment style quiz for men: 24 questions about what you actually do in relationships. About 3 minutes. Full result free, no signup, no email.",
+      "A free attachment style quiz for men: 24 questions about what you actually do in relationships. About 5 minutes. Full result free, no signup, no email.",
   },
   [routes.quizResults]: {
     title: "Your Attachment Quiz Result",

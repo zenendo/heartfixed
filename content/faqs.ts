@@ -97,7 +97,7 @@ export const faqs: {
     {
       question: "How do I find out my attachment style?",
       answer:
-        "Take the free quiz on this site. It asks 24 questions about what you actually did in your last relationship and what you're doing now, takes about 3 minutes, and shows your full result without an email.",
+        "Take the free quiz on this site. It asks 24 questions about what you actually did in your last relationship and what you're doing now, takes about 5 minutes, and shows your full result without an email.",
     },
   ],
   profiles: {

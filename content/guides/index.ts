@@ -30,7 +30,7 @@ export const allGuides: readonly Guide[] = guides.map((g) => guideContent(g.rout
 export const toolBlocks: ToolBlockCopy = {
   quiz: {
     heading: "Find your pattern",
-    body: "Take the quiz: a self-reflection assessment informed by attachment research. About 3 minutes, and the full result is free.",
+    body: "Take the quiz: a self-reflection assessment informed by attachment research. About 5 minutes, and the full result is free.",
     cta: "Take the quiz",
   },
   tracker: {

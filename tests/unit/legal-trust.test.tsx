@@ -180,6 +180,18 @@ describe("About, Contact, Methodology", () => {
     expect(text).toContain(`high (${bands.moderateMax + 1}–100)`);
     expect(methodologyPage.scale.labels).toEqual(quizConfig.likert.labels);
     expect(text).toContain(quizConfig.contextNote);
+    expect(text).toContain(quizConfig.likert.partnerLabels.join(", "));
+  });
+
+  it("Methodology describes the partner read in the founder's wording", () => {
+    const text = strings(methodologyPage).join("\n");
+    expect(text).not.toMatch(/anything about your ex/i);
+    expect(text).toContain(
+      "The quiz also asks how your partner showed up in the same relationship. Those answers describe the pattern you experienced",
+    );
+    expect(text).toContain(
+      "We show that read because understanding the dynamic you were in is part of understanding the breakup.",
+    );
   });
 
   it("Methodology uses the required framing and states the source discipline", () => {

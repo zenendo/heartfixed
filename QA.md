@@ -1,21 +1,23 @@
 # QA — Section 16.4 acceptance checklist
 
-Recorded in Session 13 on 2026-11-02, against branch `session-13-analytics-qa`.
+Recorded in Session 13 on 2026-11-02, and updated in Session 4 (the quiz page and
+runner) on 2026-11-02, against branch `session-04-quiz-runner`.
 
 **Status key**
 
 - **Pass:** verified, with the evidence named.
-- **Open (Sessions 4–5):** blocked until the quiz page and result view exist. Those
-  sessions are waiting on the founder's question bank and Persona A's answers.
+- **Open (Session 5):** blocked until the full result view exists (the quiz page and
+  runner shipped in Session 4).
+- **Fail:** measured and over budget, with the cause and the proposed fix.
 - **Open (founder):** needs an account or a real inbox that the build can't reach.
 
 Every "Pass" below has an automated test behind it, and all of them ran green on
 2026-11-02:
 
-| Suite                                                 | Result                                              |
-| ----------------------------------------------------- | --------------------------------------------------- |
-| `npm run check` (types, lint, format, unit)           | 429 passed, 5 skipped, 3 todo                       |
-| `npx playwright test` (phone-320, phone-360, desktop) | 795 passed, 6 skipped (the quiz routes, as `fixme`) |
+| Suite                                                 | Result                                                |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| `npm run check` (types, lint, format, unit)           | 495 passed, 5 skipped                                 |
+| `npx playwright test` (phone-320, phone-360, desktop) | 855 passed, 3 skipped (the results route, as `fixme`) |
 
 ---
 
@@ -28,22 +30,36 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 - Run against a production build (`next build` + `next start`) on localhost, with
   analytics switched on (`NEXT_PUBLIC_GA_MEASUREMENT_ID` set).
 - Chromium is Playwright's Chrome for Testing build 1248.
-- Each figure is the median of 3 runs.
+- Each figure is the median of 3 runs. Rows marked (S4) were re-measured after
+  Session 4; the others are Session 13's figures.
 
-| Page                                    | Perf | A11y | Best Pr. | SEO | LCP (budget) | CLS |   TBT |
-| --------------------------------------- | ---: | ---: | -------: | --: | ------------ | --: | ----: |
-| `/no-contact-tracker/`                  |  100 |  100 |       96 | 100 | 1.88 s (2.0) |   0 | 15 ms |
-| `/should-i-text-my-ex/`                 |  100 |  100 |       96 | 100 | 1.89 s (2.0) |   0 | 35 ms |
-| `/` (home)                              |  100 |  100 |       96 | 100 | 1.73 s (1.8) |   0 | 12 ms |
-| `/no-contact-rule/`                     |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 |  8 ms |
-| `/guides/no-contact-day-14/`            |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 | 10 ms |
-| `/guides/how-long-does-a-breakup-take/` |  100 |  100 |       96 | 100 | 1.72 s (1.8) |   0 |  8 ms |
+| Page                                    | Perf | A11y | Best Pr. | SEO | LCP (budget)     | CLS |   TBT |
+| --------------------------------------- | ---: | ---: | -------: | --: | ---------------- | --: | ----: |
+| `/attachment-style-quiz/` (S4)          |  100 |  100 |      100 | 100 | 1.89 s (2.0)     |   0 | 33 ms |
+| `/no-contact-tracker/` (S4)             |   99 |  100 |      100 | 100 | **2.03 s (2.0)** |   0 | 30 ms |
+| `/should-i-text-my-ex/` (S4)            |   99 |  100 |      100 | 100 | **2.03 s (2.0)** |   0 | 32 ms |
+| `/` (home) (S4)                         |  100 |  100 |      100 | 100 | 1.73 s (1.8)     |   0 | 11 ms |
+| `/no-contact-rule/`                     |  100 |  100 |       96 | 100 | 1.72 s (1.8)     |   0 |  8 ms |
+| `/guides/no-contact-day-14/` (S4)       |  100 |  100 |      100 | 100 | 1.72 s (1.8)     |   0 |  8 ms |
+| `/guides/how-long-does-a-breakup-take/` |  100 |  100 |       96 | 100 | 1.72 s (1.8)     |   0 |  8 ms |
 
 **Budgets**
 
+- **LCP on the tracker and decision tool: Fail, by 30–40 ms** (2.03 s against 2.0 s).
+  - Their initial script is within about 150 bytes of Session 13's, when they measured
+    1.88–1.89 s. Lighthouse's simulated network adds a whole round trip (about 150 ms)
+    once a page's initial scripts cross a TCP window boundary, and these two pages
+    sit right on it. The quiz page, with slightly less script, measures 1.89 s.
+  - Ruled out: the quiz chunks other pages now prefetch (turning prefetch off didn't
+    change the result), and the zod chunk (trimmed back to its Session 13 size).
+  - Proposed fix, not yet made (it changes Session 6–7 behaviour): lazy-load what
+    those tools don't render on first load — the streak view before setup on the
+    tracker; the draft check, outcome, unsent list and timer before their steps on
+    the decision tool. That moves several KB off first load, well clear of the line.
+
 - **Total JS on a tool page:** pass.
-  - Next reports 127 kB gzipped first-load JS for the tracker and 129 kB for the
-    decision tool, against a 180 kB budget.
+  - Next reports 125 kB gzipped first-load JS for the quiz page, 127 kB for the
+    tracker and 129 kB for the decision tool, against a 180 kB budget.
   - Lighthouse saw 144 kB of script transferred in total. That figure includes the
     other tools' chunks, which Next prefetches after load.
   - Every other page is 106 kB.
@@ -54,10 +70,10 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
   - Decision tool (every step, plus typing a draft): worst interaction 40 ms.
   - Field INP gets confirmed from real-user data after launch.
 - **CLS ≤ 0.05:** pass. It's 0 on every page.
-- **Best Practices = 96:** pass. The one deduction is a console error from prefetching
-  `/attachment-style-quiz/`, which returns 404 until Session 4 builds it. It clears
-  itself then.
-- **Quiz page:** Open (Sessions 4–5). It gets measured once it exists.
+- **Best Practices = 100** since Session 4: the quiz page exists, so the prefetch 404
+  is gone.
+- **Quiz page INP:** not yet measured in the lab; the runner is one radio choice and
+  one button per screen. To run with the Session 13 Event Timing script in Session 5.
 
 **Fixes made to meet the budgets (Session 13)**
 
@@ -79,31 +95,31 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 
 ## Guardrails
 
-| Criterion                                                             | Status                           | Evidence                                                                                                                              |
-| --------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Block A under every result headline                                   | Open (Sessions 4–5)              | No result view yet. `guardrails.spec.ts` lists it as `fixme`                                                                          |
-| Block B on every tool page                                            | Pass (tracker, decision tool)    | `guardrails.spec.ts` (`tool-disclaimer`). Quiz page: Open (Session 4)                                                                 |
-| Block C in every footer                                               | Pass                             | `guardrails.spec.ts` checks every built route, plus `compliance.test.tsx`                                                             |
-| Block D on result, decision outcome and tracker                       | Pass (tracker, decision outcome) | `guardrails.spec.ts`, `tracker.spec.ts`, `decision.spec.ts` ("alcohol forces don't send … and Block D"). Result: Open (Session 5)     |
-| A quiz completed with the email field untouched gives the full result | Open (Sessions 4–5)              | Engine side: `scoreQuiz` takes the answers only, so nothing about email can gate the result. The page-level test comes with Session 5 |
-| No Section 14.2 prohibited terms outside legal-page context           | Pass                             | `source-guards.test.ts` (source code) and `guardrails.spec.ts` (rendered text on every built route)                                   |
-| No chat UI anywhere                                                   | Pass                             | `source-guards.test.ts` (no AI or chat code paths) and `guardrails.spec.ts` (no `role=log` or chat labels)                            |
+| Criterion                                                             | Status                                                                                       | Evidence                                                                                                                                  |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Block A under every result headline                                   | Pass for the Session 4 result headline; full view Open (Session 5)                           | `quiz.spec.ts`: Block A is the element straight after the scores. The results route stays `fixme` in `guardrails.spec.ts` until Session 5 |
+| Block B on every tool page                                            | Pass (quiz, tracker, decision tool)                                                          | `guardrails.spec.ts` (`tool-disclaimer`)                                                                                                  |
+| Block C in every footer                                               | Pass                                                                                         | `guardrails.spec.ts` checks every built route, plus `compliance.test.tsx`                                                                 |
+| Block D on result, decision outcome and tracker                       | Pass (tracker, decision outcome)                                                             | `guardrails.spec.ts`, `tracker.spec.ts`, `decision.spec.ts` ("alcohol forces don't send … and Block D"). Result: Open (Session 5)         |
+| A quiz completed with the email field untouched gives the full result | Pass for the Session 4 result (headline, both scores, Block A); full result Open (Session 5) | `quiz.spec.ts`: every journey finishes and shows the result with no email field anywhere. Engine side: `scoreQuiz` takes the answers only |
+| No Section 14.2 prohibited terms outside legal-page context           | Pass                                                                                         | `source-guards.test.ts` (source code) and `guardrails.spec.ts` (rendered text on every built route)                                       |
+| No chat UI anywhere                                                   | Pass                                                                                         | `source-guards.test.ts` (no AI or chat code paths) and `guardrails.spec.ts` (no `role=log` or chat labels)                                |
 
 ## Quiz engine
 
-| Criterion                                                             | Status                                                        | Evidence                                                                                                        |
-| --------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| All Section 16.2 quiz fixtures pass                                   | Partly: fixtures 2, 3, 5 and 6 pass; 1 and 4 Open (Session 4) | `scoring.test.ts`. Fixtures 1 and 4 need the launch question bank and Persona A's answers, so they're `it.todo` |
-| Determinism: the same answers scored 100 times give identical results | Pass                                                          | `scoring.test.ts`                                                                                               |
-| Profile matches the Section 9.4 table for all nine band combinations  | Pass                                                          | `scoring.test.ts` (`it.each` over the table)                                                                    |
+| Criterion                                                             | Status                                                                                                                                        | Evidence                                                                                                                                    |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| All Section 16.2 quiz fixtures pass                                   | Pass: 1 to 6, plus the brief's H1 and H2. Fixture 7 partly (token round trip and the tampered-token shell pass; the shared view is Session 5) | `scoring.test.ts`, `runner.test.ts`, `share.test.ts`, and end to end in `quiz.spec.ts` (Fixtures 1 and 4, H1, H2, the tampered-token shell) |
+| Determinism: the same answers scored 100 times give identical results | Pass                                                                                                                                          | `scoring.test.ts`                                                                                                                           |
+| Profile matches the Section 9.4 table for all nine band combinations  | Pass                                                                                                                                          | `scoring.test.ts` (`it.each` over the table)                                                                                                |
 
 ## Assessment page
 
-| Criterion                                                                   | Status                                      | Evidence                                                                                                                     |
-| --------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| In-progress answers restore after a browser restart                         | Open (Session 4)                            | The storage key and schema exist (`lib/storage.ts`). No page yet                                                             |
-| Context questions don't change scores                                       | Pass at engine level; page Open (Session 4) | `scoring.test.ts` "context answers demonstrably do not alter scores"                                                         |
-| A shared link shows the right profile, is `noindex`, and exposes no answers | Partly                                      | Token: `share.test.ts` (scores and version only). `noindex`: `seo.spec.ts` and the sitemap test. Rendering: Open (Session 5) |
+| Criterion                                                                   | Status | Evidence                                                                                                                     |
+| --------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| In-progress answers restore after a browser restart                         | Pass   | `quiz.spec.ts` "restores after a browser restart" (a new browser context from the saved storage), plus the 7-day discard     |
+| Context questions don't change scores                                       | Pass   | `scoring.test.ts` "context answers demonstrably do not alter scores"; the selectors and her module are tested the same way   |
+| A shared link shows the right profile, is `noindex`, and exposes no answers | Partly | Token: `share.test.ts` (scores and version only). `noindex`: `seo.spec.ts` and the sitemap test. Rendering: Open (Session 5) |
 
 ## Tracker
 
@@ -137,18 +153,18 @@ done — needs the founder".
 
 ## SEO
 
-| Criterion                                                            | Status                                                                                        | Evidence                                                                   |
-| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Schema validates, with no prohibited types                           | Pass                                                                                          | `seo.spec.ts` on every built route, plus `seo.test.ts`                     |
-| The sitemap lists exactly the Section 6 indexable routes             | Pass                                                                                          | `seo.spec.ts`                                                              |
-| Every page's title, description, canonical and OG match Section 12.2 | Pass                                                                                          | `seo.spec.ts` on every built route                                         |
-| axe finds zero critical issues on the three tools                    | Pass for tracker and decision tool (on load and in interactive states); quiz Open (Session 4) | `seo.spec.ts`. Lighthouse accessibility is also 100 on every measured page |
+| Criterion                                                            | Status                                                          | Evidence                                                                                   |
+| -------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Schema validates, with no prohibited types                           | Pass                                                            | `seo.spec.ts` on every built route, plus `seo.test.ts`                                     |
+| The sitemap lists exactly the Section 6 indexable routes             | Pass                                                            | `seo.spec.ts`                                                                              |
+| Every page's title, description, canonical and OG match Section 12.2 | Pass                                                            | `seo.spec.ts` on every built route                                                         |
+| axe finds zero critical issues on the three tools                    | Pass (quiz page, mid-runner and result; tracker; decision tool) | `seo.spec.ts`, `quiz.spec.ts`. Lighthouse accessibility is also 100 on every measured page |
 
 ## Analytics privacy
 
-| Criterion                                                                      | Status                                                                              | Evidence  |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | --------- |
-| A full journey's payloads contain no answer, note, draft text or email address | Pass for tracker, decision tool, footer signup and guides; quiz Open (Sessions 4–5) | See below |
+| Criterion                                                                      | Status                                                              | Evidence                                                                                                                  |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| A full journey's payloads contain no answer, note, draft text or email address | Pass for the quiz, tracker, decision tool, footer signup and guides | `analytics.spec.ts`; `quiz.spec.ts` checks every request in a full quiz journey for answer keys and the her-module result |
 
 **What's been checked**
 
@@ -189,7 +205,7 @@ done — needs the founder".
 
 ## Re-running this checklist
 
-- After Sessions 4–5, re-run the full suite and Lighthouse on `/attachment-style-quiz/`
-  and the result view.
-- Flip the `fixme` and `it.todo` entries listed above.
-- Update the Open rows in this file.
+- After Session 5, re-run the full suite and Lighthouse on the result view, and the
+  lab INP script on the quiz runner.
+- Flip the results route's `fixme` entries.
+- Update the Open rows in this file, and the tool-page LCP row once it's fixed.

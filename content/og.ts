@@ -14,7 +14,7 @@ export const ogCards: Record<OgKey, { eyebrow: string; title: string; subtitle: 
   quiz: {
     eyebrow: "Attachment style quiz for men",
     title: "What do you actually do when it gets close?",
-    subtitle: "24 questions · about 3 minutes · full result free",
+    subtitle: "24 questions · about 5 minutes · full result free",
   },
   tracker: {
     eyebrow: "No-contact tracker",

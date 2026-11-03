@@ -1,12 +1,13 @@
 import type { Dimension, QuizAnswer, QuizQuestion, QuizResult } from "../types";
 
 /**
- * Engine fixtures — Section 16.2.
+ * Engine fixtures — Section 16.2, and the her-module fixtures from the quiz build brief.
  *
- * The banks here are TEMPORARY TEST DATA, not production copy. They prove the engine
- * against the fixtures until the founder-reviewed launch bank arrives in Session 4.
- * If a fixture and the code ever disagree, stop and flag it — never edit an expected
- * value to make a test pass (Section 1).
+ * Fixtures 1 and 4 and H1/H2 run on the founder-approved launch data in
+ * lib/quiz/questions.ts. The tempBank and bandEdgeBank below are TEST DATA, not
+ * production copy: they pin engine behaviour (Fixtures 2, 3, 5, 6) independently of
+ * the launch wording. If a fixture and the code ever disagree, stop and flag it —
+ * never edit an expected value to make a test pass (Section 1).
  */
 
 export const COMPLETED_AT = "2026-10-31T12:00:00.000Z";
@@ -167,3 +168,152 @@ export const fixture6 = {
   answers: uniformAnswers(tempBank, 2).slice(0, 23),
   missingId: "q24",
 };
+
+// ---- Launch-bank fixtures (Session 4) ---------------------------------------------
+
+/** Answers keyed by item id, as the brief writes them (raw values, before reversal). */
+const answersFrom = (values: Record<string, number>): QuizAnswer[] =>
+  Object.entries(values).map(([questionId, value]) => ({ questionId, value }));
+
+/**
+ * Fixture 1 — Persona A (Section 10.4; brief, Part A), on the launch bank.
+ * Max raw per dimension = 11 × 4 × 1 + 1 × 4 × 0.5 = 46.
+ *
+ * Hand verification, effective value per item (reversed: 4 − value; then × weight):
+ *   anxiety:   q01 2, q03 4, q05 3, q07 4, q09 2, q11 2, q13 2, q15 2, q17 4  → 25
+ *              q19 (R) value 1 → 3                                             → 28
+ *              q21 3                                                           → 31
+ *              q23 (R, ×0.5) value 0 → 4 × 0.5 = 2                             → 33
+ *              raw 33; round(33 / 46 × 100 = 71.74) = 72 → high (67–100)
+ *   avoidance: q02 0, q04 1, q06 0, q08 1, q10 1, q12 1, q14 1, q16 0, q18 0  → 5
+ *              q20 (R) value 3 → 1                                             → 6
+ *              q22 1                                                           → 7
+ *              q24 (R, ×0.5) value 1 → 3 × 0.5 = 1.5                           → 8.5
+ *              raw 8.5; round(8.5 / 46 × 100 = 18.48) = 18 → low (0–33)
+ *   profile: high / low → "anxious".
+ */
+export const fixture1 = {
+  // prettier-ignore
+  answers: answersFrom({
+    q01: 2, q03: 4, q05: 3, q07: 4, q09: 2, q11: 2, q13: 2, q15: 2, q17: 4, q19: 1, q21: 3, q23: 0,
+    q02: 0, q04: 1, q06: 0, q08: 1, q10: 1, q12: 1, q14: 1, q16: 0, q18: 0, q20: 3, q22: 1, q24: 1,
+  }),
+  expected: {
+    version: "men-v1",
+    anxietyRaw: 33,
+    avoidanceRaw: 8.5,
+    anxietyNorm: 72,
+    avoidanceNorm: 18,
+    anxietyBand: "high",
+    avoidanceBand: "low",
+    profileId: "anxious",
+  } satisfies Expected,
+} as const;
+
+/**
+ * Fixture 4 — mirror personas (Section 16.2). The spec fixes the outcomes (profile and
+ * per-dimension bands); the brief doesn't give answer patterns, so these two are
+ * constructed for the launch bank and hand-computed here.
+ *
+ * Avoidant:
+ *   anxiety:   q01 1, q03 0, q05 0, q07 1, q09 0, q11 0, q13 1, q15 1, q17 0, q21 0 → 4
+ *              q19 (R) value 4 → 0; q23 (R, ×0.5) value 4 → 0                   → 4
+ *              round(4 / 46 × 100 = 8.70) = 9 → low
+ *   avoidance: q02 3, q04 3, q06 4, q08 3, q10 3, q12 4, q14 4, q16 3, q18 2, q22 4 → 33
+ *              q20 (R) value 1 → 3                                              → 36
+ *              q24 (R, ×0.5) value 0 → 4 × 0.5 = 2                              → 38
+ *              round(38 / 46 × 100 = 82.61) = 83 → high
+ * Fearful-avoidant:
+ *   anxiety:   q01 4, q03 3, q05 3, q07 4, q09 3, q11 3, q13 3, q15 4, q17 3, q21 2 → 32
+ *              q19 (R) value 1 → 3                                              → 35
+ *              q23 (R, ×0.5) value 1 → 3 × 0.5 = 1.5                            → 36.5
+ *              round(36.5 / 46 × 100 = 79.35) = 79 → high
+ *   avoidance: q02 3, q04 2, q06 3, q08 4, q10 3, q12 3, q14 4, q16 3, q18 3, q22 3 → 31
+ *              q20 (R) value 1 → 3                                              → 34
+ *              q24 (R, ×0.5) value 1 → 3 × 0.5 = 1.5                            → 35.5
+ *              round(35.5 / 46 × 100 = 77.17) = 77 → high
+ */
+export const fixture4 = {
+  avoidant: {
+    // prettier-ignore
+    answers: answersFrom({
+      q01: 1, q03: 0, q05: 0, q07: 1, q09: 0, q11: 0, q13: 1, q15: 1, q17: 0, q19: 4, q21: 0, q23: 4,
+      q02: 3, q04: 3, q06: 4, q08: 3, q10: 3, q12: 4, q14: 4, q16: 3, q18: 2, q20: 1, q22: 4, q24: 0,
+    }),
+    expected: {
+      version: "men-v1",
+      anxietyRaw: 4,
+      avoidanceRaw: 38,
+      anxietyNorm: 9,
+      avoidanceNorm: 83,
+      anxietyBand: "low",
+      avoidanceBand: "high",
+      profileId: "avoidant",
+    } satisfies Expected,
+  },
+  fearfulAvoidant: {
+    // prettier-ignore
+    answers: answersFrom({
+      q01: 4, q03: 3, q05: 3, q07: 4, q09: 3, q11: 3, q13: 3, q15: 4, q17: 3, q19: 1, q21: 2, q23: 1,
+      q02: 3, q04: 2, q06: 3, q08: 4, q10: 3, q12: 3, q14: 4, q16: 3, q18: 3, q20: 1, q22: 3, q24: 1,
+    }),
+    expected: {
+      version: "men-v1",
+      anxietyRaw: 36.5,
+      avoidanceRaw: 35.5,
+      anxietyNorm: 79,
+      avoidanceNorm: 77,
+      anxietyBand: "high",
+      avoidanceBand: "high",
+      profileId: "fearful-avoidant",
+    } satisfies Expected,
+  },
+} as const;
+
+type ExpectedPerceived = Omit<Expected, "version">;
+
+/**
+ * Her-module fixtures H1 and H2 (brief, Part A, hand-computed there). Six items per
+ * dimension, none reversed, weight 1: max raw 24.
+ *   H1: her-avoidance h2 4 + h4 3 + h6 4 + h8 3 + h10 4 + h12 2 = 20; round(83.33) = 83 high
+ *       her-anxiety   h1 0 + h3 1 + h5 0 + h7 1 + h9 0 + h11 1  = 3;  round(12.5)  = 13 low
+ *       → avoidant (as experienced)
+ *   H2: her-anxiety   h1 4 + h3 4 + h5 3 + h7 3 + h9 4 + h11 3  = 21; round(87.5)  = 88 high
+ *       her-avoidance h2 1 + h4 0 + h6 1 + h8 0 + h10 1 + h12 0 = 3;  round(12.5)  = 13 low
+ *       → anxious (as experienced)
+ * Both 12.5 and 87.5 are exact halves, so these also pin "round half up".
+ */
+export const herFixtures = {
+  h1: {
+    // prettier-ignore
+    answers: answersFrom({
+      h2: 4, h4: 3, h6: 4, h8: 3, h10: 4, h12: 2,
+      h1: 0, h3: 1, h5: 0, h7: 1, h9: 0, h11: 1,
+    }),
+    expected: {
+      anxietyRaw: 3,
+      avoidanceRaw: 20,
+      anxietyNorm: 13,
+      avoidanceNorm: 83,
+      anxietyBand: "low",
+      avoidanceBand: "high",
+      profileId: "avoidant",
+    } satisfies ExpectedPerceived,
+  },
+  h2: {
+    // prettier-ignore
+    answers: answersFrom({
+      h1: 4, h3: 4, h5: 3, h7: 3, h9: 4, h11: 3,
+      h2: 1, h4: 0, h6: 1, h8: 0, h10: 1, h12: 0,
+    }),
+    expected: {
+      anxietyRaw: 21,
+      avoidanceRaw: 3,
+      anxietyNorm: 88,
+      avoidanceNorm: 13,
+      anxietyBand: "high",
+      avoidanceBand: "low",
+      profileId: "anxious",
+    } satisfies ExpectedPerceived,
+  },
+} as const;
