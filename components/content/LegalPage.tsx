@@ -24,6 +24,7 @@ export function LegalPage({
   /** Rendered after the intro, before the sections (e.g. a computed status line). */
   children?: ReactNode;
 }) {
+  const updated = legal.lastUpdated[route]!;
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-10">
       <Breadcrumbs
@@ -34,7 +35,7 @@ export function LegalPage({
       />
       <h1 className="mt-4">{doc.h1}</h1>
       <p className="mt-2 text-sm text-muted" data-testid="last-updated">
-        Last updated <time dateTime={legal.lastUpdated}>{formatDate(legal.lastUpdated)}</time>
+        Last updated <time dateTime={updated}>{formatDate(updated)}</time>
       </p>
       {doc.intro.map((text) => (
         <p key={text} className="mt-4 text-lg">

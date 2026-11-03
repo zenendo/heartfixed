@@ -61,6 +61,8 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
         object: "them",
         possessive: "their",
         reflexive: "themselves",
+        noun: "person",
+        nounPlural: "people",
       }),
     ).toMatch(/^They often asked whether I still loved them/);
     expect(renderStem({ ...h5, partnerTerms: { subject: "he", object: "him" } })).toMatch(

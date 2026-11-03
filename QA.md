@@ -33,29 +33,31 @@ Every "Pass" below has an automated test behind it, and all of them ran green on
 - Each figure is the median of 3 runs, re-measured after Session 5 (2026-11-03) on
   every page Session 5 could affect.
 
-| Page                                           | Perf | A11y | Best Pr. | SEO | LCP (budget)           | CLS |   TBT |
-| ---------------------------------------------- | ---: | ---: | -------: | --: | ---------------------- | --: | ----: |
-| `/attachment-style-quiz/`                      |  100 |  100 |      100 | 100 | 1.89 s (2.0)           |   0 | 33 ms |
-| `/no-contact-tracker/`                         |  100 |  100 |      100 | 100 | 1.89 s (2.0)           |   0 | 34 ms |
-| `/should-i-text-my-ex/`                        |  100 |  100 |      100 | 100 | 1.89 s (2.0)           |   0 | 34 ms |
-| `/attachment-style-quiz/results/` (empty)      |   98 |  100 |      100 |  66 | **2.41 s** (see below) |   0 | 38 ms |
-| `/attachment-style-quiz/results/?v=…` (shared) |   98 |  100 |      100 |  66 | **2.33 s** (see below) |   0 | 16 ms |
-| `/` (home)                                     |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 | 11 ms |
-| `/no-contact-rule/`                            |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  9 ms |
-| `/guides/no-contact-day-14/`                   |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  8 ms |
-| `/guides/how-long-does-a-breakup-take/`        |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 | 10 ms |
-| `/guides/attachment-styles-after-a-breakup/`   |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  9 ms |
-| `/attachment-styles/anxious/`                  |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 | 10 ms |
-| `/methodology/`                                |  100 |  100 |      100 | 100 | 1.72 s (1.8)           |   0 |  9 ms |
+| Page                                           | Perf | A11y | Best Pr. | SEO | LCP (budget) | CLS |   TBT |
+| ---------------------------------------------- | ---: | ---: | -------: | --: | ------------ | --: | ----: |
+| `/attachment-style-quiz/`                      |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 33 ms |
+| `/no-contact-tracker/`                         |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 34 ms |
+| `/should-i-text-my-ex/`                        |  100 |  100 |      100 | 100 | 1.89 s (2.0) |   0 | 34 ms |
+| `/attachment-style-quiz/results/` (empty)      |   98 |  100 |      100 |  66 | 2.41 s (2.5) |   0 | 38 ms |
+| `/attachment-style-quiz/results/?v=…` (shared) |   98 |  100 |      100 |  66 | 2.33 s (2.5) |   0 | 16 ms |
+| `/` (home)                                     |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 | 11 ms |
+| `/no-contact-rule/`                            |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 |  9 ms |
+| `/guides/no-contact-day-14/`                   |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 |  8 ms |
+| `/guides/how-long-does-a-breakup-take/`        |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 | 10 ms |
+| `/guides/attachment-styles-after-a-breakup/`   |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 |  9 ms |
+| `/attachment-styles/anxious/`                  |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 | 10 ms |
+| `/methodology/`                                |  100 |  100 |      100 | 100 | 1.72 s (1.8) |   0 |  9 ms |
 
 **Budgets**
 
-- **The results route (Session 5): LCP 2.33–2.41 s, recorded for the founder.**
-  - Section 6 makes it a client-rendered shell (its content comes from this browser's
-    storage or the share link), so its LCP is always after hydration, unlike every
-    other page. Section 16.3's 2.0 s applies to the three tool pages (`LAUNCH.md` row
-    4), which pass; whether it should also bind this noindex route is the founder's
-    call.
+- **The results route: pass against its own 2.5 s LCP budget** (founder decision,
+  2026-11-03), at 2.41 s empty and 2.33 s from a shared link.
+  - Why its own budget: it's the payoff page, viewed once per result, and Section 6
+    makes it a client-rendered shell (its content comes from this browser's storage or
+    the share link), so its LCP always follows hydration, unlike every other page.
+    Section 16.3's 2.0 s stays the budget for the three tool pages.
+  - Optimising it is a post-launch item (`LAUNCH.md`, "After launch"), not a launch
+    blocker.
   - Already done to keep it down: the full view (all of Part B) loads on its own; the
     empty view's copy is in its own file; the shared view, which public links land on,
     ships with the page so it needs no second request (lazy-loading it measured 2.93 s

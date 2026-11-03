@@ -3,9 +3,18 @@
  * state; changing one is a config change. The contact email and mailing address live
  * in config/site.ts.
  */
+import { routes } from "./site";
+
 export const legal = {
-  /** Shown as "Last updated" on Privacy, Terms and Affiliate Disclosure. */
-  lastUpdated: "2026-11-01",
+  /**
+   * Shown as "Last updated" on each legal page, and used as its sitemap date. Change a
+   * page's date whenever its text changes — the privacy policy promises it.
+   */
+  lastUpdated: {
+    [routes.privacy]: "2026-11-03",
+    [routes.terms]: "2026-11-01",
+    [routes.affiliateDisclosure]: "2026-11-01",
+  } as Record<string, string>,
   /**
    * Email-list inactivity purge (Section 14.4). The founder sets the same value in the
    * email provider. TODO(session-11 founder): confirm, or change both together.
