@@ -1778,11 +1778,28 @@ Source: `heartfixed-quiz-v2-amendment-brief.md`, Part 2. Built on Session A (mer
 - Em dashes stay in the verbatim compliance blocks and the quiz landing page copy for
   now. The em-dash test names both exclusions.
 
-**Open for the founder**
+**Founder review of the PR (2026-11-04)**
 
-- **Privacy policy.** The result-email request now includes the two pronoun answers.
-  A drafted sentence is in the PR for approval; until then the policy doesn't mention
-  them.
-- **Other em dashes on the result page,** outside 2.6's list: the email form's list-box
-  label (`content/emails/forms.ts`) and the tracker offer's "Day 0 — …" line
-  (`content/tracker.ts`).
+- **Privacy policy:** the drafted sentence is applied as written, and the policy's date
+  moves to 2026-11-04.
+- **The four flagged sentences now read:**
+  - a5: "…zero commitment, and this is the part that keeps men hooked: zero
+    information."
+  - a3: "…for herself, or if her pattern leans avoidant, she may genuinely feel fine…"
+  - the a2 stem: "Since the breakup, she has reached out at odd moments: a random
+    meme, a "hey", then gone quiet again."
+  - the action list: "Each time you notice the alarm (checking, replaying, drafting),
+    name it out loud."
+  - The a3 parity check carries the comma removal as an approved substitution.
+- **The result page's last two em dashes are swept:**
+  - the email form's checkbox: "Also join the free email list: one or two emails a
+    week on getting through this, unsubscribe anytime";
+  - the tracker offer: "Day 0: your first full day starts tomorrow".
+- **The em-dash test** now covers the result-page strings from `forms.ts` and
+  `tracker.ts`, and the whole rendered result page under all nine combinations. The one
+  exclusion there is Block D, the verbatim crisis block.
+- **Still holding em dashes,** outside the result page and not swept:
+  - `forms.ts`: the tracker reminder opt-in body;
+  - `tracker.ts`: "Day N — past your goal", the goal-reached line, and the
+    "what counts as contact" note on profile-checking;
+  - the compliance blocks and the quiz landing page, by decision.

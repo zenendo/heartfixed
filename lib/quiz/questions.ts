@@ -194,7 +194,7 @@ export const sinceBreakupSelectors: SelectorItem[] = [
   },
   {
     id: "a2",
-    stem: 'Since the breakup, {subject} {has} reached out at odd moments, a random meme, a "hey", then gone quiet again.',
+    stem: 'Since the breakup, {subject} {has} reached out at odd moments: a random meme, a "hey", then gone quiet again.',
   },
   {
     id: "a3",

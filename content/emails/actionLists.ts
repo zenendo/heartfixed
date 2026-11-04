@@ -52,7 +52,7 @@ export const actionLists: Record<ProfileId, readonly ActionStage[]> = {
     {
       days: "Days 8–14",
       actions: [
-        "Each time you notice the alarm, checking, replaying, drafting, name it out loud.",
+        "Each time you notice the alarm (checking, replaying, drafting), name it out loud.",
         "Expect the second week to feel heavier, not lighter. That's common, and it passes.",
       ],
     },

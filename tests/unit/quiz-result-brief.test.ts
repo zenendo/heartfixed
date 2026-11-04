@@ -39,6 +39,8 @@ const SUBSTITUTIONS: [string, string][] = [
   ["manufacture a diagnosis", "manufacture a villain"],
   // The fallback renders after Acts 1 and 2, so the read is above it (2026-11-03).
   ["changes the read below", "changes the read above"],
+  // Founder wording fix to the a3 decode after the em-dash sweep (2026-11-04).
+  ["— or, if her pattern leans avoidant", "— or if her pattern leans avoidant"],
 ];
 const approved = (text: string) =>
   SUBSTITUTIONS.reduce((t, [from, to]) => t.replace(from, to), text);
@@ -248,7 +250,7 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
     for (const [head, body] of brief6) {
       const [id, heading] = head.split(" — ");
       expect(decodes[id!]!.heading).toBe(heading);
-      expect(decodes[id!]!.body).toMatch(dashless(body));
+      expect(decodes[id!]!.body).toMatch(dashless(approved(body)));
     }
     // The amendment's fallback line (2.3), with "above" as decided on 2026-11-03.
     expect(amendment).toContain(

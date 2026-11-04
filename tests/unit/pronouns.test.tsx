@@ -4,7 +4,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ResultView } from "@/components/quiz/ResultView";
 import { PRONOUN_IDS, pronounTerms, type PartnerTerms, type PronounId } from "@/config/copy";
-import { blockA, blockC } from "@/content/compliance";
+import { blockA, blockC, blockD } from "@/content/compliance";
+import { formCopy } from "@/content/emails/forms";
+import { trackerCopy } from "@/content/tracker";
 import { quizFaqs, quizPage, runnerCopy } from "@/content/quiz";
 import { dynamicLeanLines, plain, resultContentFor, resultCopy } from "@/content/quiz-result";
 import { resultEmptyCopy } from "@/content/quiz-result-empty";
@@ -444,6 +446,39 @@ describe("no em dashes in the templated quiz and result content (2.6)", () => {
         .join("")
         .replace(/Days \d+–\d+/g, ""),
     ).not.toContain("—");
+  });
+
+  /**
+   * Founder decision (2026-11-04): the two remaining em dashes the result page rendered
+   * from shared copy, now swept. These files serve other pages too, so the check covers
+   * the strings the result page renders from them: the email form's copy (forms.ts,
+   * `result`) and the tracker offer's day lines (tracker.ts, `streak`).
+   */
+  it("the result page's lines from content/emails/forms.ts and content/tracker.ts", () => {
+    const lines = [
+      ...Object.values(formCopy.result).map((v) =>
+        typeof v === "function" ? v("reader@example.com") : v,
+      ),
+      trackerCopy.streak.dayZero,
+      trackerCopy.streak.dayOf(12, 60),
+      trackerCopy.setup.submit,
+    ];
+    expect(formCopy.result.alsoJoin).toBe(
+      "Also join the free email list: one or two emails a week on getting through this, unsubscribe anytime",
+    );
+    expect(trackerCopy.streak.dayZero).toBe("Day 0: your first full day starts tomorrow");
+    expect(lines.filter((l) => String(l).includes("—"))).toEqual([]);
+  });
+
+  it.each(COMBOS)("the rendered result page, taker $taker, partner $partner", (choice) => {
+    // Block D, the verbatim crisis block, is the one exclusion on this page.
+    const crisis = blockD.map((seg) =>
+      typeof seg === "string" ? seg.trim() : "strong" in seg ? seg.strong : seg.link,
+    );
+    const lines = resultText(choice)
+      .split("\n")
+      .filter((line) => !crisis.some((c) => c && (line.includes(c) || c.includes(line))));
+    expect(lines.filter((l) => l.includes("—"))).toEqual([]);
   });
 
   it("names exactly the two exclusions, which still hold em dashes", () => {

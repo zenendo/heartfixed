@@ -11,7 +11,7 @@ export const legal = {
    * page's date whenever its text changes — the privacy policy promises it.
    */
   lastUpdated: {
-    [routes.privacy]: "2026-11-03",
+    [routes.privacy]: "2026-11-04",
     [routes.terms]: "2026-11-01",
     [routes.affiliateDisclosure]: "2026-11-01",
   } as Record<string, string>,

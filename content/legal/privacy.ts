@@ -98,7 +98,7 @@ export const privacyPolicy: LegalDoc = {
             "Every list email has a one-click unsubscribe link. One click is all it takes.",
             "Tracker reminders can be turned off separately, and stop on their own when you reach your goal.",
             "Sending yourself a result never subscribes you. Joining the list is always its own, separate choice.",
-            `Asking for your quiz result by email sends it with the request: your two scores and the quiz version, and the two scores for the pattern you experienced from ${copy.partner.object} — never your answers. We use them only to write that one email and don't store them; the email itself goes through our email provider like any other.`,
+            `Asking for your quiz result by email sends it with the request: your two scores and the quiz version, and the two scores for the pattern you experienced from ${copy.partner.object} — never your answers. We use them only to write that one email and don't store them; the email itself goes through our email provider like any other. It also sends the two pronoun answers you chose at the start of the quiz, so the email uses the same words as your result page; like the scores, they're used only to write that one email and aren't stored.`,
           ],
         },
       ],
