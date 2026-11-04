@@ -39,7 +39,7 @@ export const trackerCopy = {
     heading: "Your streak",
     dayOf: (day: number, goal: number) => `Day ${day} of ${goal}`,
     pastGoal: (day: number, goal: number) => `Day ${day} — past your ${goal}-day goal`,
-    dayZero: "Day 0 — your first full day starts tomorrow",
+    dayZero: "Day 0: your first full day starts tomorrow",
     caption: "full days without contact",
     toGoal: (n: number) => `${days(n)} to your goal`,
     longest: (n: number) => `Longest streak: ${days(n)}`,

@@ -119,7 +119,7 @@ test.describe("setup (Section 11.1)", () => {
 
     await page.getByRole("button", { name: "Start my streak" }).click();
     await expect(page.getByTestId("day-line")).toHaveText(
-      "Day 0 — your first full day starts tomorrow",
+      "Day 0: your first full day starts tomorrow",
     );
     await expect(page.locator("#streak-heading")).toBeFocused();
     expect(await stored(page)).toMatchObject({ startDate: "2026-11-01", goalDays: 30 });
@@ -264,7 +264,7 @@ test.describe("slip flow (Section 11.1)", () => {
 
     await page.getByRole("button", { name: "Back to my tracker" }).click();
     await expect(page.getByTestId("day-line")).toHaveText(
-      "Day 0 — your first full day starts tomorrow",
+      "Day 0: your first full day starts tomorrow",
     );
     seen.push(await mainText(page));
 
@@ -408,7 +408,7 @@ test.describe("resilience (Section 16.4)", () => {
     await expect(page.getByText("This browser isn't letting the tracker save.")).toBeVisible();
     await page.getByRole("button", { name: "Start my streak" }).click();
     await expect(page.getByTestId("day-line")).toHaveText(
-      "Day 0 — your first full day starts tomorrow",
+      "Day 0: your first full day starts tomorrow",
     );
   });
 });

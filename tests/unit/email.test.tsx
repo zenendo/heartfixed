@@ -635,7 +635,7 @@ describe("forms — Sections 13.1, 13.3", () => {
 
   it("the result form's list box is separate, verbatim and unchecked by default", () => {
     expect(formCopy.result.alsoJoin).toBe(
-      "Also join the free email list — one or two emails a week on getting through this, unsubscribe anytime",
+      "Also join the free email list: one or two emails a week on getting through this, unsubscribe anytime",
     );
     const html = renderToStaticMarkup(
       <EmailResultForm result={{ version: VERSION, anxietyNorm: 72, avoidanceNorm: 18 }} />,

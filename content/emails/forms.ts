@@ -28,9 +28,9 @@ export const formCopy = {
     heading: "Email the full result",
     body: 'Your result on this page is already complete. The email adds a "your first 14 days" action list for your pattern, the reading list, and a copy you can print or keep.',
     submit: "Email my result",
-    /** Section 13.1 (b), verbatim — unchecked by default. */
+    /** Section 13.1 (b), verbatim but for the em dash (amendment brief, 2.6). Unchecked by default. */
     alsoJoin:
-      "Also join the free email list — one or two emails a week on getting through this, unsubscribe anytime",
+      "Also join the free email list: one or two emails a week on getting through this, unsubscribe anytime",
     success: (email: string) => `Your result is on its way to ${email}.`,
     joinedToo: "You're on the email list too.",
     joinFailed:
