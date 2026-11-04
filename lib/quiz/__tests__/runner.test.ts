@@ -33,9 +33,9 @@ const selectors = ["a1", "a2", "a3", "a4", "a5", "a6"].map((id, i) => ({
 }));
 
 describe("runner screen order (Section 10.2; brief, Part A)", () => {
-  it("his 24 with the attention check → her 12 → 6 selectors → 2 context", () => {
+  it("his 18 with the attention check → her 12 → 6 selectors → 2 context", () => {
     expect(runnerSteps.map((s) => s.kind)).toEqual([
-      ...Array(12).fill("his"),
+      ...Array(6).fill("his"),
       "attention",
       ...Array(12).fill("his"),
       ...Array(12).fill("her"),
@@ -44,17 +44,17 @@ describe("runner screen order (Section 10.2; brief, Part A)", () => {
     ]);
   });
 
-  it("puts the attention check at position 13, unnumbered, between q12 and q13", () => {
+  it("puts the attention check at position 7, unnumbered, between q07 and q08", () => {
     const at = attentionCheck.position - 1;
     expect(runnerSteps[at]).toEqual({ kind: "attention", id: attentionCheck.id });
-    expect(runnerSteps[at - 1]).toMatchObject({ id: "q12", number: 12, total: 24 });
-    expect(runnerSteps[at + 1]).toMatchObject({ id: "q13", number: 13, total: 24 });
+    expect(runnerSteps[at - 1]).toMatchObject({ id: "q07", number: 6, total: 18 });
+    expect(runnerSteps[at + 1]).toMatchObject({ id: "q08", number: 7, total: 18 });
   });
 
   it("numbers each section on its own", () => {
     const label = (kind: string) =>
       runnerSteps.filter((s) => s.kind === kind).map((s) => ("number" in s ? s.number : 0));
-    expect(label("his")).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+    expect(label("his")).toEqual(Array.from({ length: 18 }, (_, i) => i + 1));
     expect(label("her")).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
     expect(label("selector")).toEqual([1, 2, 3, 4, 5, 6]);
     expect(runnerSteps.slice(-2).map((s) => s.id)).toEqual(
@@ -98,7 +98,7 @@ describe("completeAttempt — what saves on the final answer (Section 9.6)", () 
       attentionFlag: false,
     });
     expect(saved.perceived).toEqual(herFixtures.h1.expected);
-    expect(saved.answers).toHaveLength(24 + 1 + 12 + 6);
+    expect(saved.answers).toHaveLength(18 + 1 + 12 + 6);
     expect(saved.context).toEqual({ "ctx-no-contact": "trying" });
     expect(savedQuizSchema.safeParse(saved).success).toBe(true);
   });

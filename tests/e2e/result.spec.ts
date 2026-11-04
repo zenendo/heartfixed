@@ -31,7 +31,7 @@ import { savedQuiz, seed } from "./support/savedQuiz";
 const QUIZ = "heartfixed-quiz-v1";
 const TRACKER = "heartfixed-tracker-v1";
 
-/** The Fixture 1 + H1 result: anxious 72/18, her pattern avoidant 83/13. */
+/** The Fixture 1 (Persona A) + H1 result: anxious 71/13, her pattern avoidant 83/13. */
 const persona = savedQuiz();
 
 async function openResult(page: Page, saved = persona, extra: Record<string, unknown> = {}) {
@@ -60,7 +60,7 @@ test.describe("the full result view (Section 10.3; brief, Part B)", () => {
     await expect(page.locator("h1")).toHaveText("Your pattern: Anxious (preoccupied)");
     const scores = page.getByTestId("result-scores");
     await expect(scores).toHaveText(
-      "Attachment anxiety 72/100 — highAttachment avoidance 18/100 — low",
+      "Attachment anxiety 71/100 — highAttachment avoidance 13/100 — low",
     );
     await expect(scores.locator("xpath=following-sibling::*[1]")).toHaveText(blockA.text);
     expect(await h2s(page)).toEqual([
@@ -243,8 +243,10 @@ test.describe("share and the shared view (Section 9.6; Fixture 7)", () => {
     await page.getByRole("button", { name: t.share.button }).click();
     await expect(page.getByText(t.share.copied)).toBeVisible();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
+    // His own link: Persona A's scores, not the shared-view token below.
+    const own = `v=${quizConfig.questionSetVersion}&a=${fixture1.expected.anxietyNorm}&v2=${fixture1.expected.avoidanceNorm}`;
     expect(copied).toBe(
-      `My attachment pattern: Anxious — ${site.name} ${new URL(`${routes.quizResults}?${token}`, site.url).toString()}`,
+      `My attachment pattern: Anxious — ${site.name} ${new URL(`${routes.quizResults}?${own}`, site.url).toString()}`,
     );
     // Scores and version only — nothing about her, no answers.
     expect(copied).not.toMatch(/a=13|83|q\d\d|h\d+/);
@@ -312,7 +314,7 @@ test.describe("emailing the result (Section 13.1 a; founder decision, Session 5)
     expect(body).toEqual({
       action: "send_result",
       email: "reader@example.com",
-      token: `v=${v}&a=72&v2=18`,
+      token: `v=${v}&a=71&v2=13`,
       perceived: `v=${v}&a=${anxietyNorm}&v2=${avoidanceNorm}`,
       alsoJoinList: false,
       website: "",

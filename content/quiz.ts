@@ -10,7 +10,7 @@ import type { FaqItem } from "@/lib/seo/schema";
  * the question data, so the copy can't drift from what the runner asks.
  *
  * The brief supplies the question data, the instruction line, the attention check,
- * the "About her — N of 12" label and the context note. The rest of this file is
+ * the context note. The "About your ex: N of 12" label is from the v2 amendment brief (1.5). The rest of this file is
  * Session 4 drafting from facts in the spec and the brief — flagged for founder
  * review in BUILD-LOG.md.
  *
@@ -96,11 +96,11 @@ export const runnerCopy = {
   chooseError: "Choose an answer to continue.",
   progress: {
     his: (n: number, total: number) => `Question ${n} of ${total}`,
-    her: (n: number, total: number) => `About ${partner.object} — ${n} of ${total}`,
+    her: (n: number, total: number) => `About your ex: ${n} of ${total}`,
     selector: (n: number, total: number) => `Since the breakup — ${n} of ${total}`,
     context: (n: number, total: number) => `About where you are now — ${n} of ${total}`,
   },
-  /** The resume prompt, built from the same labels ("question 9 of 24"). */
+  /** The resume prompt, built from the same labels ("question 9 of 18"). */
   resume: (label: string) =>
     `Continue where you left off — ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
   resumeCta: "Continue",

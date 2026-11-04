@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { quizConfig } from "@/config/quiz";
 import { decodeShareToken, encodeShareToken, scoreQuiz, shareLink } from "@/lib/quiz";
 import { COMPLETED_AT, fixture2, fixture3, tempBank } from "./fixtures";
 
@@ -8,8 +9,8 @@ describe("Fixture 7 — share token round-trip (Section 9.6)", () => {
   const results = [
     scoreQuiz(fixture2.answers, tempBank, opts),
     scoreQuiz(fixture3.answers, tempBank, opts),
-    { version: "men-v1", anxietyNorm: 72, avoidanceNorm: 18 },
-    { version: "men-v1", anxietyNorm: 0, avoidanceNorm: 100 },
+    { version: quizConfig.questionSetVersion, anxietyNorm: 71, avoidanceNorm: 13 },
+    { version: quizConfig.questionSetVersion, anxietyNorm: 0, avoidanceNorm: 100 },
   ];
 
   it.each(results)("round-trips %# to the identical profile, scores and version", (result) => {
@@ -20,7 +21,8 @@ describe("Fixture 7 — share token round-trip (Section 9.6)", () => {
       version: result.version,
       anxietyNorm: result.anxietyNorm,
       avoidanceNorm: result.avoidanceNorm,
-      isCurrentVersion: true,
+      // The engine banks are test data still marked men-v1, so only the last two are current.
+      isCurrentVersion: result.version === quizConfig.questionSetVersion,
     });
     if ("profileId" in result) {
       expect(decoded.result.profileId).toBe(result.profileId);
@@ -62,6 +64,14 @@ describe("Fixture 7 — share token round-trip (Section 9.6)", () => {
   it("recomputes the profile from scores and ignores any extra parameters", () => {
     const decoded = decodeShareToken("v=men-v1&a=10&v2=10&profile=fearful-avoidant&q01=4");
     expect(decoded).toMatchObject({ ok: true, result: { profileId: "secure" } });
+  });
+
+  it("flags men-v1 tokens as outdated once the v2 bank ships (Section 9.1)", () => {
+    expect(quizConfig.questionSetVersion).toBe("men-v2");
+    expect(decodeShareToken("v=men-v1&a=72&v2=18")).toMatchObject({
+      ok: true,
+      result: { version: "men-v1", isCurrentVersion: false, profileId: "anxious" },
+    });
   });
 
   it("flags tokens from an older question set rather than rejecting them", () => {

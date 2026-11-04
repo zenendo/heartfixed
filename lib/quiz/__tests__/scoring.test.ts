@@ -34,7 +34,7 @@ import {
 const opts = { completedAt: COMPLETED_AT };
 
 describe("Section 16.2 quiz fixtures", () => {
-  it("Fixture 1 — Persona A: 72/100 high, 18/100 low, anxious (launch bank)", () => {
+  it("Fixture 1 — Persona A: 71/100 high, 13/100 low, anxious (v2 bank)", () => {
     expect(scoreQuiz(fixture1.answers, questions, opts)).toMatchObject(fixture1.expected);
   });
 
@@ -62,12 +62,18 @@ describe("Section 16.2 quiz fixtures", () => {
     expect(result).toMatchObject(fixture3.expected);
   });
 
-  it("Fixture 4 — mirror personas: avoidant and fearful-avoidant (launch bank)", () => {
-    expect(scoreQuiz(fixture4.avoidant.answers, questions, opts)).toMatchObject(
-      fixture4.avoidant.expected,
-    );
-    expect(scoreQuiz(fixture4.fearfulAvoidant.answers, questions, opts)).toMatchObject(
-      fixture4.fearfulAvoidant.expected,
+  it.each([
+    ["Persona B — avoidant, 29/87", fixture4.avoidant],
+    ["Persona C — fearful-avoidant, 79/76", fixture4.fearfulAvoidant],
+    ["Persona D — secure, 21/24", fixture4.secure],
+  ] as const)("Fixture 4 — %s (v2 bank)", (_, persona) => {
+    expect(scoreQuiz(persona.answers, questions, opts)).toMatchObject(persona.expected);
+  });
+
+  it("Persona B is Persona A mirrored: every answer is 4 minus A's", () => {
+    const a = new Map(fixture1.answers.map((x) => [x.questionId, x.value]));
+    expect(fixture4.avoidant.answers.map((x) => [x.questionId, 4 - x.value])).toEqual(
+      fixture4.avoidant.answers.map((x) => [x.questionId, a.get(x.questionId)]),
     );
   });
 

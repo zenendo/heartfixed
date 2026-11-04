@@ -16,7 +16,7 @@ export const SELECTORS: QuizAnswer[] = ["a1", "a2", "a3", "a4", "a5", "a6"].map(
 
 /**
  * A saved result built by the engine itself (completeAttempt), so result-view tests can
- * start on the page without driving 45 screens. Defaults to Fixture 1 with H1.
+ * start on the page without driving 39 screens. Defaults to Fixture 1 with H1.
  */
 export function savedQuiz({
   his = fixture1.answers,

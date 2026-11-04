@@ -1633,3 +1633,68 @@ the lean lines, the share copy) stays as drafted, in the founder's review pile.
   name the pull". They change with the audience, not the partner dictionary.
 
 **Tests:** 545 unit tests pass (5 skipped); 933 Playwright tests pass.
+
+## Session A — Quiz v2: the shorter bank (2026-11-03)
+
+Source: `heartfixed-quiz-v2-amendment-brief.md`, Part 1 only (now in the repo root
+beside the Nov 2 brief). Part 2 (pronouns) is Session B and isn't started.
+
+**Shipped**
+
+- **The cuts (1.1):** q04, q10, q11, q17, q21 and q24 are gone from
+  `lib/quiz/questions.ts`. His bank is 18 (nine per dimension); her 12, the six
+  selectors, the two context questions and the attention check are unchanged. q21's
+  "a male friend" goes with it, which closes that open item.
+- **Weights (1.2):** the 0.5 anchor moves from q24 to q20. Reversed: q19, q20, q23;
+  weight 0.5: q20, q23. Max raw is 34 per dimension, computed from the data as before.
+  Bands and the profile table are unchanged.
+- **Bank rules:** `reversedPerDimension` is now per dimension (`{ anxiety: 2,
+avoidance: 1 }`), since the cuts leave avoidance with one reversed item.
+  `checkQuestionBank` checks each dimension on its own.
+- **Rewordings (1.3):** q07, q08, q13, q16, q18, q22, h4, h5, h12, a1, a3, a5 and a6,
+  word for word. h12 uses the dictionary's reflexive ("to herself").
+- **Count copy (1.5):** 44 becomes 38 on the homepage card, the FAQ, the profile-page
+  callout, the guide, the methodology page and its meta description. The quiz meta
+  description is the brief's text, verbatim (148 characters). His progress reads
+  "Question N of 18"; the partner section label becomes "About your ex: N of 12"
+  (the brief lets Session A make that change now).
+- **The parity test** (`tests/unit/quiz-brief.test.ts`) parses the amendment's cuts
+  and rewordings from the amendment itself and applies them on top of the Nov 2
+  tables, so both documents stay the checked source.
+
+**Fixtures (1.4)** — replaced by the brief's v2 personas. The v1 Fixture 1 (72/18)
+and the constructed Fixture 4 pair ran on items that no longer exist. These are new
+founder fixtures for a new bank, not edits to make a test pass.
+
+| Persona        | Anxiety           | Avoidance           | Profile          |
+| -------------- | ----------------- | ------------------- | ---------------- |
+| A              | 24 / 34 → 71 high | 4.5 / 34 → 13 low   | anxious          |
+| B (A mirrored) | 10 / 34 → 29 low  | 29.5 / 34 → 87 high | avoidant         |
+| C              | 27 / 34 → 79 high | 26 / 34 → 76 high   | fearful-avoidant |
+| D              | 7 / 34 → 21 low   | 8 / 34 → 24 low     | secure           |
+
+Each one is hand-computed in `fixtures.ts`, recomputed independently outside the
+engine, and verified end to end by driving the real runner (`quiz.spec.ts`). H1
+(83/13, avoidant) and H2 (88/13, anxious) are unchanged and still verify. The engine
+fixtures 2, 3, 5 and 6 run on their own 24-item test banks, which are untouched.
+
+**Decisions and ambiguities**
+
+- **The question-set version is now `men-v2`.** The brief doesn't mention it, but
+  Section 9.1 requires the version to increment whenever a scored item changes. Saved
+  v1 results now get the existing "The quiz has been updated" notice, v1 share links
+  render with the outdated flag, and a v1 attempt in progress isn't resumed. The
+  storage keys (`heartfixed-quiz-v1` etc.) are the storage schema version and don't
+  change.
+- **The attention check is at position 7**, between q07 and q08: after the first third
+  of his 18, as the brief's parenthetical says. The old spot (13 of 24) was halfway, so
+  "a similar relative position" would have been about position 10. One config value if
+  the founder prefers halfway.
+- **The methodology's reversed-items sentence** counted "2 per dimension". It now says
+  "3 of the questions about you are worded the other way round (2 for attachment
+  anxiety, 1 for attachment avoidance)". The numbers come from config. This is a factual
+  count, but it's wording the brief didn't supply, so it's for founder review.
+- **The OG image subtitle** still said "24 questions", missed by the earlier sweeps. It
+  now says 38, as 1.5 asks for every surface that states the count.
+- **Unchanged:** the other count sentences keep their live wording ("what she did"),
+  since 1.5 only changes the number there. The em-dash sweep is Session B.

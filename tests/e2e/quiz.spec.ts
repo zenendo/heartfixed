@@ -136,10 +136,10 @@ test.describe("the pre-quiz page (Section 10.1)", () => {
 });
 
 test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
-  // Each journey answers all 45 screens; allow for a loaded machine.
+  // Each journey answers all 39 screens; allow for a loaded machine.
   test.describe.configure({ timeout: 90_000 });
 
-  test("Fixture 1 — Persona A with H1: anxious 72/18; her pattern avoidant 83/13", async ({
+  test("Fixture 1 — Persona A with H1: anxious 71/13; her pattern avoidant 83/13", async ({
     page,
   }) => {
     const { bodies, all } = captureCollect(page);
@@ -153,7 +153,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     await expect(page.locator("h1")).toHaveText("Your pattern: Anxious (preoccupied)");
     const scores = page.getByTestId("result-scores");
     await expect(scores).toHaveText(
-      "Attachment anxiety 72/100 — highAttachment avoidance 18/100 — low",
+      "Attachment anxiety 71/100 — highAttachment avoidance 13/100 — low",
     );
     await expect(scores.locator("xpath=following-sibling::*[1]")).toHaveText(blockA.text);
     await expect(page.getByTestId("crisis-block")).toBeVisible();
@@ -177,7 +177,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
       "ctx-time-since-breakup": "2-weeks-to-2-months",
       "ctx-no-contact": "trying",
     });
-    expect(saved!.answers).toHaveLength(24 + 1 + 12 + 6);
+    expect(saved!.answers).toHaveLength(18 + 1 + 12 + 6);
     expect(await stored(page, "heartfixed-quiz-progress-v1")).toBeNull();
 
     // Analytics: his profile and bands only — no answers, nothing about her.
@@ -209,7 +209,9 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     await expect(page.getByTestId("dynamic")).toHaveAttribute("data-dynamic", "anxious-anxious");
   });
 
-  test("Fixture 4 — avoidant, with a wrong attention answer flagged silently", async ({ page }) => {
+  test("Fixture 4 — Persona B, avoidant, with a wrong attention answer flagged silently", async ({
+    page,
+  }) => {
     await runQuiz(page, {
       his: fixture4.avoidant.answers,
       her: herFixtures.h2.answers,
@@ -217,7 +219,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     });
     await expect(page.locator("h1")).toHaveText("Your pattern: Avoidant (dismissive)");
     await expect(page.getByTestId("result-scores")).toHaveText(
-      "Attachment anxiety 9/100 — lowAttachment avoidance 83/100 — high",
+      "Attachment anxiety 29/100 — lowAttachment avoidance 87/100 — high",
     );
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject({ ...fixture4.avoidant.expected, attentionFlag: true });
@@ -226,11 +228,24 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     await expect(page.getByRole("main").getByText(/attention|reading check/i)).toHaveCount(0);
   });
 
-  test("Fixture 4 — fearful-avoidant", async ({ page }) => {
+  test("Fixture 4 — Persona C, fearful-avoidant", async ({ page }) => {
     await runQuiz(page, { his: fixture4.fearfulAvoidant.answers, her: herFixtures.h1.answers });
     await expect(page.locator("h1")).toHaveText("Your pattern: Fearful-avoidant (disorganized)");
+    await expect(page.getByTestId("result-scores")).toHaveText(
+      "Attachment anxiety 79/100 — highAttachment avoidance 76/100 — high",
+    );
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject(fixture4.fearfulAvoidant.expected);
+  });
+
+  test("Fixture 4 — Persona D, secure", async ({ page }) => {
+    await runQuiz(page, { his: fixture4.secure.answers, her: herFixtures.h2.answers });
+    await expect(page.locator("h1")).toHaveText("Your pattern: Secure");
+    await expect(page.getByTestId("result-scores")).toHaveText(
+      "Attachment anxiety 21/100 — lowAttachment avoidance 24/100 — low",
+    );
+    const saved = await stored(page, "heartfixed-quiz-v1");
+    expect(saved!.result).toMatchObject(fixture4.secure.expected);
   });
 
   test("Fixture 7 (shell half) — a tampered token shows the take-the-quiz shell, not an error", async ({
@@ -255,7 +270,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.goto(routes.quiz);
     await page.getByRole("button", { name: runnerCopy.start }).click();
     const progress = page.getByTestId("quiz-progress");
-    await expect(progress).toHaveText("Question 1 of 24");
+    await expect(progress).toHaveText("Question 1 of 18");
     await expect(page.getByText(quizConfig.instruction)).toBeVisible();
     await expect(page.locator("#quiz-question")).toBeFocused();
 
@@ -275,14 +290,15 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
       if (i === runnerSteps.length - 1) break;
       await answerStep(page, step, step.kind === "context" ? undefined : 2);
     }
-    expect(seen[11]).toBe("Question 12 of 24");
-    expect(seen[12]).toBe(""); // the attention check
-    expect(seen[13]).toBe("Question 13 of 24");
-    expect(seen[25]).toBe("About her — 1 of 12");
-    expect(seen[36]).toBe("About her — 12 of 12");
-    expect(seen[37]).toBe("Since the breakup — 1 of 6");
-    expect(seen[43]).toBe("About where you are now — 1 of 2");
-    expect(framed).toEqual([25]); // the framing line, before her first question only
+    expect(seen[5]).toBe("Question 6 of 18");
+    expect(seen[6]).toBe(""); // the attention check
+    expect(seen[7]).toBe("Question 7 of 18");
+    expect(seen[18]).toBe("Question 18 of 18");
+    expect(seen[19]).toBe("About your ex: 1 of 12");
+    expect(seen[30]).toBe("About your ex: 12 of 12");
+    expect(seen[31]).toBe("Since the breakup — 1 of 6");
+    expect(seen[37]).toBe("About where you are now — 1 of 2");
+    expect(framed).toEqual([19]); // the framing line, before her first question only
     await expect(page.getByText(quizConfig.contextNote)).toBeVisible();
   });
 
@@ -291,7 +307,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.getByRole("button", { name: runnerCopy.start }).click();
     await page.getByRole("button", { name: runnerCopy.next }).click();
     await expect(page.getByText(runnerCopy.chooseError)).toBeVisible();
-    await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 24");
+    await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 18");
 
     await page.getByRole("radio", { name: "Often", exact: true }).check();
     await expect(page.getByText(runnerCopy.chooseError)).toHaveCount(0);
@@ -313,7 +329,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
       await page.keyboard.press("Tab"); // into the radio group
       await page.keyboard.press("ArrowDown"); // selects "Rarely"
       await page.keyboard.press("Enter"); // submits the form
-      await expect(page.getByTestId("quiz-progress")).toHaveText(`Question ${i + 1} of 24`);
+      await expect(page.getByTestId("quiz-progress")).toHaveText(`Question ${i + 1} of 18`);
     }
     const progress = await stored(page, "heartfixed-quiz-progress-v1");
     expect(progress!.answers).toEqual({ q01: 1, q02: 1, q03: 1 });
@@ -331,9 +347,10 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     const second = await browser.newContext({ storageState: state });
     const again = await second.newPage();
     await again.goto(routes.quiz);
-    await expect(again.getByText("Continue where you left off — question 10 of 24")).toBeVisible();
+    // Nine screens in: six of his, the attention check, then two more of his.
+    await expect(again.getByText("Continue where you left off — question 9 of 18")).toBeVisible();
     await again.getByRole("button", { name: runnerCopy.resumeCta }).click();
-    await expect(again.getByTestId("quiz-progress")).toHaveText("Question 10 of 24");
+    await expect(again.getByTestId("quiz-progress")).toHaveText("Question 9 of 18");
     await again.getByRole("button", { name: runnerCopy.back }).click();
     await expect(again.getByRole("radio", { name: "Often", exact: true })).toBeChecked();
     await second.close();
@@ -347,9 +364,9 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
       localStorage.setItem(
         "heartfixed-quiz-progress-v1",
         JSON.stringify({
-          version: "men-v1",
+          version: "men-v2",
           step: 5,
-          answers: { q01: 2, q02: 2, q03: 2, q04: 2, q05: 2 },
+          answers: { q01: 2, q02: 2, q03: 2, q05: 2, q06: 2 },
           context: {},
           startedAt: "2026-11-01T12:00:00.000Z",
           savedAt: "2026-11-02T11:00:00.000Z",
@@ -393,7 +410,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.goto(routes.quiz);
     await expect(page.getByText(runnerCopy.corrupt)).toBeVisible();
     await page.getByRole("button", { name: runnerCopy.start }).click();
-    await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 24");
+    await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 18");
   });
 
   test("axe: zero critical issues on the page, mid-runner and on the result", async ({ page }) => {

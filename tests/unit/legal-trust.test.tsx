@@ -184,11 +184,16 @@ describe("About, Contact, Methodology", () => {
     expect(text).toContain(quizConfig.likert.partnerLabels.join(", "));
   });
 
-  it("Methodology counts the full quiz: 24 + 12 + 6 + 2", () => {
+  it("Methodology counts the full quiz: 18 + 12 + 6 + 2 (v2 amendment brief)", () => {
     const text = strings(methodologyPage).join("\n");
-    expect(QUIZ_QUESTION_COUNT).toBe(44);
-    expect(text).toContain("44 questions in all");
-    expect(text).toContain("24 questions about you");
+    expect(QUIZ_QUESTION_COUNT).toBe(38);
+    expect(text).toContain("38 questions in all");
+    expect(text).toContain(
+      "18 questions about you, which give your scores: 9 for attachment anxiety and 9 for attachment avoidance.",
+    );
+    expect(text).toContain(
+      "3 of the questions about you are worded the other way round (2 for attachment anxiety, 1 for attachment avoidance)",
+    );
     expect(text).toContain("12 questions about how she showed up");
     expect(text).toContain("6 for each of the same two dimensions");
     expect(text).toContain("6 questions about what she's done since the breakup");
@@ -197,8 +202,9 @@ describe("About, Contact, Methodology", () => {
     expect(routeMetadata[routes.methodology]!.description).toContain(
       `its ${QUIZ_QUESTION_COUNT} questions`,
     );
+    // Verbatim from the v2 amendment brief, 1.5.
     expect(routeMetadata[routes.quiz]!.description).toBe(
-      `A free attachment style quiz for men: ${QUIZ_QUESTION_COUNT} questions about what you actually did — and what she did — in your last relationship. Full result free, no signup.`,
+      "A free attachment style quiz for men: 38 questions about what you did, and what your ex did, in your last relationship. Full result free, no signup.",
     );
   });
 

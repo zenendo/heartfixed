@@ -15,7 +15,7 @@ import {
 import { bandEdgeBank, tempBank } from "./fixtures";
 
 describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
-  it("his 24 pass the Section 9.2 launch rules", () => {
+  it("his 18 pass the Section 9.2 launch rules (v2 amendment brief, 1.1)", () => {
     expect(checkQuestionBank(questions)).toEqual([]);
   });
 
@@ -24,13 +24,25 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
     expect(herQuestions.every((q) => q.weight === 1 && !q.reversed)).toBe(true);
   });
 
-  it("q23 and q24 are the only weight-0.5 items; max raw is 46 per dimension", () => {
+  it("cuts q04, q10, q11, q17, q21 and q24, leaving 9 per dimension", () => {
+    for (const id of ["q04", "q10", "q11", "q17", "q21", "q24"]) {
+      expect(
+        questions.some((q) => q.id === id),
+        id,
+      ).toBe(false);
+    }
+    expect(questions.filter((q) => q.dimension === "anxiety")).toHaveLength(9);
+    expect(questions.filter((q) => q.dimension === "avoidance")).toHaveLength(9);
+  });
+
+  it("q19, q20 and q23 are reversed; q20 and q23 are the only weight-0.5 items; max raw is 34", () => {
+    expect(questions.filter((q) => q.reversed).map((q) => q.id)).toEqual(["q19", "q20", "q23"]);
     expect(questions.filter((q) => q.weight !== 1).map((q) => [q.id, q.weight])).toEqual([
+      ["q20", 0.5],
       ["q23", 0.5],
-      ["q24", 0.5],
     ]);
-    expect(maxRawFor(questions, "anxiety")).toBe(46);
-    expect(maxRawFor(questions, "avoidance")).toBe(46);
+    expect(maxRawFor(questions, "anxiety")).toBe(34);
+    expect(maxRawFor(questions, "avoidance")).toBe(34);
     expect(maxRawFor(herQuestions, "anxiety")).toBe(24);
   });
 
@@ -54,7 +66,7 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
 
   it("supports other dictionaries, overrides and a capitalised sentence start (Section 2.3)", () => {
     const h5 = herQuestions.find((q) => q.id === "h5")!;
-    expect(renderStem(h5)).toMatch(/^She often asked whether I still loved her/);
+    expect(renderStem(h5)).toMatch(/^She asked whether I still loved her/);
     expect(
       renderStem(h5, {
         subject: "they",
@@ -64,9 +76,9 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
         noun: "person",
         nounPlural: "people",
       }),
-    ).toMatch(/^They often asked whether I still loved them/);
+    ).toMatch(/^They asked whether I still loved them/);
     expect(renderStem({ ...h5, partnerTerms: { subject: "he", object: "him" } })).toMatch(
-      /^He often asked whether I still loved him/,
+      /^He asked whether I still loved him/,
     );
   });
 
@@ -78,8 +90,8 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
 });
 
 describe("attention check (Section 9.2)", () => {
-  it("sits at position 13 and expects 'Rarely'", () => {
-    expect(attentionCheck.position).toBe(13);
+  it("sits at position 7, after the first third of his 18, and expects 'Rarely'", () => {
+    expect(attentionCheck.position).toBe(7);
     expect(quizConfig.likert.labels[attentionCheck.expectedValue]).toBe("Rarely");
     expect(attentionCheck.stem).toContain("'Rarely'");
   });
@@ -112,18 +124,33 @@ describe("Likert scale and context questions (Section 9.2)", () => {
 });
 
 describe("checkQuestionBank (Section 9.2 launch rules)", () => {
-  it("passes the temporary full bank and the band-edge bank", () => {
-    expect(checkQuestionBank(tempBank)).toEqual([]);
-    expect(checkQuestionBank(bandEdgeBank)).toEqual([]);
+  /** The engine test banks keep the v1 shape: 24 items, 12 per dimension, 2 reversed each. */
+  const engineRules = {
+    ...quizConfig.bankRules,
+    scoredItems: 24,
+    itemsPerDimension: 12,
+    reversedPerDimension: { anxiety: 2, avoidance: 2 },
+  };
+
+  it("passes the temporary full bank and the band-edge bank, under their own 24-item shape", () => {
+    expect(checkQuestionBank(tempBank, engineRules)).toEqual([]);
+    expect(checkQuestionBank(bandEdgeBank, engineRules)).toEqual([]);
   });
 
   it("reports a short bank, an unbalanced bank, and wrong reversal counts", () => {
-    const problems = checkQuestionBank(tempBank.slice(0, 23));
+    const problems = checkQuestionBank(tempBank.slice(0, 23), engineRules);
     expect(problems).toContain("expected 24 scored items, got 23");
     expect(problems).toContain("expected 12 avoidance items, got 11");
 
     const extraReversed = tempBank.map((q) => (q.id === "q01" ? { ...q, reversed: true } : q));
-    expect(checkQuestionBank(extraReversed)).toContain("expected 2 reversed anxiety items, got 3");
+    expect(checkQuestionBank(extraReversed, engineRules)).toContain(
+      "expected 2 reversed anxiety items, got 3",
+    );
+  });
+
+  it("checks each dimension's reversal count on its own (v2: 2 anxiety, 1 avoidance)", () => {
+    const flipped = questions.map((q) => (q.id === "q20" ? { ...q, reversed: false } : q));
+    expect(checkQuestionBank(flipped)).toEqual(["expected 1 reversed avoidance items, got 0"]);
   });
 
   it("reports long stems, clinical terms, bad weights, duplicates and mixed versions", () => {
@@ -133,7 +160,7 @@ describe("checkQuestionBank (Section 9.2 launch rules)", () => {
     bank[2]!.weight = 2;
     bank[3]!.id = "q01";
     bank[4]!.version = "men-v2";
-    const problems = checkQuestionBank(bank).join("\n");
+    const problems = checkQuestionBank(bank, engineRules).join("\n");
     expect(problems).toMatch(/stem is 29 words/);
     expect(problems).toMatch(/clinical term "protest behaviour"/);
     expect(problems).toMatch(/q03: /);
