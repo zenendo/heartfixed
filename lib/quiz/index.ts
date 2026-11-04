@@ -19,12 +19,17 @@ export {
 export {
   attentionCheck,
   checkQuestionBank,
+  endingQuestions,
   herQuestions,
   questions,
   renderStem,
   sinceBreakupSelectors,
   type BankRules,
+  type EndingAnswers,
+  type EndingOption,
+  type EndingQuestion,
 } from "./questions";
+export { endingAnswersFrom, endingFitFor, isEndingComplete, type FitId } from "./ending";
 export {
   completeAttempt,
   emptyProgress,

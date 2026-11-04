@@ -214,6 +214,80 @@ export const sinceBreakupSelectors: SelectorItem[] = [
   },
 ];
 
+/** One answer to a "how it ended" question: a stable id and its label (tokens allowed). */
+export interface EndingOption {
+  value: string;
+  label: string;
+}
+
+export interface EndingQuestion {
+  id: "b1" | "b2" | "b3" | "b4" | "b5";
+  stem: string;
+  options: readonly [EndingOption, EndingOption, EndingOption, EndingOption];
+}
+
+/**
+ * "How it ended" — quiz v3 amendment brief, 2, with the wording of the founder-approved
+ * copy draft ("How it ended" copy draft, repo root), option order as written there.
+ * Unscored single-choice questions, after the selectors and before the context
+ * questions. Partner references are tokens, like the stems above.
+ */
+export const endingQuestions: readonly EndingQuestion[] = [
+  {
+    id: "b1",
+    stem: "Who ended the relationship?",
+    options: [
+      { value: "partner", label: "{Subject} ended it" },
+      { value: "me", label: "I ended it" },
+      { value: "together", label: "We decided together" },
+      { value: "faded", label: "Nobody really ended it; it faded out" },
+    ],
+  },
+  {
+    id: "b2",
+    stem: "How did the ending arrive?",
+    options: [
+      { value: "blindsided", label: "Out of nowhere; I felt blindsided" },
+      { value: "distance", label: "After weeks of growing distance" },
+      { value: "event", label: "After one specific argument or event" },
+      { value: "cycles", label: "After breaking up and getting back together more than once" },
+    ],
+  },
+  {
+    id: "b3",
+    stem: "How did you find out it was over?",
+    options: [
+      { value: "in-person", label: "A real conversation, face to face" },
+      { value: "call-or-message", label: "A call or a long message" },
+      { value: "went-quiet", label: "{Subject} went quiet, and the silence made it clear" },
+      { value: "unclear", label: "It is still not completely clear where we stand" },
+    ],
+  },
+  {
+    id: "b4",
+    stem: "Did {subject} give a clear reason?",
+    options: [
+      { value: "made-sense", label: "Yes, and it made sense to me" },
+      { value: "mismatch", label: "Yes, but it did not match what I saw" },
+      { value: "none", label: "No clear reason was ever given" },
+      { value: "kept-changing", label: "The reason kept changing" },
+    ],
+  },
+  {
+    id: "b5",
+    stem: "What happened just before it ended?",
+    options: [
+      { value: "closer", label: "Things had just got closer or more serious" },
+      { value: "fight", label: "A big fight or a specific event" },
+      { value: "distant", label: "Nothing obvious; {subject} just went distant" },
+      { value: "on-off", label: "It was the latest round of an on-off pattern" },
+    ],
+  },
+];
+
+/** The answers to the "how it ended" block, by question id, as option values. */
+export type EndingAnswers = Partial<Record<EndingQuestion["id"], string>>;
+
 /**
  * Unscored instructional item shown at runner position 7, between q07 and q08 (after
  * the first third of his 18), and not counted in "Question N of 18" (Section 9.2; v2

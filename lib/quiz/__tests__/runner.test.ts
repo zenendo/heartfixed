@@ -35,7 +35,7 @@ const selectors = ["a1", "a2", "a3", "a4", "a5", "a6"].map((id, i) => ({
 }));
 
 describe("runner screen order (Section 10.2; brief, Part A)", () => {
-  it("the two pronoun questions → his 18 with the attention check → her 12 → 6 selectors → 2 context", () => {
+  it("the two pronoun questions → his 18 with the attention check → her 12 → 6 selectors → 5 ending → 2 context", () => {
     expect(runnerSteps.map((s) => s.kind)).toEqual([
       "pronouns",
       "pronouns",
@@ -44,8 +44,24 @@ describe("runner screen order (Section 10.2; brief, Part A)", () => {
       ...Array(12).fill("his"),
       ...Array(12).fill("her"),
       ...Array(6).fill("selector"),
+      ...Array(5).fill("ending"),
       ...Array(2).fill("context"),
     ]);
+  });
+
+  it('asks the five "how it ended" questions after the selectors, before context (v3, 2)', () => {
+    const ending = runnerSteps.filter((s) => s.kind === "ending");
+    expect(ending.map((s) => s.id)).toEqual(["b1", "b2", "b3", "b4", "b5"]);
+    expect(ending.map((s) => ("number" in s ? `${s.number}/${s.total}` : ""))).toEqual([
+      "1/5",
+      "2/5",
+      "3/5",
+      "4/5",
+      "5/5",
+    ]);
+    const at = runnerSteps.findIndex((s) => s.kind === "ending");
+    expect(runnerSteps[at - 1]).toMatchObject({ kind: "selector", id: "a6" });
+    expect(runnerSteps[at + 5]).toMatchObject({ kind: "context" });
   });
 
   it("asks the taker's pronouns, then the partner's, unnumbered (amendment brief, 2.1)", () => {
@@ -77,7 +93,7 @@ describe("runner screen order (Section 10.2; brief, Part A)", () => {
 describe("per-section answer labels and framing (founder review, Session 4)", () => {
   it('drops "like me" only where the visitor isn\'t describing himself', () => {
     for (const step of runnerSteps) {
-      if (step.kind === "context" || step.kind === "pronouns") continue;
+      if (step.kind === "context" || step.kind === "pronouns" || step.kind === "ending") continue;
       const expected =
         step.kind === "his" || step.kind === "attention"
           ? quizConfig.likert.labels
@@ -176,6 +192,16 @@ describe("in-progress attempts (Section 10.2)", () => {
   it("doesn't resume one saved before the pronoun questions, whose steps predate them", () => {
     expect(isResumable({ ...touched(1), pronouns: undefined }, NOW)).toBe(false);
     expect(isResumable({ ...touched(1), pronouns: { taker: "he" } }, NOW)).toBe(false);
+  });
+
+  it('doesn\'t resume one saved before the "how it ended" block (v3 amendment brief, 7)', () => {
+    expect(touched(1).flow).toBe(quizConfig.flowVersion);
+    expect(isResumable(touched(1), NOW)).toBe(true);
+    // An attempt saved under the v2 flow (no flow marker) or any other flow starts fresh.
+    expect(isResumable({ ...touched(1), flow: undefined }, NOW)).toBe(false);
+    expect(isResumable({ ...touched(1), flow: 2 }, NOW)).toBe(false);
+    // The question set itself is unchanged: no scored item moved (Section 9.1).
+    expect(quizConfig.questionSetVersion).toBe("men-v2");
   });
 
   it("renders stems with the chosen partner set, she/her by default", () => {

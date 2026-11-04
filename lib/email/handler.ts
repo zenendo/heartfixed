@@ -48,6 +48,7 @@ export async function handleEmailRequest(
             resultFromToken(req.token),
             req.perceived === undefined ? undefined : resultFromToken(req.perceived),
             req.pronouns,
+            req.ending,
           );
         } catch (err) {
           if (err instanceof ResultTokenError) return fail(400, "invalid_request");

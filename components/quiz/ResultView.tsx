@@ -17,9 +17,12 @@ import {
   resultContentFor,
   resultCopy as t,
 } from "@/content/quiz-result";
+import { assembleEnding, endingContentFor } from "@/content/quiz-ending";
 import {
   DEFAULT_PRONOUNS,
   dynamicFor,
+  endingAnswersFrom,
+  endingFitFor,
   profileCopy,
   profiles,
   pronounContext,
@@ -35,7 +38,9 @@ import {
  * email); share; go deeper (the only affiliate position, below the email form); Block
  * D. Everything here renders from this browser's saved result — the partner read and
  * decodes never leave it except in the email the visitor asks for. The text renders
- * with the visitor's two pronoun answers (amendment brief, 2.3).
+ * with the visitor's two pronoun answers (amendment brief, 2.3). The "how it ended"
+ * segment follows the dynamic (v3 amendment brief, 4); a result saved before that block
+ * existed has no answers for it and shows none of it.
  */
 export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: boolean }) {
   const { result, perceived } = saved;
@@ -46,6 +51,17 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
   const pick = dynamicFor(result, perceived);
   const dynamic = dynamics[pick.id];
   const shown = selectedDecodes(saved.answers, sinceBreakupSelectors);
+  const ending = endingContentFor(ctx);
+  const endingAnswers = endingAnswersFrom(saved.context);
+  const endingBlocks = assembleEnding(
+    ending,
+    endingAnswers,
+    endingFitFor({ herProfile: perceived.profileId, dynamic: pick.id, answers: endingAnswers }),
+  );
+  const bridgeExtras = [
+    ...(endingAnswers.b2 === "blindsided" ? [ending.bridge.blindsided] : []),
+    ...(endingAnswers.b1 === "me" ? [ending.bridge.me] : []),
+  ];
   const copy = profileCopy[result.profileId];
   const partnerScores = { version: saved.version, ...perceived };
 
@@ -94,6 +110,17 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
             </p>
           ))}
         </div>
+        {endingBlocks.length > 0 && (
+          <div data-testid="ending">
+            <h3 className="mt-8 text-lg font-semibold">{ending.heading}</h3>
+            <p className="mt-3">{ending.intro}</p>
+            {endingBlocks.map((text) => (
+              <p key={text} className="mt-4">
+                {text}
+              </p>
+            ))}
+          </div>
+        )}
       </Section>
 
       <Section id="act-yours" heading={t.acts.yours}>
@@ -120,6 +147,11 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
         <p className="mt-3">
           <Rich text={bridges[result.profileId]} />
         </p>
+        {bridgeExtras.map((text) => (
+          <p key={text} className="mt-3" data-testid="bridge-ending">
+            {text}
+          </p>
+        ))}
         <div className="mt-4 flex flex-wrap gap-3 print:hidden">
           {bridgeTools[result.profileId].map((step, i) => (
             <ButtonLink
@@ -136,6 +168,7 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
             result={result}
             perceived={partnerScores}
             pronouns={pronouns}
+            ending={endingAnswers}
             note={programmeLine}
           />
         </div>

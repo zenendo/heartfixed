@@ -184,10 +184,15 @@ describe("About, Contact, Methodology", () => {
     expect(text).toContain(quizConfig.likert.partnerLabels.join(", "));
   });
 
-  it("Methodology counts the full quiz: 18 + 12 + 6 + 2 (v2 amendment brief)", () => {
+  it("Methodology counts the full quiz: 18 + 12 + 6 + 5 + 2 (v3 amendment brief)", () => {
     const text = strings(methodologyPage).join("\n");
-    expect(QUIZ_QUESTION_COUNT).toBe(38);
-    expect(text).toContain("38 questions in all");
+    expect(QUIZ_QUESTION_COUNT).toBe(43);
+    expect(text).toContain(
+      "43 questions in all, one per screen, in five parts: about you, about her, since the breakup, how it ended, and where you are now.",
+    );
+    expect(text).toContain(
+      "5 questions about how it ended. These do not change your scores; they change how the result explains what happened.",
+    );
     expect(text).toContain(
       "18 questions about you, which give your scores: 9 for attachment anxiety and 9 for attachment avoidance.",
     );
@@ -202,10 +207,15 @@ describe("About, Contact, Methodology", () => {
     expect(routeMetadata[routes.methodology]!.description).toContain(
       `its ${QUIZ_QUESTION_COUNT} questions`,
     );
-    // Verbatim from the v2 amendment brief, 1.5.
-    expect(routeMetadata[routes.quiz]!.description).toBe(
-      "A free attachment style quiz for men: 38 questions about what you did, and what your ex did, in your last relationship. Full result free, no signup.",
+    // Verbatim from the v3 amendment brief, 7.
+    const meta = routeMetadata[routes.quiz]!.description!;
+    expect(meta).toBe(
+      "A free attachment style quiz for men: 43 questions about what you did, what your ex did, and how it ended. Full result free, no signup.",
     );
+    expect(meta).toHaveLength(135);
+    expect(
+      readFileSync(path.resolve(__dirname, "../../heartfixed-quiz-v3-amendment-brief.md"), "utf8"),
+    ).toContain(`(135 characters, inside the 155 cap): "${meta}"`);
   });
 
   it("Methodology describes the partner read in the founder's wording", () => {

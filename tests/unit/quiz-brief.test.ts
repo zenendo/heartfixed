@@ -163,10 +163,11 @@ describe("time estimates", () => {
     expect(found.filter((f) => !f.endsWith(`: ${QUIZ_QUESTION_COUNT}`))).toEqual([]);
   });
 
-  it(`the count is 38: 18 + 12 + 6 + 2 (v2 amendment brief, 1.1)`, () => {
-    expect(QUIZ_QUESTION_COUNT).toBe(38);
-    expect(section("## 1.1 The cuts")).toContain(
-      "Counted questions drop from 44 to **38** (18 + 12 + 6 + 2)",
+  it(`the count is 43: 18 + 12 + 6 + 5 + 2 (v3 amendment brief, 7)`, () => {
+    expect(QUIZ_QUESTION_COUNT).toBe(43);
+    const v3 = readFileSync(path.join(root, "heartfixed-quiz-v3-amendment-brief.md"), "utf8");
+    expect(v3).toContain(
+      "Counted questions rise from 38 to 43 (18 + 12 + 6 selectors + 5 ending + 2 context)",
     );
   });
 

@@ -1803,3 +1803,69 @@ Source: `heartfixed-quiz-v2-amendment-brief.md`, Part 2. Built on Session A (mer
   - `tracker.ts`: "Day N — past your goal", the goal-reached line, and the
     "what counts as contact" note on profile-checking;
   - the compliance blocks and the quiz landing page, by decision.
+
+## Quiz v3 — "How it ended" (2026-11-04)
+
+Source: `heartfixed-quiz-v3-amendment-brief.md` (build instruction) and
+`heartfixed-how-it-ended-copy-draft.md` (founder-approved copy), both in the repo root.
+No scoring changes.
+
+**Shipped**
+
+- **Five unscored questions, b1–b5 (brief, 2),** after the selectors and before the
+  context questions:
+  - the copy draft's stems and options, in its order;
+  - "How it ended: N of 5" progress, with the draft's intro line on the first;
+  - answers stored with the context answers in the attempt and the saved result.
+- **The segment, "How it ended, read plainly" (4),** in Act 1 after the dynamic and
+  before the decodes. It renders in the fixed order: arrival, initiator, delivery,
+  reason, trigger, fit line, closing caution.
+  - Every block is the draft's text word for word, checked against the draft itself.
+  - A result saved before v3 has no answers, so it shows no segment.
+- **Fit lines (5):** at most one, chosen by `endingFitFor` in priority order, first match
+  wins.
+- **Act 3 bridge additions** (copy draft): the blindsided and "I ended it" paragraphs,
+  after the existing bridge.
+- **Email (6):** a "How it ended, read plainly" part after the dynamic, with the arrival
+  read and the fit line only. The request carries b1, b2 and b5 (the three those need)
+  as option ids, validated against the questions' own options and never stored.
+  Share links and analytics are unchanged.
+- **Counts (7):** 38 becomes 43 on the homepage card, the FAQ, the profile callout, the
+  guide, the share image and the methodology page and its meta description.
+  - The quiz meta description is the brief's text, verbatim (135 characters).
+  - The methodology now lists five parts and adds the block, worded with the draft's
+    intro line.
+  - The quiz page's promise and its "How long" FAQ name the new part.
+
+**Fixtures:** Personas A–D and H1/H2 land exactly. Persona A run twice with different b
+answers gives identical scores and profile, both in a unit test and in a browser run
+through the real runner.
+
+**Decisions and flags**
+
+- **Version: no bump.** The question set stays `men-v2`: Section 9.1 increments it only
+  when a scored item changes, and none does. A bump would show every saved result as
+  "may not be comparable" and mark every share link outdated, though scores are
+  identical. The flow change is handled like the v2 pronoun screens: a new
+  `quizConfig.flowVersion` (3) is stored with each attempt, and attempts saved under an
+  earlier flow aren't resumed. Saved results stay valid and render without the segment.
+- **One tap, not radios.** The brief says "single tap advances, same interaction pattern
+  as the selectors", but the selectors use radios and a Next button. The block uses the
+  pronoun screens' one-tap buttons, since "single tap advances" is the explicit behaviour.
+- **Bridge additions** go after the existing bridge text, blindsided first, then "I
+  ended it". The draft says "inserted into his existing bridge"; the brief doesn't place
+  them.
+- **The draft's "men"** ("Men who do the leaving", "many men never get", "the sentence
+  men repeat most", "men who get the conversation") renders through the taker's nouns,
+  as the v2 build did for "the next man".
+- **One agreement token:** "She was the one who said it" takes `was`, so a they/them
+  partner reads "They were the one who said it". Everything else is past tense or modal.
+- **New copy not in the brief, for founder review:**
+  - the methodology item: "5 questions about how it ended. These do not change your
+    scores; they change how the result explains what happened." (the draft's intro
+    line);
+  - "five parts: …, how it ended, …";
+  - "…and 5 about how it ended" on the quiz page and in its FAQ.
+- **The email part's heading** is the segment's own: "How it ended, read plainly".
+- **Privacy:** not changed. The Email section doesn't cover the ending answers. A drafted
+  sentence is in the PR for founder approval and is not final.

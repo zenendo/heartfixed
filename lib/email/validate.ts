@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PRONOUN_IDS } from "@/config/copy";
+import { endingQuestions } from "@/lib/quiz/questions";
 import { GOAL_OPTIONS, isoDateSchema } from "@/lib/tools/tracker";
 import { EMAIL_ERROR, EMAIL_MAX, PLACEMENTS } from "./rules";
 
@@ -25,6 +26,12 @@ export const emailSchema = z
   .pipe(z.email({ error: EMAIL_ERROR }));
 
 const honeypot = z.string().max(200).optional();
+
+/** The option ids of one "how it ended" question, for an enum. */
+const optionsOf = (id: "b1" | "b2" | "b5") => {
+  const [first, ...rest] = endingQuestions.find((q) => q.id === id)!.options.map((o) => o.value);
+  return [first!, ...rest] as [string, ...string[]];
+};
 
 const timeZoneSchema = z
   .string()
@@ -66,6 +73,18 @@ export const emailRequestSchema = z.discriminatedUnion("action", [
      * only to render this one email and never stored. Absent means the default path.
      */
     pronouns: z.object({ taker: z.enum(PRONOUN_IDS), partner: z.enum(PRONOUN_IDS) }).optional(),
+    /**
+     * The "how it ended" answers the email needs (v3 amendment brief, 6): who ended it
+     * (b1), how it arrived (b2) and what came just before (b5), as option ids. Used only
+     * to choose the email's arrival read and fit line, never stored.
+     */
+    ending: z
+      .object({
+        b1: z.enum(optionsOf("b1")),
+        b2: z.enum(optionsOf("b2")),
+        b5: z.enum(optionsOf("b5")),
+      })
+      .optional(),
     /** The separate, unchecked-by-default list checkbox (Section 13.1 b). */
     alsoJoinList: z.boolean(),
     website: honeypot,

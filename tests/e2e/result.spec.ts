@@ -322,6 +322,8 @@ test.describe("emailing the result (Section 13.1 a; founder decision, Session 5)
       perceived: `v=${v}&a=${anxietyNorm}&v2=${avoidanceNorm}`,
       // The two pronoun answers, as enum values only (amendment brief, 2.5).
       pronouns: { taker: "he", partner: "she" },
+      // Only the three "how it ended" answers the email needs, as option ids (v3, 6).
+      ending: { b1: "partner", b2: "distance", b5: "distant" },
       alsoJoinList: false,
       website: "",
     });

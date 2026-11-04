@@ -2,7 +2,7 @@ import { legal } from "@/config/legal";
 import { copy } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { routes, site } from "@/config/site";
-import { herQuestions, questions, sinceBreakupSelectors } from "@/lib/quiz";
+import { endingQuestions, herQuestions, questions, sinceBreakupSelectors } from "@/lib/quiz";
 
 /**
  * About, Contact and Methodology copy — Sections 12.5, 14.1, 14.2 and 14.4. Faceless:
@@ -17,7 +17,11 @@ const reversed = bankRules.reversedPerDimension;
 
 /** Every question the visitor answers, in the runner's four parts. */
 export const QUIZ_QUESTION_COUNT =
-  questions.length + herQuestions.length + sinceBreakupSelectors.length + contextQuestions.length;
+  questions.length +
+  herQuestions.length +
+  sinceBreakupSelectors.length +
+  endingQuestions.length +
+  contextQuestions.length;
 
 export const aboutPage = {
   h1: `About ${site.name}`,
@@ -107,12 +111,14 @@ export const methodologyPage = {
   questions: {
     heading: "The questions",
     items: [
-      `${QUIZ_QUESTION_COUNT} questions in all, one per screen, in four parts: about you, about ${partner.object}, since the breakup, and where you are now.`,
+      `${QUIZ_QUESTION_COUNT} questions in all, one per screen, in five parts: about you, about ${partner.object}, since the breakup, how it ended, and where you are now.`,
       `${bankRules.scoredItems} questions about you, which give your scores: ${bankRules.itemsPerDimension} for attachment anxiety and ${bankRules.itemsPerDimension} for attachment avoidance.`,
       "Each one describes something you did, in a specific situation, in your last relationship or now — an unanswered message, an argument, a partner asking for closeness or for space. Not how you'd describe yourself.",
       `${reversed.anxiety + reversed.avoidance} of the questions about you are worded the other way round (${reversed.anxiety} for attachment anxiety, ${reversed.avoidance} for attachment avoidance), so agreeing means lower, not higher. That catches answering on autopilot.`,
       `${herBankRules.scoredItems} questions about how ${partner.subject} showed up in the same relationship, ${herBankRules.itemsPerDimension} for each of the same two dimensions. They're scored the same way and give the pattern you experienced from ${partner.object}. They don't change your scores.`,
       `${sinceBreakupSelectors.length} questions about what ${partner.subject}'s done since the breakup. They aren't scored: each one you answer "${likert.partnerLabels[selectorThreshold]}" or more adds a section to your result about what that can mean.`,
+      // The v3 block, in the copy draft's own words (its intro line, second sentence).
+      `${endingQuestions.length} questions about how it ended. These do not change your scores; they change how the result explains what happened.`,
       `${contextQuestions.length} optional context questions at the end — how long ago the breakup was, and whether you're in no contact. ${quizConfig.contextNote}`,
       "The questions are original to this site. They aren't copied from any published questionnaire or from any other quiz.",
     ],

@@ -1,7 +1,7 @@
 import { copy, type PartnerTerms, type PronounId } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { routes } from "@/config/site";
-import { herQuestions, questions, sinceBreakupSelectors } from "@/lib/quiz";
+import { endingQuestions, herQuestions, questions, sinceBreakupSelectors } from "@/lib/quiz";
 import type { FaqItem } from "@/lib/seo/schema";
 
 /**
@@ -22,6 +22,7 @@ const { partner } = copy;
 const his = questions.length;
 const hers = herQuestions.length;
 const since = sinceBreakupSelectors.length;
+const ending = endingQuestions.length;
 const context = quizConfig.contextQuestions.length;
 
 /** One answer screen each, at roughly 6–7 seconds a screen. */
@@ -31,7 +32,7 @@ export const quizPage = {
   h1: "Attachment Style Quiz for Men",
   promise: [
     `See how you tend to act when a relationship feels close, distant or uncertain — and what that pattern means for getting through this breakup.`,
-    `${his} questions about you, then ${hers} about ${partner.object} and ${since} about what's happened since; about ${QUIZ_MINUTES} minutes, with the full result free and no email needed.`,
+    `${his} questions about you, then ${hers} about ${partner.object}, ${since} about what's happened since and ${ending} about how it ended; about ${QUIZ_MINUTES} minutes, with the full result free and no email needed.`,
   ],
   profiles: {
     heading: "The four patterns it measures",
@@ -80,7 +81,7 @@ export const quizFaqs: FaqItem[] = [
   },
   {
     question: "How long does it take?",
-    answer: `About ${QUIZ_MINUTES} minutes: ${his} questions about you, ${hers} about ${partner.object}, ${since} about what's happened since the breakup, and ${context} optional questions about where you are now. One per screen, and you can go back at any time.`,
+    answer: `About ${QUIZ_MINUTES} minutes: ${his} questions about you, ${hers} about ${partner.object}, ${since} about what's happened since the breakup, ${ending} about how it ended, and ${context} optional questions about where you are now. One per screen, and you can go back at any time.`,
   },
 ];
 
@@ -96,6 +97,9 @@ export const runnerCopy = {
       string
     >,
   },
+  /** Shown on the first "how it ended" question (v3 amendment brief, 2; copy draft). */
+  endingIntro:
+    "A few questions about the ending itself. These do not change your scores; they change how the result explains what happened.",
   /** The framing line before the first question about the partner (amendment brief, 2.3). */
   herIntro: (p: PartnerTerms) =>
     `Now think about ${p.object} in the same relationship: how ${p.subject} showed up, as you experienced it.`,
@@ -109,6 +113,7 @@ export const runnerCopy = {
     his: (n: number, total: number) => `Question ${n} of ${total}`,
     her: (n: number, total: number) => `About your ex: ${n} of ${total}`,
     selector: (n: number, total: number) => `Since the breakup: ${n} of ${total}`,
+    ending: (n: number, total: number) => `How it ended: ${n} of ${total}`,
     context: (n: number, total: number) => `About where you are now: ${n} of ${total}`,
   },
   /** The resume prompt, built from the same labels ("question 9 of 18"). */

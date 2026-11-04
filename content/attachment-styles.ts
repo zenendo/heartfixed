@@ -145,7 +145,7 @@ export const profilePageCopy = {
   dimensionsIntro: "This pattern is where these combinations of the two scores land:",
   quizCta: {
     heading: "Check your own scores",
-    body: `This page describes the pattern in general. The quiz is ${QUIZ_FRAMING}: 38 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship, about 5 minutes, and the full result is free.`,
+    body: `This page describes the pattern in general. The quiz is ${QUIZ_FRAMING}: 43 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship, about 5 minutes, and the full result is free.`,
     cta: "Take the quiz",
   },
   sections: {

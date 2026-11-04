@@ -11,7 +11,7 @@ export const home = {
   toolsHeading: "Start with the one you need right now",
   tools: {
     quiz: {
-      summary: `38 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship. About 5 minutes. Your full result is free — no email needed.`,
+      summary: `43 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship. About 5 minutes. Your full result is free — no email needed.`,
       cta: "Take the quiz",
     },
     tracker: {
