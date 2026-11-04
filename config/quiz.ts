@@ -3,7 +3,7 @@
  * Band edges live here so a threshold change is a config change plus a test update.
  */
 export const quizConfig = {
-  questionSetVersion: "men-v1",
+  questionSetVersion: "men-v2",
   audience: "men",
   /** One 5-point scale for every scored question (Section 9.2). */
   likert: {
@@ -18,11 +18,14 @@ export const quizConfig = {
     lowMax: 33,
     moderateMax: 66,
   },
-  /** Launch bank shape and framing rules (Section 9.2), checked by checkQuestionBank. */
+  /**
+   * Launch bank shape and framing rules (Section 9.2), checked by checkQuestionBank. The
+   * v2 cuts (amendment brief, 1.1) leave avoidance one reversed item: q20.
+   */
   bankRules: {
-    scoredItems: 24,
-    itemsPerDimension: 12,
-    reversedPerDimension: 2,
+    scoredItems: 18,
+    itemsPerDimension: 9,
+    reversedPerDimension: { anxiety: 2, avoidance: 1 },
     maxStemWords: 28,
     bannedStemTerms: ["hyperactivation", "deactivation", "protest behaviour", "protest behavior"],
   },
@@ -33,7 +36,7 @@ export const quizConfig = {
   herBankRules: {
     scoredItems: 12,
     itemsPerDimension: 6,
-    reversedPerDimension: 0,
+    reversedPerDimension: { anxiety: 0, avoidance: 0 },
     maxStemWords: 28,
     bannedStemTerms: ["hyperactivation", "deactivation", "protest behaviour", "protest behavior"],
   },

@@ -100,6 +100,6 @@ export const attachmentStylesAfterABreakup: ArticleGuide = {
   ],
   toolBlock: {
     heading: "Find your pattern",
-    body: `Take the quiz: a self-reflection assessment informed by attachment research. 44 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship, about 5 minutes, and the full result is free.`,
+    body: `Take the quiz: a self-reflection assessment informed by attachment research. 38 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship, about 5 minutes, and the full result is free.`,
   },
 };

@@ -13,6 +13,7 @@ import { herQuestions, questions, sinceBreakupSelectors } from "@/lib/quiz";
 
 const { bands, bankRules, herBankRules, likert, contextQuestions, selectorThreshold } = quizConfig;
 const { partner } = copy;
+const reversed = bankRules.reversedPerDimension;
 
 /** Every question the visitor answers, in the runner's four parts. */
 export const QUIZ_QUESTION_COUNT =
@@ -109,7 +110,7 @@ export const methodologyPage = {
       `${QUIZ_QUESTION_COUNT} questions in all, one per screen, in four parts: about you, about ${partner.object}, since the breakup, and where you are now.`,
       `${bankRules.scoredItems} questions about you, which give your scores: ${bankRules.itemsPerDimension} for attachment anxiety and ${bankRules.itemsPerDimension} for attachment avoidance.`,
       "Each one describes something you did, in a specific situation, in your last relationship or now — an unanswered message, an argument, a partner asking for closeness or for space. Not how you'd describe yourself.",
-      `${bankRules.reversedPerDimension * 2} of the questions about you are worded the other way round (${bankRules.reversedPerDimension} per dimension), so agreeing means lower, not higher. That catches answering on autopilot.`,
+      `${reversed.anxiety + reversed.avoidance} of the questions about you are worded the other way round (${reversed.anxiety} for attachment anxiety, ${reversed.avoidance} for attachment avoidance), so agreeing means lower, not higher. That catches answering on autopilot.`,
       `${herBankRules.scoredItems} questions about how ${partner.subject} showed up in the same relationship, ${herBankRules.itemsPerDimension} for each of the same two dimensions. They're scored the same way and give the pattern you experienced from ${partner.object}. They don't change your scores.`,
       `${sinceBreakupSelectors.length} questions about what ${partner.subject}'s done since the breakup. They aren't scored: each one you answer "${likert.partnerLabels[selectorThreshold]}" or more adds a section to your result about what that can mean.`,
       `${contextQuestions.length} optional context questions at the end — how long ago the breakup was, and whether you're in no contact. ${quizConfig.contextNote}`,

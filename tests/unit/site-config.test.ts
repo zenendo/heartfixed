@@ -81,8 +81,8 @@ describe("config/affiliates.ts — Section 13.4", () => {
 });
 
 describe("config/quiz.ts and config/copy.ts", () => {
-  it("uses the men-v1 question set and Section 9.3 band edges", () => {
-    expect(quizConfig.questionSetVersion).toBe("men-v1");
+  it("uses the men-v2 question set (v2 amendment, Section 9.1) and Section 9.3 band edges", () => {
+    expect(quizConfig.questionSetVersion).toBe("men-v2");
     expect(quizConfig.bands).toEqual({ lowMax: 33, moderateMax: 66 });
   });
 

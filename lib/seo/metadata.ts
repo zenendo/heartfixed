@@ -100,7 +100,7 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
   [routes.methodology]: {
     title: "How the Attachment Quiz Works: Methodology",
     description:
-      "What the attachment quiz measures, how its 44 questions are written and scored, the score bands, and what a self-reflection assessment can't tell you.",
+      "What the attachment quiz measures, how its 38 questions are written and scored, the score bands, and what a self-reflection assessment can't tell you.",
   },
   [routes.privacy]: {
     title: "Privacy Policy",
@@ -125,7 +125,8 @@ export const routeMetadata: Partial<Record<string, RouteMeta>> = {
   // The quiz routes are built in Sessions 4–5; their metadata is ready here.
   [routes.quiz]: {
     title: "Attachment Style Quiz for Men: Free Results",
-    description: `A free attachment style quiz for men: 44 questions about what you actually did — and what ${copy.partner.subject} did — in your last relationship. Full result free, no signup.`,
+    description:
+      "A free attachment style quiz for men: 38 questions about what you did, and what your ex did, in your last relationship. Full result free, no signup.",
   },
   [routes.quizResults]: {
     title: "Your Attachment Quiz Result",

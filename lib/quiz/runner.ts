@@ -5,8 +5,8 @@ import type { QuizAnswer, QuizProgress, SavedQuiz } from "./types";
 
 /**
  * The runner's screen order (Section 10.2; quiz build brief, Part A), as data the
- * QuizRunner component walks: his 24 with the attention check unnumbered at position
- * 13 → her 12 → the 6 since-the-breakup selectors → the 2 context questions last.
+ * QuizRunner component walks: his 18 with the attention check unnumbered at position
+ * 7 → her 12 → the 6 since-the-breakup selectors → the 2 context questions last.
  */
 export type RunnerStep =
   | { kind: "his"; id: string; number: number; total: number }

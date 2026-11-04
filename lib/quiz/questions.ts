@@ -24,7 +24,11 @@ const item = (
   weight = 1,
 ): QuizQuestion => ({ ...base, id, dimension, reversed, weight, stem });
 
-/** His 24 (men-v1 final). q19, q20, q23, q24 reversed; q23 and q24 weight 0.5. */
+/**
+ * His 18 (men-v2): the v1 24 less q04, q10, q11, q17, q21 and q24 (quiz v2 amendment
+ * brief, Part 1). q19, q20 and q23 reversed; q20 and q23 weight 0.5, so each dimension
+ * has max raw 34.
+ */
 export const questions: QuizQuestion[] = [
   item(
     "q01",
@@ -42,11 +46,6 @@ export const questions: QuizQuestion[] = [
     "After an argument, I sent several messages in a row to try to fix things that same day.",
   ),
   item(
-    "q04",
-    "avoidance",
-    "When {subject} wanted to stay the night, I found a reason for {object} to go home.",
-  ),
-  item(
     "q05",
     "anxiety",
     "When {subject} said {subject} needed space, I texted {object} anyway to check if we were okay.",
@@ -59,24 +58,18 @@ export const questions: QuizQuestion[] = [
   item(
     "q07",
     "anxiety",
-    "In the days immediately after our breakup, I checked {possessive} social media accounts multiple times a day.",
+    "In the days immediately after our breakup, I kept checking {possessive} social media accounts.",
   ),
   item(
     "q08",
     "avoidance",
-    "When a relationship started to feel serious, I found myself noticing {possessive} flaws more and pulling back.",
+    "When our relationship started to feel serious, I found reasons in {possessive} flaws to pull back.",
   ),
   item(
     "q09",
     "anxiety",
     "When {subject} went quiet and pulled away, I chased {object} with texts to see if everything was okay.",
   ),
-  item(
-    "q10",
-    "avoidance",
-    "When {subject} reached out for my attention, I spent more time focusing on my own life.",
-  ),
-  item("q11", "anxiety", "When {subject} pulled away, I changed my plans to chase {object}."),
   item(
     "q12",
     "avoidance",
@@ -85,7 +78,7 @@ export const questions: QuizQuestion[] = [
   item(
     "q13",
     "anxiety",
-    "When {subject} wouldn't say what had hurt {object}, I tried to figure it out on my own and apologized for what I guessed {subject} was upset about.",
+    "When {subject} wouldn't say what had hurt {object}, I apologized for things I only guessed {subject} was upset about.",
   ),
   item(
     "q14",
@@ -97,20 +90,11 @@ export const questions: QuizQuestion[] = [
     "anxiety",
     "When I felt insecure about our relationship, I asked {object} for reassurance.",
   ),
-  item(
-    "q16",
-    "avoidance",
-    "When {subject} wanted to meet my friends or family, I put it off again and again.",
-  ),
-  item(
-    "q17",
-    "anxiety",
-    "If {subject} hadn't replied by the time I was supposed to sleep, I stayed awake checking my phone for a reply.",
-  ),
+  item("q16", "avoidance", "When {subject} wanted to meet my friends or family, I put it off."),
   item(
     "q18",
     "avoidance",
-    "When things were going well, I felt bored and trapped, and tried to get away from {object}.",
+    "When things were going well, I looked for ways to get away from {object}.",
   ),
   item(
     "q19",
@@ -123,29 +107,13 @@ export const questions: QuizQuestion[] = [
     "avoidance",
     "When {subject} made bids to connect with me, I stayed present and talked with {object} even when it felt uncomfortable.",
     true,
+    0.5,
   ),
-  // "a male friend" is audience-specific wording from the brief; see BUILD-LOG Session 4.
-  item(
-    "q21",
-    "anxiety",
-    "When {subject} spent time with a male friend, I felt suspicious and worried.",
-  ),
-  item(
-    "q22",
-    "avoidance",
-    "After a breakup, I told myself I felt nothing and moved on without looking back.",
-  ),
+  item("q22", "avoidance", "After our breakup, I told myself I felt nothing about it."),
   item(
     "q23",
     "anxiety",
     "After an argument, I waited until we were both calm before I brought it up again.",
-    true,
-    0.5,
-  ),
-  item(
-    "q24",
-    "avoidance",
-    "When I was upset, I told {object} plainly what was bothering me instead of keeping it to myself and working through it alone.",
     true,
     0.5,
   ),
@@ -175,13 +143,9 @@ export const herQuestions: QuizQuestion[] = [
   item(
     "h4",
     "avoidance",
-    "After an argument, {subject} went quiet for a period of time rather than trying to talk through it and resolve it right away.",
+    "After an argument, {subject} went quiet instead of talking through what happened.",
   ),
-  item(
-    "h5",
-    "anxiety",
-    "{Subject} often asked whether I still loved {object} or whether we were okay.",
-  ),
+  item("h5", "anxiety", "{Subject} asked whether I still loved {object} or whether we were okay."),
   item(
     "h6",
     "avoidance",
@@ -215,7 +179,7 @@ export const herQuestions: QuizQuestion[] = [
   item(
     "h12",
     "avoidance",
-    "{Subject} kept parts of {possessive} life separate from me — friends, plans, or feelings {subject} didn't share.",
+    "When I asked about {possessive} friends, plans, or feelings, {subject} kept them to {reflexive}.",
   ),
 ];
 
@@ -223,7 +187,7 @@ export const herQuestions: QuizQuestion[] = [
 export const sinceBreakupSelectors: SelectorItem[] = [
   {
     id: "a1",
-    stem: "Since the breakup, {subject} has gone completely silent — no messages, no check-ins, nothing.",
+    stem: "Since the breakup, there have been long stretches with no messages or check-ins from {object}.",
   },
   {
     id: "a2",
@@ -231,7 +195,7 @@ export const sinceBreakupSelectors: SelectorItem[] = [
   },
   {
     id: "a3",
-    stem: "From what I can see, {subject} acts like {subject} has already moved on — out with friends, posting, unbothered.",
+    stem: "Since the breakup, I have seen {object} out with friends or posting as if {subject} has already moved on.",
   },
   {
     id: "a4",
@@ -239,24 +203,25 @@ export const sinceBreakupSelectors: SelectorItem[] = [
   },
   {
     id: "a5",
-    stem: "Since the breakup, {subject} has kept a thread of contact going — liking posts, watching every story, small signals.",
+    stem: "Since the breakup, {subject} has kept contact going in small ways, such as liking my posts or watching my stories.",
   },
   {
     id: "a6",
-    stem: "Since the breakup, {subject} has said or hinted that {subject} misses me or regrets how things ended.",
+    stem: "Since the breakup, {subject} has expressed missing me or regret about how things ended.",
   },
 ];
 
 /**
- * Unscored instructional item shown at runner position 13, between q12 and q13, and
- * not counted in "Question N of 24" (Section 9.2; brief, Part A). Failing it never
- * blocks results; it only sets QuizResult.attentionFlag. Never mentioned to the visitor.
+ * Unscored instructional item shown at runner position 7, between q07 and q08 (after
+ * the first third of his 18), and not counted in "Question N of 18" (Section 9.2; v2
+ * amendment brief, 1.1). Failing it never blocks results; it only sets
+ * QuizResult.attentionFlag. Never mentioned to the visitor.
  */
 export const attentionCheck = {
   id: "attn-01",
   stem: "To show you're reading, choose 'Rarely' for this one.",
   expectedValue: 1, // "Rarely" on the Likert scale
-  position: 13,
+  position: 7,
 } as const;
 
 const TOKEN = /\{(\w+)\}/g;
@@ -284,7 +249,7 @@ export function renderStem(
 export interface BankRules {
   scoredItems: number;
   itemsPerDimension: number;
-  reversedPerDimension: number;
+  reversedPerDimension: Readonly<Record<QuizQuestion["dimension"], number>>;
   maxStemWords: number;
   bannedStemTerms: readonly string[];
 }
@@ -333,10 +298,9 @@ export function checkQuestionBank(
       problems.push(`expected ${rules.itemsPerDimension} ${dimension} items, got ${items.length}`);
     }
     const reversed = items.filter((q) => q.reversed).length;
-    if (reversed !== rules.reversedPerDimension) {
-      problems.push(
-        `expected ${rules.reversedPerDimension} reversed ${dimension} items, got ${reversed}`,
-      );
+    const expected = rules.reversedPerDimension[dimension];
+    if (reversed !== expected) {
+      problems.push(`expected ${expected} reversed ${dimension} items, got ${reversed}`);
     }
   }
 
