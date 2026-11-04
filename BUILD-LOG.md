@@ -1867,5 +1867,8 @@ through the real runner.
   - "five parts: …, how it ended, …";
   - "…and 5 about how it ended" on the quiz page and in its FAQ.
 - **The email part's heading** is the segment's own: "How it ended, read plainly".
-- **Privacy:** not changed. The Email section doesn't cover the ending answers. A drafted
-  sentence is in the PR for founder approval and is not final.
+- **Privacy (founder-approved, 2026-11-04):** the Email section now says the request
+  carries "three of your answers about how the relationship ended (who ended it, how the
+  ending arrived, and what happened just before)", in the founder's approved wording,
+  after the pronoun sentence. "Last updated" stays 2026-11-04, today's date in UTC, as
+  set by the last change.

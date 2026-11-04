@@ -87,6 +87,18 @@ describe("Privacy Policy — Section 14.4", () => {
     expect(text).toMatch(/including affiliate programmes/i);
   });
 
+  it("names everything the result-email request carries (founder-approved, 2026-11-04)", () => {
+    // Session B: the two pronoun answers.
+    expect(text).toContain(
+      "It also sends the two pronoun answers you chose at the start of the quiz, so the email uses the same words as your result page; like the scores, they're used only to write that one email and aren't stored.",
+    );
+    // Quiz v3: the three "how it ended" answers the email needs (b1, b2, b5).
+    expect(text).toContain(
+      "It also sends three of your answers about how the relationship ended (who ended it, how the ending arrived, and what happened just before), so the email can include the part of your result about the ending; like the scores, they're used only to write that one email and aren't stored.",
+    );
+    expect(legal.lastUpdated[routes.privacy]).toBe("2026-11-04");
+  });
+
   it("says what an affiliate click shares — and what it doesn't", () => {
     expect(text).toMatch(/affiliate parameters/);
     expect(text).toMatch(/nothing about your results/i);
