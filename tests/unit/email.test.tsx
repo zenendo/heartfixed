@@ -38,7 +38,8 @@ import { buildResultEmail, resultFromToken } from "@/lib/email/resultEmail";
 import { EMAIL_PATTERN, checkEmail } from "@/lib/email/rules";
 import { emailRequestSchema, emailSchema } from "@/lib/email/validate";
 import { z } from "zod";
-import { caveat, dynamics, herReads, plain, resultCopy } from "@/content/quiz-result";
+import { plain, resultContentFor, resultCopy } from "@/content/quiz-result";
+import { pronounContext } from "@/lib/quiz";
 import { encodeShareToken, leanWatchOuts, profileCopy } from "@/lib/quiz";
 
 /** Session 9 — email flows: Sections 13.1–13.4, 14.4, 14.5 and 16.1. */
@@ -266,8 +267,8 @@ describe("the result email — Section 13.2", () => {
 
   it("contains both scores with bands, the description, watch-outs and the 14-day plan", () => {
     for (const body of [email.text, email.html]) {
-      expect(body).toContain("Attachment anxiety: 72/100 — high");
-      expect(body).toContain("Attachment avoidance: 18/100 — low");
+      expect(body).toContain("Attachment anxiety: 72/100, high");
+      expect(body).toContain("Attachment avoidance: 18/100, low");
     }
     expect(email.text).toContain(profileCopy.anxious.description);
     for (const w of profileCopy.anxious.watchOuts) expect(email.text).toContain(w);
@@ -292,7 +293,7 @@ describe("the result email — Section 13.2", () => {
   });
 
   it("offers the list only as a separate, clearly-labelled link", () => {
-    expect(email.text).toMatch(/You're not on it — joining is a separate choice/);
+    expect(email.text).toMatch(/You're not on it\. Joining is a separate choice/);
     expect(email.text).toContain(`${new URL(routes.home, baseUrl).toString()}#email-signup`);
   });
 
@@ -313,6 +314,7 @@ describe("the partner read in the result email — founder decision, Session 5",
   // Her perceived scores, as from H1: avoidant 83 / anxiety 13.
   const her = resultFromToken(tokenFor(13, 83));
   const email = buildResultEmail(you, her);
+  const { caveat, dynamics, herReads } = resultContentFor(pronounContext());
   const read = herReads.avoidant;
 
   it("carries her read with the caveat first, then the dynamic", () => {
@@ -368,6 +370,39 @@ describe("the partner read in the result email — founder decision, Session 5",
     );
     expect(refused.body).toEqual({ ok: false, error: "invalid_request" });
     expect(bad.calls).toEqual([]);
+  });
+
+  it("renders with the pronoun answers sent with it, and accepts only the three ids (2.5)", async () => {
+    const send = (pronouns: unknown) =>
+      handleEmailRequest(
+        {
+          action: "send_result",
+          email: EMAIL,
+          token: tokenFor(72, 18),
+          perceived: tokenFor(13, 83),
+          pronouns,
+          alsoJoinList: false,
+        },
+        "ip",
+        deps(memoryProvider()),
+      );
+    const provider = memoryProvider();
+    await handleEmailRequest(
+      {
+        action: "send_result",
+        email: EMAIL,
+        token: tokenFor(72, 18),
+        perceived: tokenFor(13, 83),
+        pronouns: { taker: "she", partner: "they" },
+        alsoJoinList: false,
+      },
+      "ip",
+      deps(provider),
+    );
+    expect(JSON.stringify(provider.calls)).toContain("Their pattern, as you experienced it");
+    for (const bad of [{ taker: "it", partner: "she" }, { taker: "he" }, "he/she"]) {
+      expect((await send(bad)).body).toEqual({ ok: false, error: "invalid_request" });
+    }
   });
 });
 

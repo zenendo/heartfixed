@@ -4,6 +4,6 @@
  */
 export const resultEmptyCopy = {
   heading: "Your attachment quiz result",
-  body: "There's no quiz result saved in this browser. Take the assessment to get your own — the full result is free.",
+  body: "There's no quiz result saved in this browser. Take the assessment to get your own. The full result is free.",
   cta: "Take the quiz",
 } as const;

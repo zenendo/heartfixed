@@ -1,6 +1,7 @@
 import { z } from "zod/mini";
-import type { PartnerTerms } from "@/config/copy";
+import { PRONOUN_IDS, type PartnerTerms } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
+import type { PronounChoice } from "./pronouns";
 
 /** Data model — Section 9.1. */
 
@@ -131,6 +132,11 @@ export interface SavedQuiz {
   perceived: PerceivedResult;
   answers: QuizAnswer[];
   context: ContextAnswers;
+  /**
+   * The two pronoun answers (amendment brief, 2.1), stored with the answers. Absent on
+   * results saved before the questions existed, which render on the default path.
+   */
+  pronouns?: PronounChoice;
 }
 
 /** An in-progress attempt under heartfixed-quiz-progress-v1 (Section 10.2). */
@@ -141,6 +147,8 @@ export interface QuizProgress {
   /** Likert answers by item id: his, the attention check, hers and the selectors. */
   answers: Record<string, number>;
   context: ContextAnswers;
+  /** The two pronoun screens' answers, set before question 1 (amendment brief, 2.1). */
+  pronouns?: Partial<PronounChoice>;
   /** ISO timestamps. An attempt not touched for 7 days is discarded. */
   startedAt: string;
   savedAt: string;
@@ -167,6 +175,11 @@ function mapOf<V>(valid: (v: unknown) => v is V) {
 }
 
 const contextSchema = mapOf((v): v is string => typeof v === "string" && KEY.test(v));
+
+export const pronounChoiceSchema = z.object({
+  taker: z.enum(PRONOUN_IDS),
+  partner: z.enum(PRONOUN_IDS),
+}) satisfies z.ZodMiniType<PronounChoice>;
 
 const perceivedShape = {
   anxietyRaw: raw(),
@@ -195,6 +208,7 @@ export const savedQuizSchema = z.object({
   perceived: perceivedResultSchema,
   answers: z.array(quizAnswerSchema).check(z.maxLength(100)),
   context: contextSchema,
+  pronouns: z.optional(pronounChoiceSchema),
 }) satisfies z.ZodMiniType<SavedQuiz>;
 
 export const quizProgressSchema = z.object({
@@ -207,6 +221,9 @@ export const quizProgressSchema = z.object({
       (v as number) <= quizConfig.likert.max,
   ),
   context: contextSchema,
+  pronouns: z.optional(
+    z.object({ taker: z.optional(z.enum(PRONOUN_IDS)), partner: z.optional(z.enum(PRONOUN_IDS)) }),
+  ),
   startedAt: z.iso.datetime(),
   savedAt: z.iso.datetime(),
 }) satisfies z.ZodMiniType<QuizProgress>;

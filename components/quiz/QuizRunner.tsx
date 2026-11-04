@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
 import { RadioCard } from "@/components/ui/RadioCard";
+import { PRONOUN_IDS, type PronounId } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { routes } from "@/config/site";
 import { runnerCopy as t } from "@/content/quiz";
@@ -13,11 +14,13 @@ import {
   attentionCheck,
   completeAttempt,
   emptyProgress,
+  firstQuestionStep,
   herQuestions,
   isAttemptExpired,
   isOptional,
   isResumable,
   opensPartnerSection,
+  pronounsFor,
   questions,
   quizProgressSchema,
   renderStem,
@@ -36,24 +39,31 @@ const byId = new Map<string, { id: string; stem: string }>(
   [...questions, ...herQuestions, ...sinceBreakupSelectors].map((q) => [q.id, q]),
 );
 
-function stemFor(step: RunnerStep): string {
+function stemFor(step: RunnerStep, progress: QuizProgress): string {
+  if (step.kind === "pronouns") return t.pronouns[step.id];
   if (step.kind === "attention") return attentionCheck.stem;
   if (step.kind === "context") {
     return quizConfig.contextQuestions.find((c) => c.id === step.id)!.prompt;
   }
-  return renderStem(byId.get(step.id)!);
+  return renderStem(byId.get(step.id)!, pronounsFor(progress));
 }
 
-/** The progress line for a step. The attention check is unnumbered (Section 9.2). */
+/**
+ * The progress line for a step. The attention check and the two pronoun questions are
+ * unnumbered (Section 9.2; amendment brief, 2.1).
+ */
 function progressLabel(step: RunnerStep): string | null {
-  if (step.kind === "attention") return null;
+  if (step.kind === "attention" || step.kind === "pronouns") return null;
   return t.progress[step.kind](step.number, step.total);
 }
 
-/** For the resume prompt: the attention check reads as the question after it. */
+/** For the resume prompt: an unnumbered step reads as the next numbered one. */
 function resumeLabel(index: number): string {
-  const step = runnerSteps[index]!;
-  return progressLabel(step) ?? progressLabel(runnerSteps[index + 1]!)!;
+  for (const step of runnerSteps.slice(index)) {
+    const label = progressLabel(step);
+    if (label) return label;
+  }
+  return progressLabel(runnerSteps[runnerSteps.length - 1]!)!;
 }
 
 /** Section 16.1 quiz_view source: categories only, never the referrer itself. */
@@ -233,14 +243,20 @@ export function QuizRunner() {
   const step = runnerSteps[index]!;
   const isLast = index === runnerSteps.length - 1;
   const label = progressLabel(step);
-  const value = step.kind === "context" ? progress.context[step.id] : progress.answers[step.id];
+  const value =
+    step.kind === "pronouns"
+      ? progress.pronouns?.[step.id]
+      : step.kind === "context"
+        ? progress.context[step.id]
+        : progress.answers[step.id];
   const answered = value !== undefined;
-  const stem = stemFor(step);
+  const stem = stemFor(step, progress);
   const barWidth = { width: `${((index + 1) / runnerSteps.length) * 100}%` };
 
   function choose(next: number | string) {
     if (!progress) return;
     setError(null);
+    if (step.kind === "pronouns") return;
     if (step.kind === "context") {
       persist({ ...progress, context: { ...progress.context, [step.id]: String(next) } });
     } else {
@@ -279,6 +295,58 @@ export function QuizRunner() {
     router.push(routes.quizResults);
   }
 
+  /** A pronoun screen: one tap stores the answer and moves on (amendment brief, 2.1). */
+  function choosePronoun(id: PronounId) {
+    if (!progress || step.kind !== "pronouns") return;
+    setError(null);
+    persist({
+      ...progress,
+      pronouns: { ...progress.pronouns, [step.id]: id },
+      step: index + 1,
+    });
+    focusSoon("quiz-question");
+  }
+
+  if (step.kind === "pronouns") {
+    return (
+      <div className="min-h-[24rem] space-y-5" data-testid="quiz-runner">
+        {noticeLine}
+        {storageLine}
+        {step.id === "taker" && <p className="font-semibold">{t.pronouns.intro}</p>}
+        <div role="group" aria-labelledby="quiz-question" data-testid="pronoun-question">
+          <h2 id="quiz-question" tabIndex={-1} className="text-xl font-semibold">
+            {stem}
+          </h2>
+          <div className="mt-4 grid gap-2">
+            {PRONOUN_IDS.map((id) => (
+              <Button
+                key={id}
+                variant={value === id ? "primary" : "secondary"}
+                aria-pressed={value === id}
+                onClick={() => choosePronoun(id)}
+              >
+                {t.pronouns.options[id]}
+              </Button>
+            ))}
+          </div>
+        </div>
+        {index > 0 && (
+          <div>
+            <Button variant="secondary" onClick={() => goTo(index - 1)}>
+              {t.back}
+            </Button>
+          </div>
+        )}
+        <div className="flex flex-wrap gap-x-6 border-t border-panel pt-4">
+          <Button variant="quiet" onClick={begin}>
+            {t.startOver}
+          </Button>
+          {clearButton}
+        </div>
+      </div>
+    );
+  }
+
   const options =
     step.kind === "context"
       ? quizConfig.contextQuestions.find((c) => c.id === step.id)!.options
@@ -302,10 +370,10 @@ export function QuizRunner() {
         </div>
       </div>
 
-      {index === 0 && <p className="font-semibold">{t.instruction}</p>}
+      {index === firstQuestionStep && <p className="font-semibold">{t.instruction}</p>}
       {opensPartnerSection(step) && (
         <p className="font-semibold" data-testid="partner-intro">
-          {t.herIntro}
+          {t.herIntro(pronounsFor(progress))}
         </p>
       )}
       {step.kind === "context" && <p className="text-muted">{t.contextNote}</p>}

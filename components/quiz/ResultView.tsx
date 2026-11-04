@@ -12,20 +12,17 @@ import { Callout } from "@/components/ui/Callout";
 import { routes } from "@/config/site";
 import {
   bridgeTools,
-  bridges,
-  caveat,
-  decodeFallback,
-  decodes,
   dynamicLeanLines,
-  dynamics,
-  herReads,
   programmeLine,
+  resultContentFor,
   resultCopy as t,
 } from "@/content/quiz-result";
 import {
+  DEFAULT_PRONOUNS,
   dynamicFor,
   profileCopy,
   profiles,
+  pronounContext,
   selectedDecodes,
   sinceBreakupSelectors,
   type SavedQuiz,
@@ -37,10 +34,14 @@ import {
  * offer); since the breakup (the decodes the answers selected); Act 3 (bridge, tools,
  * email); share; go deeper (the only affiliate position, below the email form); Block
  * D. Everything here renders from this browser's saved result — the partner read and
- * decodes never leave it except in the email the visitor asks for.
+ * decodes never leave it except in the email the visitor asks for. The text renders
+ * with the visitor's two pronoun answers (amendment brief, 2.3).
  */
 export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: boolean }) {
   const { result, perceived } = saved;
+  const pronouns = saved.pronouns ?? DEFAULT_PRONOUNS;
+  const ctx = pronounContext(pronouns);
+  const { caveat, herReads, decodes, decodeFallback, dynamics, bridges } = resultContentFor(ctx);
   const read = herReads[perceived.profileId];
   const pick = dynamicFor(result, perceived);
   const dynamic = dynamics[pick.id];
@@ -60,7 +61,7 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
       <Section id="act-why" heading={t.acts.why}>
         <div data-testid="partner-read">
           <h3 className="mt-6 text-lg font-semibold">
-            {t.herHeadline(profiles[perceived.profileId].label)}
+            {t.herHeadline(ctx.p, profiles[perceived.profileId].label)}
           </h3>
           <Callout className="mt-4" data-testid="partner-caveat">
             <p>
@@ -82,7 +83,7 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
         <div data-testid="dynamic" data-dynamic={pick.id}>
           <h3 className="mt-8 text-lg font-semibold">{t.dynamicHeading}</h3>
           <p className="mt-1 font-semibold">{dynamic.title}</p>
-          {dynamicLeanLines(pick).map((line) => (
+          {dynamicLeanLines(pick, ctx).map((line) => (
             <p key={line} className="mt-3 font-semibold">
               {line}
             </p>
@@ -96,7 +97,7 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
       </Section>
 
       <Section id="act-yours" heading={t.acts.yours}>
-        <ProfileSections result={result} />
+        <ProfileSections result={result} partner={ctx.p} />
       </Section>
 
       <Section id="act-since" heading={t.acts.since}>
@@ -115,7 +116,7 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
         </div>
       </Section>
 
-      <Section id="act-after" heading={t.acts.after}>
+      <Section id="act-after" heading={t.acts.after(ctx.p)}>
         <p className="mt-3">
           <Rich text={bridges[result.profileId]} />
         </p>
@@ -131,13 +132,18 @@ export function ResultView({ saved, outdated }: { saved: SavedQuiz; outdated: bo
           ))}
         </div>
         <div className="mt-8 rounded-card border border-panel p-4 print:hidden">
-          <EmailResultForm result={result} perceived={partnerScores} note={programmeLine} />
+          <EmailResultForm
+            result={result}
+            perceived={partnerScores}
+            pronouns={pronouns}
+            note={programmeLine}
+          />
         </div>
       </Section>
 
       <Section id="act-share" heading={t.share.heading}>
         <div className="mt-3">
-          <ShareResult result={result} />
+          <ShareResult result={result} partner={ctx.p} />
         </div>
       </Section>
 

@@ -1,21 +1,25 @@
+import { pronounTerms, type PartnerTerms } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { attentionCheck, herQuestions, questions, sinceBreakupSelectors } from "./questions";
 import { scorePerceived, scoreQuiz } from "./scoring";
+import { DEFAULT_PRONOUNS, type PronounChoice } from "./pronouns";
 import type { QuizAnswer, QuizProgress, SavedQuiz } from "./types";
 
 /**
  * The runner's screen order (Section 10.2; quiz build brief, Part A), as data the
- * QuizRunner component walks: his 18 with the attention check unnumbered at position
+ * QuizRunner component walks: the two pronoun questions (amendment brief, 2.1;
+ * unnumbered and not counted) → his 18 with the attention check unnumbered at position
  * 7 → her 12 → the 6 since-the-breakup selectors → the 2 context questions last.
  */
 export type RunnerStep =
+  | { kind: "pronouns"; id: keyof PronounChoice }
   | { kind: "his"; id: string; number: number; total: number }
   | { kind: "attention"; id: string }
   | { kind: "her"; id: string; number: number; total: number }
   | { kind: "selector"; id: string; number: number; total: number }
   | { kind: "context"; id: string; number: number; total: number };
 
-export type LikertStep = Exclude<RunnerStep, { kind: "context" }>;
+export type LikertStep = Exclude<RunnerStep, { kind: "context" | "pronouns" }>;
 
 function buildSteps(): RunnerStep[] {
   const his: RunnerStep[] = questions.map((q, i) => ({
@@ -26,6 +30,8 @@ function buildSteps(): RunnerStep[] {
   }));
   his.splice(attentionCheck.position - 1, 0, { kind: "attention", id: attentionCheck.id });
   return [
+    { kind: "pronouns", id: "taker" },
+    { kind: "pronouns", id: "partner" },
     ...his,
     ...herQuestions.map((q, i) => ({
       kind: "her" as const,
@@ -50,6 +56,9 @@ function buildSteps(): RunnerStep[] {
 
 export const runnerSteps: readonly RunnerStep[] = buildSteps();
 
+/** Where question 1 sits, after the pronoun screens: the instruction line shows there. */
+export const firstQuestionStep = runnerSteps.findIndex((s) => s.kind === "his");
+
 /** Context questions are optional (Section 10.2); every other step needs an answer. */
 export const isOptional = (step: RunnerStep) => step.kind === "context";
 
@@ -69,10 +78,19 @@ export function isAttemptExpired(progress: QuizProgress, now: Date): boolean {
   return now.getTime() - Date.parse(progress.savedAt) > quizConfig.inProgressMaxAgeDays * DAY_MS;
 }
 
-/** An attempt from an older question set can't be resumed against this one. */
+/** The partner pronoun set an attempt's stems render with: the visitor's, or she/her. */
+export const pronounsFor = (progress: Pick<QuizProgress, "pronouns">): PartnerTerms =>
+  pronounTerms[progress.pronouns?.partner ?? DEFAULT_PRONOUNS.partner];
+
+/**
+ * An attempt from an older question set can't be resumed against this one, and neither
+ * can one saved before the pronoun questions (its step index predates them).
+ */
 export function isResumable(progress: QuizProgress, now: Date): boolean {
   return (
     progress.version === quizConfig.questionSetVersion &&
+    progress.pronouns?.taker !== undefined &&
+    progress.pronouns.partner !== undefined &&
     !isAttemptExpired(progress, now) &&
     progress.step < runnerSteps.length &&
     Object.keys(progress.answers).length > 0
@@ -110,5 +128,9 @@ export function completeAttempt(progress: QuizProgress, now: Date): SavedQuiz {
     perceived: scorePerceived(answers, herQuestions),
     answers,
     context: { ...progress.context },
+    pronouns: {
+      taker: progress.pronouns?.taker ?? DEFAULT_PRONOUNS.taker,
+      partner: progress.pronouns?.partner ?? DEFAULT_PRONOUNS.partner,
+    },
   };
 }

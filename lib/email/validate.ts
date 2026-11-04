@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PRONOUN_IDS } from "@/config/copy";
 import { GOAL_OPTIONS, isoDateSchema } from "@/lib/tools/tracker";
 import { EMAIL_ERROR, EMAIL_MAX, PLACEMENTS } from "./rules";
 
@@ -60,6 +61,11 @@ export const emailRequestSchema = z.discriminatedUnion("action", [
      * Founder decision (2026-11-02): the result email carries her read and the dynamic.
      */
     perceived: z.string().min(1).max(200).optional(),
+    /**
+     * The visitor's two pronoun answers (amendment brief, 2.5): two enum values, used
+     * only to render this one email and never stored. Absent means the default path.
+     */
+    pronouns: z.object({ taker: z.enum(PRONOUN_IDS), partner: z.enum(PRONOUN_IDS) }).optional(),
     /** The separate, unchecked-by-default list checkbox (Section 13.1 b). */
     alsoJoinList: z.boolean(),
     website: honeypot,

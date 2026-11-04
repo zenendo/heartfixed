@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { pronounTerms } from "../../config/copy";
 import { quizConfig } from "../../config/quiz";
 import { routes } from "../../config/site";
 import { blockA } from "../../content/compliance";
@@ -12,6 +13,7 @@ import {
   renderStem,
   runnerSteps,
   sinceBreakupSelectors,
+  type PronounChoice,
   type QuizAnswer,
   type RunnerStep,
 } from "../../lib/quiz";
@@ -32,12 +34,15 @@ const byId = new Map(
   [...questions, ...herQuestions, ...sinceBreakupSelectors].map((q) => [q.id, q]),
 );
 
-function stemFor(step: RunnerStep): string {
+function stemFor(step: RunnerStep, partner = pronounTerms.she): string {
+  if (step.kind === "pronouns") return runnerCopy.pronouns[step.id];
   if (step.kind === "attention") return attentionCheck.stem;
   if (step.kind === "context")
     return quizConfig.contextQuestions.find((c) => c.id === step.id)!.prompt;
-  return renderStem(byId.get(step.id)!);
+  return renderStem(byId.get(step.id)!, partner);
 }
+
+const DEFAULT_CHOICE: PronounChoice = { taker: "he", partner: "she" };
 
 const SELECTORS: QuizAnswer[] = ["a1", "a2", "a3", "a4", "a5", "a6"].map((id, i) => ({
   questionId: id,
@@ -50,6 +55,8 @@ interface Journey {
   attention?: number;
   /** Context option values; a missing one is skipped (they're optional). */
   context?: Record<string, string>;
+  /** The two pronoun answers; he/him and she/her when not given. */
+  pronouns?: PronounChoice;
 }
 
 async function stored(page: Page, key: string) {
@@ -60,8 +67,20 @@ async function stored(page: Page, key: string) {
 }
 
 /** Answers one runner screen: checks the question, picks the answer, moves on. */
-async function answerStep(page: Page, step: RunnerStep, value: number | string | undefined) {
-  await expect(page.locator("#quiz-question")).toHaveText(stemFor(step));
+async function answerStep(
+  page: Page,
+  step: RunnerStep,
+  value: number | string | undefined,
+  choice: PronounChoice = DEFAULT_CHOICE,
+) {
+  await expect(page.locator("#quiz-question")).toHaveText(
+    stemFor(step, pronounTerms[choice.partner]),
+  );
+  if (step.kind === "pronouns") {
+    // One tap answers and advances (amendment brief, 2.1).
+    const label = runnerCopy.pronouns.options[choice[step.id]];
+    return page.getByRole("button", { name: label, exact: true }).click();
+  }
   if (step.kind === "context") {
     const option = quizConfig.contextQuestions
       .find((c) => c.id === step.id)!
@@ -75,6 +94,11 @@ async function answerStep(page: Page, step: RunnerStep, value: number | string |
   await page.getByRole("button", { name: last ? runnerCopy.finish : runnerCopy.next }).click();
 }
 
+/** Taps through the two pronoun screens (amendment brief, 2.1). */
+async function passPronouns(page: Page, choice: PronounChoice = DEFAULT_CHOICE) {
+  for (const step of runnerSteps.slice(0, 2)) await answerStep(page, step, undefined, choice);
+}
+
 async function runQuiz(page: Page, journey: Journey) {
   const values = new Map<string, number | string>([
     ...[...journey.his, ...journey.her, ...SELECTORS].map(
@@ -85,7 +109,9 @@ async function runQuiz(page: Page, journey: Journey) {
   ]);
   await page.goto(routes.quiz);
   await page.getByRole("button", { name: runnerCopy.start }).click();
-  for (const step of runnerSteps) await answerStep(page, step, values.get(step.id));
+  for (const step of runnerSteps) {
+    await answerStep(page, step, values.get(step.id), journey.pronouns);
+  }
   await expect(page).toHaveURL(new RegExp(`${routes.quizResults}$`));
 }
 
@@ -153,7 +179,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     await expect(page.locator("h1")).toHaveText("Your pattern: Anxious (preoccupied)");
     const scores = page.getByTestId("result-scores");
     await expect(scores).toHaveText(
-      "Attachment anxiety 71/100 — highAttachment avoidance 13/100 — low",
+      "Attachment anxiety 71/100, highAttachment avoidance 13/100, low",
     );
     await expect(scores.locator("xpath=following-sibling::*[1]")).toHaveText(blockA.text);
     await expect(page.getByTestId("crisis-block")).toBeVisible();
@@ -178,6 +204,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
       "ctx-no-contact": "trying",
     });
     expect(saved!.answers).toHaveLength(18 + 1 + 12 + 6);
+    expect(saved!.pronouns).toEqual({ taker: "he", partner: "she" });
     expect(await stored(page, "heartfixed-quiz-progress-v1")).toBeNull();
 
     // Analytics: his profile and bands only — no answers, nothing about her.
@@ -192,8 +219,19 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
       name: "quiz_completed",
       params: { profile: "anxious", anxiety_band: "high", avoidance_band: "low" },
     });
-    // No request of any kind carries an answer key or the her result.
-    expect(all.filter((r) => /"(q\d\d|h\d+|a\d|attn-01|answers|perceived)"/.test(r))).toEqual([]);
+    // No request of any kind carries an answer key, the her result, or the pronoun
+    // answers (amendment brief, 2.4: analytics unchanged).
+    expect(
+      all.filter((r) =>
+        /"(q\d\d|h\d+|a\d|attn-01|answers|perceived|pronouns|taker|partner)"/.test(r),
+      ),
+    ).toEqual([]);
+    for (const event of events) {
+      expect(Object.keys(event.params)).not.toContain("pronouns");
+      for (const value of Object.values(event.params)) {
+        expect(["he", "she", "they"]).not.toContain(value);
+      }
+    }
   });
 
   test("Persona A with H2: her pattern anxious 88/13; context skipped", async ({ page }) => {
@@ -216,23 +254,38 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
       his: fixture4.avoidant.answers,
       her: herFixtures.h2.answers,
       attention: 3,
+      pronouns: { taker: "she", partner: "they" },
     });
     await expect(page.locator("h1")).toHaveText("Your pattern: Avoidant (dismissive)");
+    // A they/them partner, chosen on the pronoun screens: the whole result follows it.
+    await expect(page.getByTestId("partner-read").locator("h3")).toHaveText(
+      "Their pattern, as you experienced it: Anxious (preoccupied)",
+    );
+    await expect(page.locator("#act-after")).toHaveText("Getting over them, with your pattern");
     await expect(page.getByTestId("result-scores")).toHaveText(
-      "Attachment anxiety 29/100 — lowAttachment avoidance 87/100 — high",
+      "Attachment anxiety 29/100, lowAttachment avoidance 87/100, high",
     );
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject({ ...fixture4.avoidant.expected, attentionFlag: true });
+    expect(saved!.pronouns).toEqual({ taker: "she", partner: "they" });
+    await expect(page.getByRole("main")).not.toContainText(/\b(she|her|hers|herself)\b/i);
     // The flag is never shown: no mention of the check itself (the result copy may
     // still say "reading" in its own sense, as in "rereading old messages").
     await expect(page.getByRole("main").getByText(/attention|reading check/i)).toHaveCount(0);
   });
 
   test("Fixture 4 — Persona C, fearful-avoidant", async ({ page }) => {
-    await runQuiz(page, { his: fixture4.fearfulAvoidant.answers, her: herFixtures.h1.answers });
+    await runQuiz(page, {
+      his: fixture4.fearfulAvoidant.answers,
+      her: herFixtures.h1.answers,
+      pronouns: { taker: "they", partner: "he" },
+    });
     await expect(page.locator("h1")).toHaveText("Your pattern: Fearful-avoidant (disorganized)");
+    await expect(page.getByTestId("partner-read").locator("h3")).toHaveText(
+      "His pattern, as you experienced it: Avoidant (dismissive)",
+    );
     await expect(page.getByTestId("result-scores")).toHaveText(
-      "Attachment anxiety 79/100 — highAttachment avoidance 76/100 — high",
+      "Attachment anxiety 79/100, highAttachment avoidance 76/100, high",
     );
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject(fixture4.fearfulAvoidant.expected);
@@ -242,7 +295,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     await runQuiz(page, { his: fixture4.secure.answers, her: herFixtures.h2.answers });
     await expect(page.locator("h1")).toHaveText("Your pattern: Secure");
     await expect(page.getByTestId("result-scores")).toHaveText(
-      "Attachment anxiety 21/100 — lowAttachment avoidance 24/100 — low",
+      "Attachment anxiety 21/100, lowAttachment avoidance 24/100, low",
     );
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject(fixture4.secure.expected);
@@ -270,6 +323,8 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.goto(routes.quiz);
     await page.getByRole("button", { name: runnerCopy.start }).click();
     const progress = page.getByTestId("quiz-progress");
+    await expect(page.locator("#quiz-question")).toBeFocused();
+    await passPronouns(page);
     await expect(progress).toHaveText("Question 1 of 18");
     await expect(page.getByText(quizConfig.instruction)).toBeVisible();
     await expect(page.locator("#quiz-question")).toBeFocused();
@@ -277,6 +332,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     const seen: Record<number, string> = {};
     const framed: number[] = [];
     for (const [i, step] of runnerSteps.entries()) {
+      if (step.kind === "pronouns") continue;
       seen[i] = (await progress.textContent()) ?? "";
       if (await page.getByTestId("partner-intro").isVisible()) framed.push(i);
       if (step.kind !== "context") {
@@ -290,21 +346,24 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
       if (i === runnerSteps.length - 1) break;
       await answerStep(page, step, step.kind === "context" ? undefined : 2);
     }
-    expect(seen[5]).toBe("Question 6 of 18");
-    expect(seen[6]).toBe(""); // the attention check
-    expect(seen[7]).toBe("Question 7 of 18");
-    expect(seen[18]).toBe("Question 18 of 18");
-    expect(seen[19]).toBe("About your ex: 1 of 12");
-    expect(seen[30]).toBe("About your ex: 12 of 12");
-    expect(seen[31]).toBe("Since the breakup — 1 of 6");
-    expect(seen[37]).toBe("About where you are now — 1 of 2");
-    expect(framed).toEqual([19]); // the framing line, before her first question only
+    // Screens 0 and 1 are the pronoun questions.
+    expect(seen[7]).toBe("Question 6 of 18");
+    expect(seen[8]).toBe(""); // the attention check
+    expect(seen[9]).toBe("Question 7 of 18");
+    expect(seen[20]).toBe("Question 18 of 18");
+    expect(seen[21]).toBe("About your ex: 1 of 12");
+    expect(seen[32]).toBe("About your ex: 12 of 12");
+    expect(seen[33]).toBe("Since the breakup: 1 of 6");
+    expect(seen[39]).toBe("About where you are now: 1 of 2");
+    expect(framed).toEqual([21]); // the framing line, before her first question only
+    await expect(page.getByTestId("partner-intro")).toHaveCount(0);
     await expect(page.getByText(quizConfig.contextNote)).toBeVisible();
   });
 
   test("won't advance without an answer (Fixture 6), and Back keeps answers", async ({ page }) => {
     await page.goto(routes.quiz);
     await page.getByRole("button", { name: runnerCopy.start }).click();
+    await passPronouns(page);
     await page.getByRole("button", { name: runnerCopy.next }).click();
     await expect(page.getByText(runnerCopy.chooseError)).toBeVisible();
     await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 18");
@@ -323,6 +382,13 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.goto(routes.quiz);
     await page.getByRole("button", { name: runnerCopy.start }).focus();
     await page.keyboard.press("Enter");
+    // The pronoun screens: Tab to an answer, Enter taps it.
+    for (const heading of [runnerCopy.pronouns.taker, runnerCopy.pronouns.partner]) {
+      await expect(page.locator("#quiz-question")).toBeFocused();
+      await expect(page.locator("#quiz-question")).toHaveText(heading);
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Enter");
+    }
     await expect(page.locator("#quiz-question")).toBeFocused();
     for (let i = 1; i <= 3; i++) {
       await expect(page.locator("#quiz-question")).toBeFocused();
@@ -333,6 +399,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     }
     const progress = await stored(page, "heartfixed-quiz-progress-v1");
     expect(progress!.answers).toEqual({ q01: 1, q02: 1, q03: 1 });
+    expect(progress!.pronouns).toEqual({ taker: "he", partner: "he" });
   });
 
   test("restores after a browser restart, from where he left off", async ({ browser }) => {
@@ -340,15 +407,15 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     const page = await first.newPage();
     await page.goto(routes.quiz);
     await page.getByRole("button", { name: runnerCopy.start }).click();
-    for (const step of runnerSteps.slice(0, 9)) await answerStep(page, step, 3);
+    for (const step of runnerSteps.slice(0, 11)) await answerStep(page, step, 3);
     const state = await first.storageState();
     await first.close();
 
     const second = await browser.newContext({ storageState: state });
     const again = await second.newPage();
     await again.goto(routes.quiz);
-    // Nine screens in: six of his, the attention check, then two more of his.
-    await expect(again.getByText("Continue where you left off — question 9 of 18")).toBeVisible();
+    // Eleven screens in: the two pronoun screens, six of his, the attention check, two more.
+    await expect(again.getByText("Continue where you left off: question 9 of 18")).toBeVisible();
     await again.getByRole("button", { name: runnerCopy.resumeCta }).click();
     await expect(again.getByTestId("quiz-progress")).toHaveText("Question 9 of 18");
     await again.getByRole("button", { name: runnerCopy.back }).click();
@@ -410,7 +477,7 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.goto(routes.quiz);
     await expect(page.getByText(runnerCopy.corrupt)).toBeVisible();
     await page.getByRole("button", { name: runnerCopy.start }).click();
-    await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 18");
+    await expect(page.locator("#quiz-question")).toHaveText(runnerCopy.pronouns.taker);
   });
 
   test("axe: zero critical issues on the page, mid-runner and on the result", async ({ page }) => {
@@ -421,6 +488,8 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     await page.goto(routes.quiz);
     expect(await critical()).toEqual([]);
     await page.getByRole("button", { name: runnerCopy.start }).click();
+    expect(await critical()).toEqual([]); // the first pronoun screen
+    await passPronouns(page);
     await page.getByRole("button", { name: runnerCopy.next }).click(); // error state
     expect(await critical()).toEqual([]);
     await page.goto(routes.quizResults);
@@ -434,8 +503,67 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );
     expect(overflow).toBe(false);
-    for (const control of await page.getByTestId("quiz-runner").locator("label, button").all()) {
-      expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    // The pronoun screen, then the first question.
+    for (let screen = 0; screen < 2; screen++) {
+      const controls = await page.getByTestId("quiz-runner").locator("label, button").all();
+      expect(controls.length).toBeGreaterThan(3);
+      for (const control of controls) {
+        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      }
+      if (screen === 0) await passPronouns(page);
     }
+  });
+});
+
+test.describe("the two pronoun questions (amendment brief, 2.1)", () => {
+  test("ask before question 1, unnumbered, one tap each, with the intro on the first", async ({
+    page,
+  }) => {
+    await page.goto(routes.quiz);
+    await page.getByRole("button", { name: runnerCopy.start }).click();
+    const question = page.locator("#quiz-question");
+    await expect(question).toHaveText(runnerCopy.pronouns.taker);
+    await expect(page.getByText(runnerCopy.pronouns.intro)).toBeVisible();
+    await expect(page.getByTestId("quiz-progress")).toHaveCount(0);
+    const options = page.getByTestId("pronoun-question").getByRole("button");
+    await expect(options).toHaveText(["He/Him", "She/Her", "They/Them"]);
+    await expect(page.getByRole("button", { name: runnerCopy.back })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "She/Her", exact: true }).click();
+    await expect(question).toHaveText(runnerCopy.pronouns.partner);
+    await expect(page.getByText(runnerCopy.pronouns.intro)).toHaveCount(0);
+    await expect(page.getByTestId("quiz-progress")).toHaveCount(0);
+
+    // Back keeps the first answer, shown as pressed.
+    await page.getByRole("button", { name: runnerCopy.back }).click();
+    await expect(page.getByRole("button", { name: "She/Her", exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await page.getByRole("button", { name: "She/Her", exact: true }).click();
+    await page.getByRole("button", { name: "They/Them", exact: true }).click();
+    await expect(page.getByTestId("quiz-progress")).toHaveText("Question 1 of 18");
+    await expect(page.getByText(quizConfig.instruction)).toBeVisible();
+    const progress = await stored(page, "heartfixed-quiz-progress-v1");
+    expect(progress!.pronouns).toEqual({ taker: "she", partner: "they" });
+  });
+
+  test("the stems and the framing line follow the partner's pronouns", async ({ page }) => {
+    const choice: PronounChoice = { taker: "they", partner: "they" };
+    await page.goto(routes.quiz);
+    await page.getByRole("button", { name: runnerCopy.start }).click();
+    await passPronouns(page, choice);
+    // q01, with the they/them partner.
+    await expect(page.locator("#quiz-question")).toHaveText(
+      "When they took a while to reply, I checked my phone regularly instead of focusing on my own life.",
+    );
+    // Through his section to the first question about the partner.
+    for (const step of runnerSteps.slice(2, 21)) await answerStep(page, step, 2, choice);
+    await expect(page.getByTestId("partner-intro")).toHaveText(
+      "Now think about them in the same relationship: how they showed up, as you experienced it.",
+    );
+    await expect(page.locator("#quiz-question")).toHaveText(
+      "When I didn't reply for a few hours, they sent several messages or called until I answered.",
+    );
   });
 });

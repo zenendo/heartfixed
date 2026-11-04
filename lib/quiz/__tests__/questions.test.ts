@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { pronounTerms } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import {
   attentionCheck,
@@ -67,16 +68,7 @@ describe("launch question data (Section 9.1; quiz build brief, Part A)", () => {
   it("supports other dictionaries, overrides and a capitalised sentence start (Section 2.3)", () => {
     const h5 = herQuestions.find((q) => q.id === "h5")!;
     expect(renderStem(h5)).toMatch(/^She asked whether I still loved her/);
-    expect(
-      renderStem(h5, {
-        subject: "they",
-        object: "them",
-        possessive: "their",
-        reflexive: "themselves",
-        noun: "person",
-        nounPlural: "people",
-      }),
-    ).toMatch(/^They asked whether I still loved them/);
+    expect(renderStem(h5, pronounTerms.they)).toMatch(/^They asked whether I still loved them/);
     expect(renderStem({ ...h5, partnerTerms: { subject: "he", object: "him" } })).toMatch(
       /^He asked whether I still loved him/,
     );
@@ -117,8 +109,9 @@ describe("Likert scale and context questions (Section 9.2)", () => {
       "ctx-time-since-breakup",
       "ctx-no-contact",
     ]);
+    // The brief's note, its em dash now a period (amendment brief, 2.6).
     expect(quizConfig.contextNote).toBe(
-      "These don't change your scores — they help us show you the right next step.",
+      "These don't change your scores. They help us show you the right next step.",
     );
   });
 });

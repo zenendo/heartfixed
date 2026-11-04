@@ -1698,3 +1698,91 @@ fixtures 2, 3, 5 and 6 run on their own 24-item test banks, which are untouched.
   now says 38, as 1.5 asks for every surface that states the count.
 - **Unchanged:** the other count sentences keep their live wording ("what she did"),
   since 1.5 only changes the number there. The em-dash sweep is Session B.
+
+**Founder review of Session A's flags (2026-11-04):** both accepted as built. The
+attention check stays at position 7, and the methodology's reversed-items sentence
+stays as written.
+
+## Session B — Quiz v2: dynamic pronouns (2026-11-04)
+
+Source: `heartfixed-quiz-v2-amendment-brief.md`, Part 2. Built on Session A (merged).
+
+**Shipped**
+
+- **Two pronoun questions (2.1)** before question 1: "Your pronouns", then "Your ex's
+  pronouns", each with He/Him, She/Her and They/Them, under the brief's intro line. They
+  are buttons, so one tap answers and moves on, and arrow keys can't skip a screen by
+  accident. Unnumbered and not counted in the 38. The answers are saved with the
+  in-progress attempt and the result, in this browser only.
+- **Token sets (2.2)** in `config/copy.ts`: subject, object, possessive adjective and
+  pronoun, reflexive, the was/has/is/does agreement forms, a "she's / they've" contraction,
+  the 2.3 nouns, and a `plural` flag. `copy.partner` (she/her) stays the site default.
+- **Templating (2.3):**
+  - his 18 stems, her 12 and the selectors, with agreement tokens where a verb follows
+    the partner;
+  - the framing line, in the amendment's wording;
+  - the reads, the decodes, the dynamics, the bridges, the caveat and the lean lines,
+    all from `resultContentFor({ t, p })`;
+  - the profiles, from `profileCopyFor(p)`;
+  - the headline, as "His / Her / Their pattern, as you experienced it".
+  - The default context (he/him taker, she/her partner) gives exactly the approved copy.
+- **Not retemplated (2.4):** the homepage, hub pages, guides and the /attachment-styles/
+  pages stay on the she/her default. Scores, bands, fixtures and analytics are unchanged.
+- **Email and sharing (2.5):** the result email request carries the two choices as enum
+  values. The server accepts only the three ids, renders with them, and stores nothing.
+  Share links are unchanged; the shared view renders the profile's partner lines with
+  they/them.
+- **No em dashes (2.6)** in the stems, the context note, the runner's labels, the
+  profiles, all result content, the result UI lines, the empty-results page, and the
+  result email's copy and action lists. A test fails on any em dash there.
+
+**Tests (2.7):**
+
+- **Nine combinations.** One full result (Persona A with H1, every decode selected)
+  rendered under all nine pairings. Each render is checked for:
+  - only the chosen sets' pronouns and nouns;
+  - plural verbs for they and singular for he or she;
+  - capitalised headlines;
+  - the Part 1 scores.
+    By eye: they/they read in full; he/she and she/he spot-checked
+    (the headline, the decodes, the noun lines); the other six by test only.
+- **Parity sweeps** over every templated line, for every pairing.
+- **The result email** in (he, she), (he, he) and (she, they), HTML and text.
+- **Browser runs:**
+  - all four Part 1 personas go through the new screens, including (she, they) and
+    (they, he) partners;
+  - the screens themselves are tested, and so are the stems and framing line with a
+    they/them partner;
+  - the shared view is checked for no gendered partner forms;
+  - pronoun answers are checked never to reach analytics.
+
+**Founder decisions (2026-11-04)**
+
+- Agreement for verbs outside the 2.2 table uses a singular/plural helper:
+  "She reaches out… then goes quiet", "acts", "contacts", "keeps",
+  "says / misses / regrets", "copes", "cares". Accepted.
+- "The next man who gets close enough" takes the taker's set (man / woman / person), so
+  the default stays "man". Accepted.
+- The fallback line keeps "the read above" (the brief's "below" was stale). Accepted.
+- The tracker offer and share text are spec lines changed only for the em dash
+  (colon, comma). Accepted.
+- Four sentences ship in their mechanical sweep form, for founder wording review:
+  - a5: "zero risk, zero commitment, and, this is the part that keeps men hooked, zero
+    information."
+  - a3: "she may be performing fine, for you, for friends, for herself, or, if her
+    pattern leans avoidant, she may genuinely feel fine right now"
+  - the a2 stem: "Since the breakup, she has reached out at odd moments, a random meme,
+    a "hey", then gone quiet again."
+  - an anxious action list line: "Each time you notice the alarm, checking, replaying,
+    drafting, name it out loud."
+- Em dashes stay in the verbatim compliance blocks and the quiz landing page copy for
+  now. The em-dash test names both exclusions.
+
+**Open for the founder**
+
+- **Privacy policy.** The result-email request now includes the two pronoun answers.
+  A drafted sentence is in the PR for approval; until then the policy doesn't mention
+  them.
+- **Other em dashes on the result page,** outside 2.6's list: the email form's list-box
+  label (`content/emails/forms.ts`) and the tracker offer's "Day 0 — …" line
+  (`content/tracker.ts`).

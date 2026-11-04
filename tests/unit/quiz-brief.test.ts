@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { PRONOUN_IDS, pronounTerms } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { QUIZ_MINUTES, runnerCopy } from "@/content/quiz";
 import { QUIZ_QUESTION_COUNT } from "@/content/trust";
@@ -11,6 +12,7 @@ import {
   renderStem,
   sinceBreakupSelectors,
 } from "@/lib/quiz";
+import { dashless } from "./support/dashless";
 
 /**
  * Session 4 — the founder-approved quiz build brief is the content source (Part A).
@@ -94,7 +96,7 @@ describe("his 18 match the briefs exactly (Nov 2 table, v2 amendment applied)", 
     expect(q.dimension).toBe(dim);
     expect(q.reversed).toBe(rev === "yes");
     expect(q.weight).toBe(V2_WEIGHTS[id] ?? Number(wt));
-    expect(renderStem(q)).toBe(stemFor(id, stem));
+    expect(renderStem(q)).toMatch(dashless(stemFor(id, stem)));
   });
 });
 
@@ -108,7 +110,7 @@ describe("her 12 match the briefs exactly (v2 rewordings applied)", () => {
   it.each(rows)("%s: dimension and wording", (id, dim, stem) => {
     const q = herQuestions.find((x) => x.id === id)!;
     expect(`her-${q.dimension}`).toBe(dim);
-    expect(renderStem(q)).toBe(stemFor(id, stem));
+    expect(renderStem(q)).toMatch(dashless(stemFor(id, stem)));
   });
 });
 
@@ -120,7 +122,9 @@ describe("since-the-breakup selectors match the briefs exactly (v2 rewordings ap
   });
 
   it.each(rows)("%s: wording", (id, stem) => {
-    expect(renderStem(sinceBreakupSelectors.find((s) => s.id === id)!)).toBe(stemFor(id, stem));
+    expect(renderStem(sinceBreakupSelectors.find((s) => s.id === id)!)).toMatch(
+      dashless(stemFor(id, stem)),
+    );
   });
 });
 
@@ -201,9 +205,25 @@ describe("founder review changes", () => {
     expect(runnerCopy.progress.his(3, 18)).toBe("Question 3 of 18");
   });
 
-  it("frames the switch to her questions", () => {
-    expect(runnerCopy.herIntro).toBe(
-      "Now think about her in the same relationship — how she showed up, as you experienced it.",
+  it("frames the switch to the partner's questions with the amendment's line (2.3)", () => {
+    const template = /\*\*Partner module framing line:\*\* "(.+?)"/.exec(amendment)![1]!;
+    expect(template).toBe(
+      "Now think about {p-object} in the same relationship: how {p-subject} showed up, as you experienced it.",
     );
+    for (const id of PRONOUN_IDS) {
+      const p = pronounTerms[id];
+      expect(runnerCopy.herIntro(p)).toBe(
+        template.replace("{p-object}", p.object).replace("{p-subject}", p.subject),
+      );
+    }
+  });
+
+  it("asks the two pronoun questions in the amendment's words (2.1)", () => {
+    const section = amendment.slice(amendment.indexOf("## 2.1"), amendment.indexOf("## 2.2"));
+    expect(section).toContain(`"${runnerCopy.pronouns.intro}"`);
+    expect(section).toContain(`**"${runnerCopy.pronouns.taker}"**`);
+    expect(section).toContain(`**"${runnerCopy.pronouns.partner}"**`);
+    const options = Object.values(runnerCopy.pronouns.options);
+    expect(section).toContain(`options **${options[0]}**, **${options[1]}**, **${options[2]}**`);
   });
 });

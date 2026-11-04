@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import type { PartnerTerms } from "@/config/copy";
 import { baseUrl } from "@/config/site";
 import { resultCopy } from "@/content/quiz-result-ui";
 import { track } from "@/lib/analytics";
@@ -18,8 +19,11 @@ type Status = "idle" | "copied" | "failed";
  */
 export function ShareResult({
   result,
+  partner,
 }: {
   result: Pick<QuizResult, "version" | "anxietyNorm" | "avoidanceNorm" | "profileId">;
+  /** Only to word the "nothing about them" line; nothing about the partner is shared. */
+  partner: PartnerTerms;
 }) {
   const id = useId();
   const [status, setStatus] = useState<Status>("idle");
@@ -38,7 +42,7 @@ export function ShareResult({
 
   return (
     <div className="space-y-3">
-      <p>{t.body}</p>
+      <p>{t.body(partner)}</p>
       <div className="flex flex-wrap gap-3 print:hidden">
         <Button onClick={copy}>{t.button}</Button>
         <Button variant="secondary" onClick={() => window.print()}>

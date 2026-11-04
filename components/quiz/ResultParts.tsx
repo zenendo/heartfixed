@@ -5,7 +5,8 @@ import { SelfReflectionDisclaimer } from "@/components/content/ComplianceBlocks"
 import { DimensionBars } from "@/components/quiz/DimensionBars";
 import { TrackerOffer } from "@/components/quiz/TrackerOffer";
 import { resultCopy as t } from "@/content/quiz-result-ui";
-import { leanFor, leanWatchOuts, profileCopy, profiles, type QuizResult } from "@/lib/quiz";
+import type { PartnerTerms } from "@/config/copy";
+import { leanFor, leanWatchOuts, profileCopyFor, profiles, type QuizResult } from "@/lib/quiz";
 
 /**
  * The pieces the full result view and the shared-link view both render: the headline
@@ -68,9 +69,21 @@ export function ResultHeader({ result }: { result: Shown }) {
   );
 }
 
-/** Act 2's profile content — shared by the full view and the shared-link view. */
-export function ProfileSections({ result, own = true }: { result: Shown; own?: boolean }) {
-  const copy = profileCopy[result.profileId];
+/**
+ * Act 2's profile content — shared by the full view and the shared-link view, each
+ * passing the partner pronoun set its lines render with (amendment brief, 2.3, 2.5).
+ */
+export function ProfileSections({
+  result,
+  partner,
+  own = true,
+}: {
+  result: Shown;
+  partner: PartnerTerms;
+  own?: boolean;
+}) {
+  const copySet = profileCopyFor(partner);
+  const copy = copySet[result.profileId];
   const lean = leanFor(result);
   return (
     <>
@@ -78,7 +91,7 @@ export function ProfileSections({ result, own = true }: { result: Shown; own?: b
         {lean !== "none" && copy.leans && (
           <div data-testid="lean">
             <p className="mt-3 font-semibold">{copy.leans[lean]}</p>
-            <List items={leanWatchOuts(lean)} />
+            <List items={leanWatchOuts(lean, copySet)} />
           </div>
         )}
         <p className="mt-3">{copy.description}</p>
