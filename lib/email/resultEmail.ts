@@ -1,11 +1,13 @@
 import { routes } from "@/config/site";
 import { actionLists } from "@/content/emails/actionLists";
 import { resultEmailCopy as t } from "@/content/emails/result";
+import { endingContentFor } from "@/content/quiz-ending";
 import { dynamicLeanLines, plain, resultContentFor, resultCopy } from "@/content/quiz-result";
 import {
   DEFAULT_PRONOUNS,
   decodeShareToken,
   dynamicFor,
+  endingFitFor,
   leanFor,
   leanWatchOuts,
   profileCopyFor,
@@ -13,6 +15,7 @@ import {
   pronounContext,
   shareLink,
   type PronounChoice,
+  type EndingAnswers,
   type PronounContext,
   type SharedResult,
 } from "@/lib/quiz";
@@ -29,6 +32,10 @@ import { absoluteUrl, crisisFooter, escapeHtml, html, layout, type RenderedEmail
  * Amendment brief, 2.5: it renders with the same pronoun context as the result view.
  * The two selections arrive with the request as enum values, are used to render, and
  * are never stored.
+ *
+ * Quiz v3 amendment brief, 6: after the dynamic, a short "how it ended" part with the
+ * arrival read and the fit line (if one fired), and nothing else from that segment. The
+ * answers it needs come with the request as option ids and aren't stored either.
  */
 
 export class ResultTokenError extends Error {
@@ -52,13 +59,39 @@ const READING: Record<SharedResult["profileId"], (keyof typeof t.reading)[]> = {
 };
 
 /** Her read (caveat first) and the dynamic, as on the result view's Act 1. */
-function partnerSection(result: SharedResult, perceived: SharedResult, ctx: PronounContext) {
+type EmailEnding = Pick<EndingAnswers, "b1" | "b2" | "b5">;
+
+/** The arrival read and the fit line, if the answers came with the request. */
+function endingPart(
+  result: SharedResult,
+  perceived: SharedResult,
+  ctx: PronounContext,
+  answers?: EmailEnding,
+) {
+  if (!answers?.b2) return null;
+  const content = endingContentFor(ctx);
+  const fit = endingFitFor({
+    herProfile: perceived.profileId,
+    dynamic: dynamicFor(result, perceived).id,
+    answers,
+  });
+  const arrival = content.arrival[answers.b2 as keyof typeof content.arrival];
+  return { heading: content.heading, lines: fit ? [arrival, content.fit[fit]] : [arrival] };
+}
+
+function partnerSection(
+  result: SharedResult,
+  perceived: SharedResult,
+  ctx: PronounContext,
+  ending?: EmailEnding,
+) {
   const { caveat, herReads, dynamics } = resultContentFor(ctx);
   const read = herReads[perceived.profileId];
   const pick = dynamicFor(result, perceived);
   const dynamic = dynamics[pick.id];
   const leanLines = dynamicLeanLines(pick, ctx);
   const headline = resultCopy.herHeadline(ctx.p, profiles[perceived.profileId].label);
+  const how = endingPart(result, perceived, ctx, ending);
   return {
     html: [
       html.h2(headline),
@@ -69,6 +102,7 @@ function partnerSection(result: SharedResult, perceived: SharedResult, ctx: Pron
       html.h2(`${resultCopy.dynamicHeading}: ${dynamic.title}`),
       ...leanLines.map((x) => html.p(x)),
       ...dynamic.paragraphs.map((x) => html.rich(x)),
+      ...(how ? [html.h2(how.heading), ...how.lines.map((x) => html.p(x))] : []),
     ],
     text: [
       headline,
@@ -79,6 +113,7 @@ function partnerSection(result: SharedResult, perceived: SharedResult, ctx: Pron
       `${resultCopy.dynamicHeading}: ${dynamic.title}`,
       ...leanLines,
       ...dynamic.paragraphs.map(plain),
+      ...(how ? [how.heading, ...how.lines] : []),
     ],
   };
 }
@@ -87,6 +122,7 @@ export function buildResultEmail(
   result: SharedResult,
   perceived?: SharedResult,
   pronouns: PronounChoice = DEFAULT_PRONOUNS,
+  ending?: EmailEnding,
 ): RenderedEmail {
   const ctx = pronounContext(pronouns);
   const meta = profiles[result.profileId];
@@ -95,7 +131,9 @@ export function buildResultEmail(
   const lean = leanFor(result);
   const leanText = lean !== "none" ? copy.leans?.[lean] : undefined;
   const leanList = lean !== "none" ? leanWatchOuts(lean, copySet) : [];
-  const partner = perceived ? partnerSection(result, perceived, ctx) : { html: [], text: [] };
+  const partner = perceived
+    ? partnerSection(result, perceived, ctx, ending)
+    : { html: [], text: [] };
   const share = absoluteUrl(shareLink(result));
   const tracker = absoluteUrl(routes.tracker);
   const resources = absoluteUrl(routes.resources);

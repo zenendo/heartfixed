@@ -8,11 +8,13 @@ import { runnerCopy } from "../../content/quiz";
 import { collectRequestSchema, type CollectRequest } from "../../lib/analyticsSchema";
 import {
   attentionCheck,
+  endingQuestions,
   herQuestions,
   questions,
   renderStem,
   runnerSteps,
   sinceBreakupSelectors,
+  type EndingAnswers,
   type PronounChoice,
   type QuizAnswer,
   type RunnerStep,
@@ -34,8 +36,13 @@ const byId = new Map(
   [...questions, ...herQuestions, ...sinceBreakupSelectors].map((q) => [q.id, q]),
 );
 
+const endingById = new Map<string, (typeof endingQuestions)[number]>(
+  endingQuestions.map((q) => [q.id, q]),
+);
+
 function stemFor(step: RunnerStep, partner = pronounTerms.she): string {
   if (step.kind === "pronouns") return runnerCopy.pronouns[step.id];
+  if (step.kind === "ending") return renderStem(endingById.get(step.id)!, partner);
   if (step.kind === "attention") return attentionCheck.stem;
   if (step.kind === "context")
     return quizConfig.contextQuestions.find((c) => c.id === step.id)!.prompt;
@@ -43,6 +50,15 @@ function stemFor(step: RunnerStep, partner = pronounTerms.she): string {
 }
 
 const DEFAULT_CHOICE: PronounChoice = { taker: "he", partner: "she" };
+
+/** The "how it ended" answers a journey gives unless it says otherwise. */
+const DEFAULT_ENDING: Required<EndingAnswers> = {
+  b1: "partner",
+  b2: "distance",
+  b3: "went-quiet",
+  b4: "none",
+  b5: "distant",
+};
 
 const SELECTORS: QuizAnswer[] = ["a1", "a2", "a3", "a4", "a5", "a6"].map((id, i) => ({
   questionId: id,
@@ -57,6 +73,8 @@ interface Journey {
   context?: Record<string, string>;
   /** The two pronoun answers; he/him and she/her when not given. */
   pronouns?: PronounChoice;
+  /** The five "how it ended" answers (v3); DEFAULT_ENDING when not given. */
+  ending?: EndingAnswers;
 }
 
 async function stored(page: Page, key: string) {
@@ -79,6 +97,13 @@ async function answerStep(
   if (step.kind === "pronouns") {
     // One tap answers and advances (amendment brief, 2.1).
     const label = runnerCopy.pronouns.options[choice[step.id]];
+    return page.getByRole("button", { name: label, exact: true }).click();
+  }
+  if (step.kind === "ending") {
+    // One tap answers and advances (v3 brief, 2); labels template like the stems.
+    const q = endingById.get(step.id)!;
+    const option = q.options.find((o) => o.value === value) ?? q.options[0];
+    const label = renderStem({ id: q.id, stem: option.label }, pronounTerms[choice.partner]);
     return page.getByRole("button", { name: label, exact: true }).click();
   }
   if (step.kind === "context") {
@@ -105,6 +130,7 @@ async function runQuiz(page: Page, journey: Journey) {
       (a) => [a.questionId, a.value] as [string, number],
     ),
     [attentionCheck.id, journey.attention ?? attentionCheck.expectedValue],
+    ...Object.entries({ ...DEFAULT_ENDING, ...journey.ending }),
     ...Object.entries(journey.context ?? {}),
   ]);
   await page.goto(routes.quiz);
@@ -200,9 +226,12 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     expect(saved!.result).toMatchObject({ ...fixture1.expected, attentionFlag: false });
     expect(saved!.perceived).toEqual(herFixtures.h1.expected);
     expect(saved!.context).toEqual({
+      ...DEFAULT_ENDING,
       "ctx-time-since-breakup": "2-weeks-to-2-months",
       "ctx-no-contact": "trying",
     });
+    // The "how it ended" segment, after the dynamic (v3 brief, 4).
+    await expect(page.getByTestId("ending").locator("h3")).toHaveText("How it ended, read plainly");
     expect(saved!.answers).toHaveLength(18 + 1 + 12 + 6);
     expect(saved!.pronouns).toEqual({ taker: "he", partner: "she" });
     expect(await stored(page, "heartfixed-quiz-progress-v1")).toBeNull();
@@ -223,10 +252,15 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     // answers (amendment brief, 2.4: analytics unchanged).
     expect(
       all.filter((r) =>
-        /"(q\d\d|h\d+|a\d|attn-01|answers|perceived|pronouns|taker|partner)"/.test(r),
+        /"(q\d\d|h\d+|a\d|b\d|attn-01|answers|perceived|pronouns|taker|partner|ending)"/.test(r),
       ),
     ).toEqual([]);
+    // Nor any "how it ended" answer, as a key or a value (v3 brief, 6).
+    const endingValues = endingQuestions.flatMap((q) => q.options.map((o) => o.value));
     for (const event of events) {
+      for (const value of Object.values(event.params)) {
+        expect(endingValues).not.toContain(value);
+      }
       expect(Object.keys(event.params)).not.toContain("pronouns");
       for (const value of Object.values(event.params)) {
         expect(["he", "she", "they"]).not.toContain(value);
@@ -240,7 +274,7 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     const saved = await stored(page, "heartfixed-quiz-v1");
     expect(saved!.result).toMatchObject(fixture1.expected);
     expect(saved!.perceived).toEqual(herFixtures.h2.expected);
-    expect(saved!.context).toEqual({});
+    expect(saved!.context).toEqual(DEFAULT_ENDING);
     await expect(page.getByTestId("partner-read").locator("h3")).toHaveText(
       "Her pattern, as you experienced it: Anxious (preoccupied)",
     );
@@ -301,6 +335,35 @@ test.describe("end-to-end fixtures (Section 16.2; brief, Part A)", () => {
     expect(saved!.result).toMatchObject(fixture4.secure.expected);
   });
 
+  test("v3: Persona A twice with different how-it-ended answers, identical scores", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000); // two full journeys
+    const runs: { result: unknown; perceived: unknown; segment: string }[] = [];
+    for (const ending of [
+      { b1: "partner", b2: "blindsided", b3: "went-quiet", b4: "none", b5: "distant" },
+      { b1: "me", b2: "cycles", b3: "in-person", b4: "kept-changing", b5: "fight" },
+    ] satisfies EndingAnswers[]) {
+      await page.evaluate(() => localStorage.clear()).catch(() => {});
+      await runQuiz(page, { his: fixture1.answers, her: herFixtures.h1.answers, ending });
+      await expect(page.locator("h1")).toHaveText("Your pattern: Anxious (preoccupied)");
+      await expect(page.getByTestId("result-scores")).toHaveText(
+        "Attachment anxiety 71/100, highAttachment avoidance 13/100, low",
+      );
+      const saved = await stored(page, "heartfixed-quiz-v1");
+      runs.push({
+        result: { ...(saved!.result as object), completedAt: "" },
+        perceived: saved!.perceived,
+        segment: (await page.getByTestId("ending").textContent()) ?? "",
+      });
+    }
+    expect(runs[0]!.result).toEqual(runs[1]!.result);
+    expect(runs[0]!.perceived).toEqual(runs[1]!.perceived);
+    expect(runs[0]!.result).toMatchObject(fixture1.expected);
+    // The segment is what the answers change.
+    expect(runs[0]!.segment).not.toEqual(runs[1]!.segment);
+  });
+
   test("Fixture 7 (shell half) — a tampered token shows the take-the-quiz shell, not an error", async ({
     page,
   }) => {
@@ -334,6 +397,13 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     for (const [i, step] of runnerSteps.entries()) {
       if (step.kind === "pronouns") continue;
       seen[i] = (await progress.textContent()) ?? "";
+      if (step.kind === "ending") {
+        if (step.number === 1)
+          await expect(page.getByTestId("ending-intro")).toHaveText(runnerCopy.endingIntro);
+        else await expect(page.getByTestId("ending-intro")).toHaveCount(0);
+        await answerStep(page, step, undefined);
+        continue;
+      }
       if (await page.getByTestId("partner-intro").isVisible()) framed.push(i);
       if (step.kind !== "context") {
         const shown = await page
@@ -354,7 +424,9 @@ test.describe("the runner (Sections 8.3, 10.2)", () => {
     expect(seen[21]).toBe("About your ex: 1 of 12");
     expect(seen[32]).toBe("About your ex: 12 of 12");
     expect(seen[33]).toBe("Since the breakup: 1 of 6");
-    expect(seen[39]).toBe("About where you are now: 1 of 2");
+    expect(seen[39]).toBe("How it ended: 1 of 5");
+    expect(seen[43]).toBe("How it ended: 5 of 5");
+    expect(seen[44]).toBe("About where you are now: 1 of 2");
     expect(framed).toEqual([21]); // the framing line, before her first question only
     await expect(page.getByTestId("partner-intro")).toHaveCount(0);
     await expect(page.getByText(quizConfig.contextNote)).toBeVisible();

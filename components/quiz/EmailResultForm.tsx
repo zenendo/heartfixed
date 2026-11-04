@@ -4,7 +4,12 @@ import { useId, useState, type FormEvent } from "react";
 import { Honeypot } from "@/components/content/EmailSignup";
 import { Button } from "@/components/ui/Button";
 import { formCopy } from "@/content/emails/forms";
-import { encodeShareToken, type PronounChoice, type QuizResult } from "@/lib/quiz";
+import {
+  encodeShareToken,
+  type EndingAnswers,
+  type PronounChoice,
+  type QuizResult,
+} from "@/lib/quiz";
 import { track } from "@/lib/analytics";
 import { postEmail } from "@/lib/email/client";
 import { checkEmail } from "@/lib/email/rules";
@@ -32,11 +37,14 @@ export function EmailResultForm({
   result,
   perceived,
   pronouns,
+  ending,
   note,
 }: {
   result: Scores;
   perceived?: Scores;
   pronouns?: PronounChoice;
+  /** The "how it ended" answers; only b1, b2 and b5 are sent (v3 amendment brief, 6). */
+  ending?: EndingAnswers;
   /** A line under the form's intro, such as the brief's programme line. */
   note?: string;
 }) {
@@ -58,6 +66,9 @@ export function EmailResultForm({
       token: encodeShareToken(result),
       ...(perceived ? { perceived: encodeShareToken(perceived) } : {}),
       ...(pronouns ? { pronouns: { taker: pronouns.taker, partner: pronouns.partner } } : {}),
+      ...(ending?.b1 && ending.b2 && ending.b5
+        ? { ending: { b1: ending.b1, b2: ending.b2, b5: ending.b5 } }
+        : {}),
       alsoJoinList,
       website,
     });

@@ -8,6 +8,7 @@ import { blockA, blockC, blockD } from "@/content/compliance";
 import { formCopy } from "@/content/emails/forms";
 import { trackerCopy } from "@/content/tracker";
 import { quizFaqs, quizPage, runnerCopy } from "@/content/quiz";
+import { endingContentFor } from "@/content/quiz-ending";
 import { dynamicLeanLines, plain, resultContentFor, resultCopy } from "@/content/quiz-result";
 import { resultEmptyCopy } from "@/content/quiz-result-empty";
 import { actionLists } from "@/content/emails/actionLists";
@@ -20,6 +21,7 @@ import {
   dynamicFor,
   emptyProgress,
   encodeShareToken,
+  endingQuestions,
   herQuestions,
   profileCopyFor,
   pronounContext,
@@ -142,6 +144,14 @@ function personaAWithH1(pronouns: PronounChoice): SavedQuiz {
   // "Often" on every selector, so all six decodes render.
   for (const s of sinceBreakupSelectors) progress.answers[s.id] = 3;
   progress.answers[attentionCheck.id] = attentionCheck.expectedValue;
+  // The v3 block: she ended it, blindsided, she went quiet, no reason, she went distant.
+  progress.context = {
+    b1: "partner",
+    b2: "blindsided",
+    b3: "went-quiet",
+    b4: "none",
+    b5: "distant",
+  };
   progress.pronouns = pronouns;
   return completeAttempt(progress, NOW);
 }
@@ -249,9 +259,15 @@ function corpus(choice: PronounChoice): string {
   const stems = [...questions, ...herQuestions, ...sinceBreakupSelectors].map((q) =>
     renderStem(q, ctx.p),
   );
+  const ending = endingQuestions.flatMap((q) => [
+    renderStem(q, ctx.p),
+    ...q.options.map((o) => renderStem({ id: q.id, stem: o.label }, ctx.p)),
+  ]);
   return [
     JSON.stringify(content),
     JSON.stringify(profileCopyFor(ctx.p)),
+    JSON.stringify(endingContentFor(ctx)),
+    ...ending,
     ...leanLines,
     ...stems,
     runnerCopy.herIntro(ctx.p),
@@ -392,6 +408,7 @@ const SWEPT_FILES = [
   "content/quiz-result.ts",
   "content/quiz-result-ui.ts",
   "content/quiz-result-empty.ts",
+  "content/quiz-ending.ts",
   "content/emails/result.ts",
   "content/emails/actionLists.ts",
   "lib/email/resultEmail.ts",

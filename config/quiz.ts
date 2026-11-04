@@ -47,6 +47,13 @@ export const quizConfig = {
   selectorThreshold: 2,
   /** Instruction line shown before question 1 (brief, Part A). */
   instruction: "Answer thinking about your most recent relationship.",
+  /**
+   * The runner's screen sequence, separate from the question-set version: it changes
+   * when screens are added without changing any scored item (the v2 pronoun screens,
+   * the v3 "how it ended" block). An attempt saved under another flow isn't resumed,
+   * because its step index points at a different screen. Saved results are unaffected.
+   */
+  flowVersion: 3,
   /** In-progress attempts older than this are discarded (Section 10.2). */
   inProgressMaxAgeDays: 7,
   /**

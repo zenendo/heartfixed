@@ -149,6 +149,8 @@ export interface QuizProgress {
   context: ContextAnswers;
   /** The two pronoun screens' answers, set before question 1 (amendment brief, 2.1). */
   pronouns?: Partial<PronounChoice>;
+  /** The runner flow the attempt was saved under (config/quiz.ts flowVersion). */
+  flow?: number;
   /** ISO timestamps. An attempt not touched for 7 days is discarded. */
   startedAt: string;
   savedAt: string;
@@ -224,6 +226,7 @@ export const quizProgressSchema = z.object({
   pronouns: z.optional(
     z.object({ taker: z.optional(z.enum(PRONOUN_IDS)), partner: z.optional(z.enum(PRONOUN_IDS)) }),
   ),
+  flow: z.optional(z.int().check(z.minimum(1), z.maximum(100))),
   startedAt: z.iso.datetime(),
   savedAt: z.iso.datetime(),
 }) satisfies z.ZodMiniType<QuizProgress>;

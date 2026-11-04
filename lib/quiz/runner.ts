@@ -1,6 +1,12 @@
 import { pronounTerms, type PartnerTerms } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
-import { attentionCheck, herQuestions, questions, sinceBreakupSelectors } from "./questions";
+import {
+  attentionCheck,
+  endingQuestions,
+  herQuestions,
+  questions,
+  sinceBreakupSelectors,
+} from "./questions";
 import { scorePerceived, scoreQuiz } from "./scoring";
 import { DEFAULT_PRONOUNS, type PronounChoice } from "./pronouns";
 import type { QuizAnswer, QuizProgress, SavedQuiz } from "./types";
@@ -9,7 +15,8 @@ import type { QuizAnswer, QuizProgress, SavedQuiz } from "./types";
  * The runner's screen order (Section 10.2; quiz build brief, Part A), as data the
  * QuizRunner component walks: the two pronoun questions (amendment brief, 2.1;
  * unnumbered and not counted) → his 18 with the attention check unnumbered at position
- * 7 → her 12 → the 6 since-the-breakup selectors → the 2 context questions last.
+ * 7 → her 12 → the 6 since-the-breakup selectors → the 5 "how it ended" questions (v3
+ * amendment brief, 2) → the 2 context questions last.
  */
 export type RunnerStep =
   | { kind: "pronouns"; id: keyof PronounChoice }
@@ -17,9 +24,10 @@ export type RunnerStep =
   | { kind: "attention"; id: string }
   | { kind: "her"; id: string; number: number; total: number }
   | { kind: "selector"; id: string; number: number; total: number }
+  | { kind: "ending"; id: string; number: number; total: number }
   | { kind: "context"; id: string; number: number; total: number };
 
-export type LikertStep = Exclude<RunnerStep, { kind: "context" | "pronouns" }>;
+export type LikertStep = Exclude<RunnerStep, { kind: "context" | "pronouns" | "ending" }>;
 
 function buildSteps(): RunnerStep[] {
   const his: RunnerStep[] = questions.map((q, i) => ({
@@ -44,6 +52,12 @@ function buildSteps(): RunnerStep[] {
       id: s.id,
       number: i + 1,
       total: sinceBreakupSelectors.length,
+    })),
+    ...endingQuestions.map((q, i) => ({
+      kind: "ending" as const,
+      id: q.id,
+      number: i + 1,
+      total: endingQuestions.length,
     })),
     ...quizConfig.contextQuestions.map((c, i) => ({
       kind: "context" as const,
@@ -84,11 +98,13 @@ export const pronounsFor = (progress: Pick<QuizProgress, "pronouns">): PartnerTe
 
 /**
  * An attempt from an older question set can't be resumed against this one, and neither
- * can one saved before the pronoun questions (its step index predates them).
+ * can one saved under an earlier runner flow, whose step index points at a different
+ * screen (before the pronoun questions, or before the "how it ended" block).
  */
 export function isResumable(progress: QuizProgress, now: Date): boolean {
   return (
     progress.version === quizConfig.questionSetVersion &&
+    progress.flow === quizConfig.flowVersion &&
     progress.pronouns?.taker !== undefined &&
     progress.pronouns.partner !== undefined &&
     !isAttemptExpired(progress, now) &&
@@ -101,6 +117,7 @@ export function emptyProgress(now: Date): QuizProgress {
   const at = now.toISOString();
   return {
     version: quizConfig.questionSetVersion,
+    flow: quizConfig.flowVersion,
     step: 0,
     answers: {},
     context: {},

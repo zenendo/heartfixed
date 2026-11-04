@@ -14,6 +14,7 @@ import {
   attentionCheck,
   completeAttempt,
   emptyProgress,
+  endingQuestions,
   firstQuestionStep,
   herQuestions,
   isAttemptExpired,
@@ -39,8 +40,13 @@ const byId = new Map<string, { id: string; stem: string }>(
   [...questions, ...herQuestions, ...sinceBreakupSelectors].map((q) => [q.id, q]),
 );
 
+const endingById = new Map<string, (typeof endingQuestions)[number]>(
+  endingQuestions.map((q) => [q.id, q]),
+);
+
 function stemFor(step: RunnerStep, progress: QuizProgress): string {
   if (step.kind === "pronouns") return t.pronouns[step.id];
+  if (step.kind === "ending") return renderStem(endingById.get(step.id)!, pronounsFor(progress));
   if (step.kind === "attention") return attentionCheck.stem;
   if (step.kind === "context") {
     return quizConfig.contextQuestions.find((c) => c.id === step.id)!.prompt;
@@ -246,7 +252,7 @@ export function QuizRunner() {
   const value =
     step.kind === "pronouns"
       ? progress.pronouns?.[step.id]
-      : step.kind === "context"
+      : step.kind === "context" || step.kind === "ending"
         ? progress.context[step.id]
         : progress.answers[step.id];
   const answered = value !== undefined;
@@ -256,7 +262,7 @@ export function QuizRunner() {
   function choose(next: number | string) {
     if (!progress) return;
     setError(null);
-    if (step.kind === "pronouns") return;
+    if (step.kind === "pronouns" || step.kind === "ending") return;
     if (step.kind === "context") {
       persist({ ...progress, context: { ...progress.context, [step.id]: String(next) } });
     } else {
@@ -295,37 +301,77 @@ export function QuizRunner() {
     router.push(routes.quizResults);
   }
 
-  /** A pronoun screen: one tap stores the answer and moves on (amendment brief, 2.1). */
-  function choosePronoun(id: PronounId) {
-    if (!progress || step.kind !== "pronouns") return;
+  /**
+   * A one-tap screen: the pronoun questions (amendment brief, 2.1) and the "how it ended"
+   * block (v3 brief, 2). One tap stores the answer and moves on.
+   */
+  function chooseTap(choice: string) {
+    if (!progress) return;
     setError(null);
-    persist({
-      ...progress,
-      pronouns: { ...progress.pronouns, [step.id]: id },
-      step: index + 1,
-    });
+    if (step.kind === "pronouns") {
+      persist({
+        ...progress,
+        pronouns: { ...progress.pronouns, [step.id]: choice as PronounId },
+        step: index + 1,
+      });
+    } else if (step.kind === "ending") {
+      persist({
+        ...progress,
+        context: { ...progress.context, [step.id]: choice },
+        step: index + 1,
+      });
+    }
     focusSoon("quiz-question");
   }
 
-  if (step.kind === "pronouns") {
+  if (step.kind === "pronouns" || step.kind === "ending") {
+    const tapOptions =
+      step.kind === "pronouns"
+        ? PRONOUN_IDS.map((id) => ({ value: id, label: t.pronouns.options[id] }))
+        : endingById.get(step.id)!.options.map((o) => ({
+            value: o.value,
+            label: renderStem({ id: step.id, stem: o.label }, pronounsFor(progress)),
+          }));
     return (
       <div className="min-h-[24rem] space-y-5" data-testid="quiz-runner">
         {noticeLine}
         {storageLine}
-        {step.id === "taker" && <p className="font-semibold">{t.pronouns.intro}</p>}
-        <div role="group" aria-labelledby="quiz-question" data-testid="pronoun-question">
+        {step.kind === "ending" && (
+          <div>
+            <p data-testid="quiz-progress" className="min-h-6 text-sm font-semibold text-muted">
+              {label}
+            </p>
+            <div className="mt-2 h-2 rounded-full bg-panel" aria-hidden="true">
+              <div className="h-2 rounded-full bg-primary" style={barWidth} />
+            </div>
+          </div>
+        )}
+        {step.kind === "pronouns" && step.id === "taker" && (
+          <p className="font-semibold">{t.pronouns.intro}</p>
+        )}
+        {step.kind === "ending" && step.number === 1 && (
+          <p className="font-semibold" data-testid="ending-intro">
+            {t.endingIntro}
+          </p>
+        )}
+        <div
+          role="group"
+          aria-labelledby="quiz-question"
+          data-testid={step.kind === "pronouns" ? "pronoun-question" : "ending-question"}
+        >
           <h2 id="quiz-question" tabIndex={-1} className="text-xl font-semibold">
             {stem}
           </h2>
           <div className="mt-4 grid gap-2">
-            {PRONOUN_IDS.map((id) => (
+            {tapOptions.map((option) => (
               <Button
-                key={id}
-                variant={value === id ? "primary" : "secondary"}
-                aria-pressed={value === id}
-                onClick={() => choosePronoun(id)}
+                key={option.value}
+                variant={value === option.value ? "primary" : "secondary"}
+                aria-pressed={value === option.value}
+                className={step.kind === "ending" ? "justify-start text-left" : ""}
+                onClick={() => chooseTap(option.value)}
               >
-                {t.pronouns.options[id]}
+                {option.label}
               </Button>
             ))}
           </div>
