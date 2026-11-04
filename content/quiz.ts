@@ -1,4 +1,4 @@
-import { copy } from "@/config/copy";
+import { copy, type PartnerTerms, type PronounId } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { routes } from "@/config/site";
 import { herQuestions, questions, sinceBreakupSelectors } from "@/lib/quiz";
@@ -86,8 +86,19 @@ export const quizFaqs: FaqItem[] = [
 
 export const runnerCopy = {
   instruction: quizConfig.instruction,
-  /** Founder-approved framing line before the first question about the partner. */
-  herIntro: `Now think about ${partner.object} in the same relationship — how ${partner.subject} showed up, as you experienced it.`,
+  /** The two pronoun screens before question 1 (amendment brief, 2.1), verbatim. */
+  pronouns: {
+    intro: "Two quick questions so the quiz talks about the right people.",
+    taker: "Your pronouns",
+    partner: "Your ex's pronouns",
+    options: { he: "He/Him", she: "She/Her", they: "They/Them" } satisfies Record<
+      PronounId,
+      string
+    >,
+  },
+  /** The framing line before the first question about the partner (amendment brief, 2.3). */
+  herIntro: (p: PartnerTerms) =>
+    `Now think about ${p.object} in the same relationship: how ${p.subject} showed up, as you experienced it.`,
   start: "Start the quiz",
   next: "Next",
   back: "Back",
@@ -97,12 +108,12 @@ export const runnerCopy = {
   progress: {
     his: (n: number, total: number) => `Question ${n} of ${total}`,
     her: (n: number, total: number) => `About your ex: ${n} of ${total}`,
-    selector: (n: number, total: number) => `Since the breakup — ${n} of ${total}`,
-    context: (n: number, total: number) => `About where you are now — ${n} of ${total}`,
+    selector: (n: number, total: number) => `Since the breakup: ${n} of ${total}`,
+    context: (n: number, total: number) => `About where you are now: ${n} of ${total}`,
   },
   /** The resume prompt, built from the same labels ("question 9 of 18"). */
   resume: (label: string) =>
-    `Continue where you left off — ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
+    `Continue where you left off: ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
   resumeCta: "Continue",
   contextNote: quizConfig.contextNote,
   startOver: "Start over",

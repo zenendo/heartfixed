@@ -1,22 +1,19 @@
 import { routes } from "@/config/site";
 import { actionLists } from "@/content/emails/actionLists";
 import { resultEmailCopy as t } from "@/content/emails/result";
+import { dynamicLeanLines, plain, resultContentFor, resultCopy } from "@/content/quiz-result";
 import {
-  caveat,
-  dynamicLeanLines,
-  dynamics,
-  herReads,
-  plain,
-  resultCopy,
-} from "@/content/quiz-result";
-import {
+  DEFAULT_PRONOUNS,
   decodeShareToken,
   dynamicFor,
   leanFor,
   leanWatchOuts,
-  profileCopy,
+  profileCopyFor,
   profiles,
+  pronounContext,
   shareLink,
+  type PronounChoice,
+  type PronounContext,
   type SharedResult,
 } from "@/lib/quiz";
 import { absoluteUrl, crisisFooter, escapeHtml, html, layout, type RenderedEmail } from "./render";
@@ -28,6 +25,10 @@ import { absoluteUrl, crisisFooter, escapeHtml, html, layout, type RenderedEmail
  * browser claims. Founder decision (2026-11-02): the email carries the partner read and
  * the dynamic; share links never do. Transactional: no unsubscribe link needed,
  * and sending it never subscribes him to anything (Section 13.1).
+ *
+ * Amendment brief, 2.5: it renders with the same pronoun context as the result view.
+ * The two selections arrive with the request as enum values, are used to render, and
+ * are never stored.
  */
 
 export class ResultTokenError extends Error {
@@ -51,12 +52,13 @@ const READING: Record<SharedResult["profileId"], (keyof typeof t.reading)[]> = {
 };
 
 /** Her read (caveat first) and the dynamic, as on the result view's Act 1. */
-function partnerSection(result: SharedResult, perceived: SharedResult) {
+function partnerSection(result: SharedResult, perceived: SharedResult, ctx: PronounContext) {
+  const { caveat, herReads, dynamics } = resultContentFor(ctx);
   const read = herReads[perceived.profileId];
   const pick = dynamicFor(result, perceived);
   const dynamic = dynamics[pick.id];
-  const leanLines = dynamicLeanLines(pick);
-  const headline = resultCopy.herHeadline(profiles[perceived.profileId].label);
+  const leanLines = dynamicLeanLines(pick, ctx);
+  const headline = resultCopy.herHeadline(ctx.p, profiles[perceived.profileId].label);
   return {
     html: [
       html.h2(headline),
@@ -81,13 +83,19 @@ function partnerSection(result: SharedResult, perceived: SharedResult) {
   };
 }
 
-export function buildResultEmail(result: SharedResult, perceived?: SharedResult): RenderedEmail {
+export function buildResultEmail(
+  result: SharedResult,
+  perceived?: SharedResult,
+  pronouns: PronounChoice = DEFAULT_PRONOUNS,
+): RenderedEmail {
+  const ctx = pronounContext(pronouns);
   const meta = profiles[result.profileId];
-  const copy = profileCopy[result.profileId];
+  const copySet = profileCopyFor(ctx.p);
+  const copy = copySet[result.profileId];
   const lean = leanFor(result);
   const leanText = lean !== "none" ? copy.leans?.[lean] : undefined;
-  const leanList = lean !== "none" ? leanWatchOuts(lean) : [];
-  const partner = perceived ? partnerSection(result, perceived) : { html: [], text: [] };
+  const leanList = lean !== "none" ? leanWatchOuts(lean, copySet) : [];
+  const partner = perceived ? partnerSection(result, perceived, ctx) : { html: [], text: [] };
   const share = absoluteUrl(shareLink(result));
   const tracker = absoluteUrl(routes.tracker);
   const resources = absoluteUrl(routes.resources);
@@ -150,7 +158,7 @@ export function buildResultEmail(result: SharedResult, perceived?: SharedResult)
     `${t.shareHeading}\n${share}\n${t.shareNote}`,
     t.disclaimer,
     crisis.text,
-    "—",
+    "---",
     `${t.join.heading}\n${t.join.body}\n${t.join.link}: ${joinUrl}`,
   ].join("\n\n");
 

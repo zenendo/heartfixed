@@ -4,21 +4,12 @@ import { quizConfig } from "../../config/quiz";
 import { routes, site } from "../../config/site";
 import { blockA } from "../../content/compliance";
 import { formCopy } from "../../content/emails/forms";
-import {
-  bridges,
-  caveat,
-  decodeFallback,
-  decodes,
-  dynamics,
-  herReads,
-  plain,
-  programmeLine,
-  resultCopy as t,
-} from "../../content/quiz-result";
+import { pronounTerms } from "../../config/copy";
+import { plain, programmeLine, resultContentFor, resultCopy as t } from "../../content/quiz-result";
 import { trackerCopy } from "../../content/tracker";
 import { collectRequestSchema, type CollectRequest } from "../../lib/analyticsSchema";
 import { createTracker, toLocalDate, addDays } from "../../lib/tools/tracker";
-import { leanWatchOuts, profileCopy } from "../../lib/quiz";
+import { leanWatchOuts, profileCopy, profileCopyFor, pronounContext } from "../../lib/quiz";
 import { fixture1, herFixtures } from "../../lib/quiz/__tests__/fixtures";
 import { savedQuiz, seed } from "./support/savedQuiz";
 
@@ -26,7 +17,13 @@ import { savedQuiz, seed } from "./support/savedQuiz";
  * Session 5 — the result view (Section 10.3; quiz build brief, Part B), the shared-link
  * view and the result email request (Sections 9.6, 13.1). Each test seeds a result the
  * engine computed (completeAttempt); quiz.spec.ts drives the full runner into this view.
+ * The seeded result carries the default pronoun answers (he/him, she/her); the
+ * nine-combination render is in tests/unit/pronouns.test.tsx.
  */
+
+const { caveat, herReads, decodes, decodeFallback, dynamics, bridges } =
+  resultContentFor(pronounContext());
+const she = pronounTerms.she;
 
 const QUIZ = "heartfixed-quiz-v1";
 const TRACKER = "heartfixed-tracker-v1";
@@ -60,14 +57,14 @@ test.describe("the full result view (Section 10.3; brief, Part B)", () => {
     await expect(page.locator("h1")).toHaveText("Your pattern: Anxious (preoccupied)");
     const scores = page.getByTestId("result-scores");
     await expect(scores).toHaveText(
-      "Attachment anxiety 71/100 — highAttachment avoidance 13/100 — low",
+      "Attachment anxiety 71/100, highAttachment avoidance 13/100, low",
     );
     await expect(scores.locator("xpath=following-sibling::*[1]")).toHaveText(blockA.text);
     expect(await h2s(page)).toEqual([
       t.acts.why,
       t.acts.yours,
       t.acts.since,
-      t.acts.after,
+      t.acts.after(she),
       formCopy.result.heading,
       t.share.heading,
       t.goDeeper,
@@ -161,7 +158,9 @@ test.describe("the full result view (Section 10.3; brief, Part B)", () => {
   }) => {
     await openResult(page);
     await expect(page.getByText(plain(bridges.anxious))).toBeVisible();
-    const act = page.locator("section", { has: page.getByRole("heading", { name: t.acts.after }) });
+    const act = page.locator("section", {
+      has: page.getByRole("heading", { name: t.acts.after(she) }),
+    });
     await expect(act.getByRole("link", { name: "Start a no-contact streak" })).toHaveAttribute(
       "href",
       routes.tracker,
@@ -239,14 +238,14 @@ test.describe("share and the shared view (Section 9.6; Fixture 7)", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     const events = captureCollect(page);
     await openResult(page);
-    await expect(page.getByText(t.share.body)).toBeVisible();
+    await expect(page.getByText(t.share.body(she))).toBeVisible();
     await page.getByRole("button", { name: t.share.button }).click();
     await expect(page.getByText(t.share.copied)).toBeVisible();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     // His own link: Persona A's scores, not the shared-view token below.
     const own = `v=${quizConfig.questionSetVersion}&a=${fixture1.expected.anxietyNorm}&v2=${fixture1.expected.avoidanceNorm}`;
     expect(copied).toBe(
-      `My attachment pattern: Anxious — ${site.name} ${new URL(`${routes.quizResults}?${own}`, site.url).toString()}`,
+      `My attachment pattern: Anxious, ${site.name} ${new URL(`${routes.quizResults}?${own}`, site.url).toString()}`,
     );
     // Scores and version only — nothing about her, no answers.
     expect(copied).not.toMatch(/a=13|83|q\d\d|h\d+/);
@@ -264,10 +263,15 @@ test.describe("share and the shared view (Section 9.6; Fixture 7)", () => {
     await expect(view).toContainText(t.sharedBanner);
     await expect(page.locator("h1")).toHaveText("Your pattern: Anxious (preoccupied)");
     await expect(page.getByTestId("result-scores")).toHaveText(
-      "Attachment anxiety 72/100 — highAttachment avoidance 18/100 — low",
+      "Attachment anxiety 72/100, highAttachment avoidance 18/100, low",
     );
     await expect(page.getByTestId("self-reflection-disclaimer")).toHaveText(blockA.text);
-    await expect(view).toContainText(profileCopy.anxious.description);
+    // No pronoun answer travels in a link: the profile's partner lines use they/them (2.5).
+    const neutral = profileCopyFor(pronounTerms.they).anxious;
+    await expect(view).toContainText(neutral.description);
+    for (const line of neutral.watchOuts) await expect(view).toContainText(line);
+    await expect(view).toContainText("Checking their profiles or status many times a day.");
+    await expect(view).not.toContainText(/\b(she|her|hers|herself|he|him|his|himself)\b/i);
     for (const id of ["partner-read", "dynamic", "decodes", "email-result", "tracker-offer"]) {
       await expect(page.getByTestId(id), id).toHaveCount(0);
     }
@@ -316,6 +320,8 @@ test.describe("emailing the result (Section 13.1 a; founder decision, Session 5)
       email: "reader@example.com",
       token: `v=${v}&a=71&v2=13`,
       perceived: `v=${v}&a=${anxietyNorm}&v2=${avoidanceNorm}`,
+      // The two pronoun answers, as enum values only (amendment brief, 2.5).
+      pronouns: { taker: "he", partner: "she" },
       alsoJoinList: false,
       website: "",
     });

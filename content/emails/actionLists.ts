@@ -22,7 +22,7 @@ export const actionLists: Record<ProfileId, readonly ActionStage[]> = {
     {
       days: "Days 4–7",
       actions: [
-        "Keep your routines — sleep, food, training — even when they feel pointless.",
+        "Keep your routines: sleep, food, training, even when they feel pointless.",
         'Notice any pull towards a "just being friendly" message, and wait it out.',
       ],
     },
@@ -52,7 +52,7 @@ export const actionLists: Record<ProfileId, readonly ActionStage[]> = {
     {
       days: "Days 8–14",
       actions: [
-        "Each time you notice the alarm — checking, replaying, drafting — name it out loud.",
+        "Each time you notice the alarm, checking, replaying, drafting, name it out loud.",
         "Expect the second week to feel heavier, not lighter. That's common, and it passes.",
       ],
     },
@@ -68,7 +68,7 @@ export const actionLists: Record<ProfileId, readonly ActionStage[]> = {
     {
       days: "Days 4–7",
       actions: [
-        'Once a day, write one sentence about how you actually feel — even "nothing much".',
+        'Once a day, write one sentence about how you actually feel, even "nothing much".',
         'Tell one person the honest version, not the "I\'m fine" version.',
       ],
     },
@@ -91,7 +91,7 @@ export const actionLists: Record<ProfileId, readonly ActionStage[]> = {
     {
       days: "Days 4–7",
       actions: [
-        "Keep one daily habit that doesn't change with your mood — a walk, the gym, a bedtime.",
+        "Keep one daily habit that doesn't change with your mood: a walk, the gym, a bedtime.",
         'When you swing, name which side it is: "this is the cold side" or "this is the alarm".',
       ],
     },

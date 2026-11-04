@@ -8,8 +8,11 @@ import { DIMENSIONS, quizQuestionSchema, type QuizQuestion, type SelectorItem } 
  * source: tests/unit/quiz-brief.test.ts renders every stem below and checks it against
  * the brief's tables word for word, so a typo here fails the build.
  *
- * Partner references are tokens resolved from config/copy.ts (Section 2.3): {subject},
- * {object}, {possessive}, and {Subject} for a sentence-initial "She".
+ * Partner references are tokens resolved from a pronoun set in config/copy.ts (Section
+ * 2.3; amendment brief, 2.2): {subject}, {object}, {possessive}, {reflexive}, the
+ * agreement forms {was} and {has}, {subjectHas} ("she's", "they've"), and {Subject} for a
+ * sentence-initial "She". The runner renders them with the partner pronouns the visitor
+ * chose; the default is she/her.
  */
 const base = {
   version: quizConfig.questionSetVersion,
@@ -78,7 +81,7 @@ export const questions: QuizQuestion[] = [
   item(
     "q13",
     "anxiety",
-    "When {subject} wouldn't say what had hurt {object}, I apologized for things I only guessed {subject} was upset about.",
+    "When {subject} wouldn't say what had hurt {object}, I apologized for things I only guessed {subject} {was} upset about.",
   ),
   item(
     "q14",
@@ -164,7 +167,7 @@ export const herQuestions: QuizQuestion[] = [
   item(
     "h9",
     "anxiety",
-    "When I pulled away or seemed distant, {subject} tried harder to get close — more messages, more affection, more plans.",
+    "When I pulled away or seemed distant, {subject} tried harder to get close: more messages, more affection, more plans.",
   ),
   item(
     "h10",
@@ -191,23 +194,23 @@ export const sinceBreakupSelectors: SelectorItem[] = [
   },
   {
     id: "a2",
-    stem: 'Since the breakup, {subject} has reached out at odd moments — a random meme, a "hey" — then gone quiet again.',
+    stem: 'Since the breakup, {subject} {has} reached out at odd moments, a random meme, a "hey", then gone quiet again.',
   },
   {
     id: "a3",
-    stem: "Since the breakup, I have seen {object} out with friends or posting as if {subject} has already moved on.",
+    stem: "Since the breakup, I have seen {object} out with friends or posting as if {subject} {has} already moved on.",
   },
   {
     id: "a4",
-    stem: "Since the breakup, {subject} has contacted me when {subject}'s been drinking or late at night.",
+    stem: "Since the breakup, {subject} {has} contacted me when {subjectHas} been drinking or late at night.",
   },
   {
     id: "a5",
-    stem: "Since the breakup, {subject} has kept contact going in small ways, such as liking my posts or watching my stories.",
+    stem: "Since the breakup, {subject} {has} kept contact going in small ways, such as liking my posts or watching my stories.",
   },
   {
     id: "a6",
-    stem: "Since the breakup, {subject} has expressed missing me or regret about how things ended.",
+    stem: "Since the breakup, {subject} {has} expressed missing me or regret about how things ended.",
   },
 ];
 
@@ -235,11 +238,11 @@ export function renderStem(
   question: Pick<QuizQuestion, "id" | "stem" | "partnerTerms">,
   terms: PartnerTerms = copy.partner,
 ): string {
-  const merged: Record<string, string> = { ...terms, ...question.partnerTerms };
+  const merged: Record<string, unknown> = { ...terms, ...question.partnerTerms };
   return question.stem.replace(TOKEN, (match, key: string) => {
     const lower = key.charAt(0).toLowerCase() + key.slice(1);
     const value = merged[key] ?? (key !== lower ? merged[lower] : undefined);
-    if (value === undefined) {
+    if (typeof value !== "string") {
       throw new Error(`Unknown token ${match} in question ${question.id}`);
     }
     return key !== lower ? capitalize(value) : value;

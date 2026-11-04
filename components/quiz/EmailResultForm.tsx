@@ -4,7 +4,7 @@ import { useId, useState, type FormEvent } from "react";
 import { Honeypot } from "@/components/content/EmailSignup";
 import { Button } from "@/components/ui/Button";
 import { formCopy } from "@/content/emails/forms";
-import { encodeShareToken, type QuizResult } from "@/lib/quiz";
+import { encodeShareToken, type PronounChoice, type QuizResult } from "@/lib/quiz";
 import { track } from "@/lib/analytics";
 import { postEmail } from "@/lib/email/client";
 import { checkEmail } from "@/lib/email/rules";
@@ -22,7 +22,8 @@ type Status =
  * (founder decision, 2026-11-02), the same-shaped token of the two perceived scores.
  * Nothing else about the answers leaves the browser. The list checkbox is separate and
  * unchecked by default; ticking it is the only way this form joins the list.
- * Placed on the result view in Session 5. Sends email_result_* events, with an error code
+ * The visitor's two pronoun answers go too, as two enum values, so the email renders
+ * like the page (amendment brief, 2.5). Placed on the result view in Session 5. Sends email_result_* events, with an error code
  * only; and newsletter_signup { placement: "result" } when the list box joined.
  */
 type Scores = Pick<QuizResult, "version" | "anxietyNorm" | "avoidanceNorm">;
@@ -30,10 +31,12 @@ type Scores = Pick<QuizResult, "version" | "anxietyNorm" | "avoidanceNorm">;
 export function EmailResultForm({
   result,
   perceived,
+  pronouns,
   note,
 }: {
   result: Scores;
   perceived?: Scores;
+  pronouns?: PronounChoice;
   /** A line under the form's intro, such as the brief's programme line. */
   note?: string;
 }) {
@@ -54,6 +57,7 @@ export function EmailResultForm({
       email,
       token: encodeShareToken(result),
       ...(perceived ? { perceived: encodeShareToken(perceived) } : {}),
+      ...(pronouns ? { pronouns: { taker: pronouns.taker, partner: pronouns.partner } } : {}),
       alsoJoinList,
       website,
     });

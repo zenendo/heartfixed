@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { affiliatePrograms, affiliateSlots } from "@/config/affiliates";
-import { copy } from "@/config/copy";
+import { PRONOUN_IDS, copy, pronounTerms } from "@/config/copy";
 import { quizConfig } from "@/config/quiz";
 import { redirects } from "@/config/redirects";
 import { footerNav, noindexRoutes, routes, site, tools } from "@/config/site";
@@ -88,13 +88,56 @@ describe("config/quiz.ts and config/copy.ts", () => {
 
   it("defaults partner references to she/her for the men's beachhead (Section 2.3)", () => {
     expect(copy.audience).toBe("men");
-    expect(copy.partner).toEqual({
-      subject: "she",
-      object: "her",
-      reflexive: "herself",
-      noun: "woman",
-      nounPlural: "women",
-      possessive: "her",
-    });
+    expect(copy.partner).toBe(pronounTerms.she);
+    expect(copy.taker).toBe(pronounTerms.he);
+  });
+
+  it("carries the amendment's three token sets, with plural agreement for they (2.2)", () => {
+    expect(PRONOUN_IDS).toEqual(["he", "she", "they"]);
+    const row = (id: (typeof PRONOUN_IDS)[number]) => {
+      const t = pronounTerms[id];
+      return [
+        t.subject,
+        t.object,
+        t.possessive,
+        t.possessivePronoun,
+        t.reflexive,
+        t.was,
+        t.has,
+        t.is,
+        t.does,
+      ];
+    };
+    expect(row("he")).toEqual(["he", "him", "his", "his", "himself", "was", "has", "is", "does"]);
+    expect(row("she")).toEqual([
+      "she",
+      "her",
+      "her",
+      "hers",
+      "herself",
+      "was",
+      "has",
+      "is",
+      "does",
+    ]);
+    expect(row("they")).toEqual([
+      "they",
+      "them",
+      "their",
+      "theirs",
+      "themselves",
+      "were",
+      "have",
+      "are",
+      "do",
+    ]);
+    // 2.3's noun mapping: man / woman / person, men / women / people.
+    expect(PRONOUN_IDS.map((id) => pronounTerms[id].noun)).toEqual(["man", "woman", "person"]);
+    expect(PRONOUN_IDS.map((id) => pronounTerms[id].nounPlural)).toEqual([
+      "men",
+      "women",
+      "people",
+    ]);
+    expect(PRONOUN_IDS.map((id) => pronounTerms[id].plural)).toEqual([false, false, true]);
   });
 });

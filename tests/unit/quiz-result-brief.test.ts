@@ -1,19 +1,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  bridgeTools,
-  bridges,
-  caveat,
-  decodeFallback,
-  decodes,
-  dynamics,
-  herReads,
-  programmeLine,
-  resultCopy,
-} from "@/content/quiz-result";
+import { pronounTerms } from "@/config/copy";
 import { routes } from "@/config/site";
-import { profileCopy, sinceBreakupSelectors, type ProfileId } from "@/lib/quiz";
+import { bridgeTools, programmeLine, resultContentFor, resultCopy } from "@/content/quiz-result";
+import { profileCopy, pronounContext, sinceBreakupSelectors, type ProfileId } from "@/lib/quiz";
+import { dashless, inBrief } from "./support/dashless";
 
 /**
  * Session 5 — the result view's content against the founder-approved brief (Part B),
@@ -24,7 +16,20 @@ import { profileCopy, sinceBreakupSelectors, type ProfileId } from "@/lib/quiz";
  * - The decode fallback says "the read above", since it renders after the reads.
  * - The profiles' third-person lines speak to the reader ("you"): PRONOUN_CHANGES.
  * - So do her reads and the dynamics (founder decision, 2026-11-03): READ_CHANGES.
+ *
+ * Quiz v2 amendment brief, Part 2 (Session B): the content renders through a pronoun
+ * context, checked here on the default path (he/him taker, she/her partner), which is
+ * the brief's own rendering. Em dashes are gone (2.6), so lines match with `dashless`:
+ * word for word, each dash a comma, period or colon. The decode fallback is the
+ * amendment's line (2.3), still "above".
  */
+
+const { caveat, herReads, decodes, decodeFallback, dynamics, bridges } =
+  resultContentFor(pronounContext());
+const amendment = readFileSync(
+  path.resolve(__dirname, "../../heartfixed-quiz-v2-amendment-brief.md"),
+  "utf8",
+);
 
 const brief = readFileSync(path.resolve(__dirname, "../../heartfixed-quiz-build-brief.md"), "utf8");
 const partB = brief.slice(brief.indexOf("# Part B"), brief.indexOf("# Part C"));
@@ -167,15 +172,19 @@ describe("his profiles (Act 2) match the brief", () => {
 
     it(`${name}: description, after a breakup and risk`, () => {
       const copy = profileCopy[id];
-      expect(copy.description).toBe(field("Description"));
-      expect(copy.afterBreakup).toBe(converted(field("After a breakup")));
-      expect(copy.noContactRisk).toBe(field("No-contact risk"));
+      expect(copy.description).toMatch(dashless(field("Description")));
+      expect(copy.afterBreakup).toMatch(dashless(converted(field("After a breakup"))));
+      expect(copy.noContactRisk).toMatch(dashless(field("No-contact risk")));
     });
 
     it(`${name}: watch-outs and strengths`, () => {
       const copy = profileCopy[id];
-      expect(copy.watchOuts).toEqual(numbered(field("Watch-outs")).map(converted));
-      expect(copy.strengths).toEqual(numbered(field("Strengths")).map(converted));
+      const watch = numbered(field("Watch-outs")).map(converted);
+      const strong = numbered(field("Strengths")).map(converted);
+      expect(copy.watchOuts).toHaveLength(watch.length);
+      copy.watchOuts.forEach((w, i) => expect(w).toMatch(dashless(watch[i]!)));
+      expect(copy.strengths).toHaveLength(strong.length);
+      copy.strengths.forEach((w, i) => expect(w).toMatch(dashless(strong[i]!)));
     });
 
     it(`${name}: next steps`, () => {
@@ -198,16 +207,16 @@ describe("his profiles (Act 2) match the brief", () => {
 
   it("the secure lean lines use the brief's template", () => {
     expect(profileCopy.secure.leans!.anxious).toBe(
-      "Broadly secure, with an anxious lean — under breakup stress, the pattern below is the one to watch.",
+      "Broadly secure, with an anxious lean. Under breakup stress, the pattern below is the one to watch.",
     );
-    expect(partB).toContain(profileCopy.secure.leans!.anxious);
+    expect(inBrief(partB, profileCopy.secure.leans!.anxious)).toBe(true);
   });
 });
 
 describe("Act 1, decodes, dynamics and bridges match the brief", () => {
   it("the caveat block", () => {
     const quoted = /### Caveat block[^\n]*\n\n> (.*)/.exec(partB)![1]!;
-    expect(`**${caveat.lead}** ${caveat.body}`).toBe(approved(quoted));
+    expect(`**${caveat.lead}** ${caveat.body}`).toMatch(dashless(approved(quoted)));
     expect(caveat.body).toContain("it can't label her");
   });
 
@@ -218,15 +227,19 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
         .split("\n")
         .filter(Boolean);
       const read = herReads[id];
-      expect(read.paragraphs).toEqual(lines.filter((l) => !l.startsWith("**")));
-      expect(`**Means / doesn't mean:** ${read.means}`).toBe(
-        lines.find((l) => l.startsWith("**Means")),
+      const paragraphs = lines.filter((l) => !l.startsWith("**"));
+      expect(read.paragraphs).toHaveLength(paragraphs.length);
+      read.paragraphs.forEach((x, i) => expect(x).toMatch(dashless(paragraphs[i]!)));
+      expect(`**Means / doesn't mean:** ${read.means}`).toMatch(
+        dashless(lines.find((l) => l.startsWith("**Means"))!),
       );
-      expect(`**Since the breakup:** ${read.since}`).toBe(
-        lines.find((l) => l.startsWith("**Since")),
+      expect(`**Since the breakup:** ${read.since}`).toMatch(
+        dashless(lines.find((l) => l.startsWith("**Since"))!),
       );
     }
-    expect(resultCopy.herHeadline("Avoidant")).toBe("Her pattern, as you experienced it: Avoidant");
+    expect(resultCopy.herHeadline(pronounTerms.she, "Avoidant")).toBe(
+      "Her pattern, as you experienced it: Avoidant",
+    );
   });
 
   it("the six decodes, one per selector", () => {
@@ -234,9 +247,13 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
     expect(Object.keys(decodes)).toEqual(sinceBreakupSelectors.map((s) => s.id));
     for (const [head, body] of brief6) {
       const [id, heading] = head.split(" — ");
-      expect(decodes[id!]).toEqual({ heading, body });
+      expect(decodes[id!]!.heading).toBe(heading);
+      expect(decodes[id!]!.body).toMatch(dashless(body));
     }
-    expect(approved(brief)).toContain(`the result shows: "${decodeFallback}"`);
+    // The amendment's fallback line (2.3), with "above" as decided on 2026-11-03.
+    expect(amendment).toContain(
+      `The fallback line when no selector reaches 2 becomes: "${decodeFallback.replace("the read above", "the read below")}"`,
+    );
   });
 
   it("the six dynamic reads", () => {
@@ -246,7 +263,9 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
     for (const [head, body] of brief6) {
       const title = head.split(" — ")[1]!;
       const dynamic = shipped.find((d) => d.title.toLowerCase() === title.toLowerCase())!;
-      expect(dynamic.paragraphs).toEqual(inReads(approved(body)).split("\n").filter(Boolean));
+      const paragraphs = inReads(approved(body)).split("\n").filter(Boolean);
+      expect(dynamic.paragraphs).toHaveLength(paragraphs.length);
+      dynamic.paragraphs.forEach((x, i) => expect(x).toMatch(dashless(paragraphs[i]!)));
     }
     expect(dynamics["secure-involved"].paragraphs[0]).toContain("manufacture a villain");
   });
@@ -259,7 +278,7 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
     for (const [name, id] of Object.entries(IDS)) {
       const line = new RegExp(`- \\*\\*${name}:\\*\\* (.*)`).exec(body)![1]!;
       const [text, tools] = line.split(/ \(Tools: /);
-      expect(bridges[id]).toBe(text);
+      expect(bridges[id]).toMatch(dashless(text!));
       const expected = tools!
         .replace(/\.?\)$/, "")
         .split(", ")
@@ -275,7 +294,7 @@ describe("Act 1, decodes, dynamics and bridges match the brief", () => {
         );
       expect(bridgeTools[id].map((s) => s.href)).toEqual(expected);
     }
-    expect(body).toContain(`"${programmeLine.replace(/\.$/, ",")}"`);
+    expect(inBrief(body, `"${programmeLine.replace(/\.$/, ",")}"`)).toBe(true);
   });
 });
 
@@ -296,13 +315,13 @@ describe("Section 14.2 over the result content", () => {
     );
   });
 
-  it("takes partner pronouns and nouns from config/copy.ts, never writes them in", () => {
+  it("takes every pronoun and gendered noun from config/copy.ts, never writes them in", () => {
     const source = readFileSync(path.resolve(__dirname, "../../content/quiz-result.ts"), "utf8");
     // The text only: every string and template literal in the file.
     const code = source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
     const text = (code.match(/`[^`]*`|"[^"\n]*"/g) ?? []).join("\n");
     expect(text.length).toBeGreaterThan(10_000);
-    expect(text).not.toMatch(/\b(she|her|hers|herself|woman|women)\b/i);
+    expect(text).not.toMatch(/\b(she|her|hers|herself|he|him|his|himself|woman|women|man|men)\b/i);
   });
 
   it("resolves every partner token", () => {

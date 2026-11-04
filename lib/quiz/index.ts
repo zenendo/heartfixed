@@ -28,9 +28,11 @@ export {
 export {
   completeAttempt,
   emptyProgress,
+  firstQuestionStep,
   isAttemptExpired,
   isOptional,
   opensPartnerSection,
+  pronounsFor,
   scaleLabelsFor,
   isResumable,
   runnerSteps,
@@ -41,12 +43,21 @@ export {
   checkProfileCopy,
   leanWatchOuts,
   profileCopy,
+  profileCopyFor,
   profileCopyRules,
   profiles,
   type NextStep,
   type ProfileCopy,
   type ProfileMeta,
 } from "./profiles";
+export {
+  DEFAULT_PRONOUNS,
+  agree,
+  cap,
+  pronounContext,
+  type PronounChoice,
+  type PronounContext,
+} from "./pronouns";
 export { dynamicFor, type DynamicId, type DynamicPick } from "./dynamics";
 export {
   decodeShareToken,

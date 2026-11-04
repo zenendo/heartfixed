@@ -12,6 +12,7 @@ import {
   savedQuizSchema,
   type QuizProgress,
   opensPartnerSection,
+  pronounsFor,
   scaleLabelsFor,
 } from "@/lib/quiz";
 import { fixture1, herFixtures } from "./fixtures";
@@ -24,6 +25,7 @@ function progressFrom(answers: { questionId: string; value: number }[]): QuizPro
     ...emptyProgress(NOW),
     step: runnerSteps.length - 1,
     answers: Object.fromEntries(answers.map((a) => [a.questionId, a.value])),
+    pronouns: { taker: "he", partner: "she" },
   };
 }
 
@@ -33,8 +35,10 @@ const selectors = ["a1", "a2", "a3", "a4", "a5", "a6"].map((id, i) => ({
 }));
 
 describe("runner screen order (Section 10.2; brief, Part A)", () => {
-  it("his 18 with the attention check → her 12 → 6 selectors → 2 context", () => {
+  it("the two pronoun questions → his 18 with the attention check → her 12 → 6 selectors → 2 context", () => {
     expect(runnerSteps.map((s) => s.kind)).toEqual([
+      "pronouns",
+      "pronouns",
       ...Array(6).fill("his"),
       "attention",
       ...Array(12).fill("his"),
@@ -44,8 +48,15 @@ describe("runner screen order (Section 10.2; brief, Part A)", () => {
     ]);
   });
 
-  it("puts the attention check at position 7, unnumbered, between q07 and q08", () => {
-    const at = attentionCheck.position - 1;
+  it("asks the taker's pronouns, then the partner's, unnumbered (amendment brief, 2.1)", () => {
+    expect(runnerSteps.slice(0, 2)).toEqual([
+      { kind: "pronouns", id: "taker" },
+      { kind: "pronouns", id: "partner" },
+    ]);
+  });
+
+  it("puts the attention check at position 7 of his section, unnumbered, between q07 and q08", () => {
+    const at = runnerSteps.findIndex((s) => s.kind === "his") + attentionCheck.position - 1;
     expect(runnerSteps[at]).toEqual({ kind: "attention", id: attentionCheck.id });
     expect(runnerSteps[at - 1]).toMatchObject({ id: "q07", number: 6, total: 18 });
     expect(runnerSteps[at + 1]).toMatchObject({ id: "q08", number: 7, total: 18 });
@@ -66,7 +77,7 @@ describe("runner screen order (Section 10.2; brief, Part A)", () => {
 describe("per-section answer labels and framing (founder review, Session 4)", () => {
   it('drops "like me" only where the visitor isn\'t describing himself', () => {
     for (const step of runnerSteps) {
-      if (step.kind === "context") continue;
+      if (step.kind === "context" || step.kind === "pronouns") continue;
       const expected =
         step.kind === "his" || step.kind === "attention"
           ? quizConfig.likert.labels
@@ -100,7 +111,30 @@ describe("completeAttempt — what saves on the final answer (Section 9.6)", () 
     expect(saved.perceived).toEqual(herFixtures.h1.expected);
     expect(saved.answers).toHaveLength(18 + 1 + 12 + 6);
     expect(saved.context).toEqual({ "ctx-no-contact": "trying" });
+    expect(saved.pronouns).toEqual({ taker: "he", partner: "she" });
     expect(savedQuizSchema.safeParse(saved).success).toBe(true);
+  });
+
+  it("saves the pronoun answers with the result, and the scores don't depend on them", () => {
+    const answers = [...fixture1.answers, attention, ...herFixtures.h1.answers, ...selectors];
+    const they = completeAttempt(
+      { ...progressFrom(answers), pronouns: { taker: "she", partner: "they" } },
+      NOW,
+    );
+    expect(they.pronouns).toEqual({ taker: "she", partner: "they" });
+    const plain = completeAttempt(progressFrom(answers), NOW);
+    expect(they.result).toEqual(plain.result);
+    expect(they.perceived).toEqual(plain.perceived);
+  });
+
+  it("a result saved before the pronoun questions still validates (the default path)", () => {
+    const saved = completeAttempt(
+      progressFrom(fixture1.answers.concat(herFixtures.h1.answers)),
+      NOW,
+    );
+    const older: Partial<typeof saved> = { ...saved };
+    delete older.pronouns;
+    expect(savedQuizSchema.safeParse(older).success).toBe(true);
   });
 
   it("a wrong attention answer only sets the flag", () => {
@@ -123,6 +157,7 @@ describe("in-progress attempts (Section 10.2)", () => {
     ...emptyProgress(NOW),
     step: 9,
     answers: { q01: 2 },
+    pronouns: { taker: "they", partner: "he" },
     savedAt: new Date(NOW.getTime() - daysAgo * DAY).toISOString(),
   });
 
@@ -138,8 +173,21 @@ describe("in-progress attempts (Section 10.2)", () => {
     expect(isResumable({ ...touched(1), version: "men-v0" }, NOW)).toBe(false);
   });
 
+  it("doesn't resume one saved before the pronoun questions, whose steps predate them", () => {
+    expect(isResumable({ ...touched(1), pronouns: undefined }, NOW)).toBe(false);
+    expect(isResumable({ ...touched(1), pronouns: { taker: "he" } }, NOW)).toBe(false);
+  });
+
+  it("renders stems with the chosen partner set, she/her by default", () => {
+    expect(pronounsFor(touched(1)).subject).toBe("he");
+    expect(pronounsFor({}).subject).toBe("she");
+  });
+
   it("validates the stored shape, rejecting out-of-scale and tampered values", () => {
     expect(quizProgressSchema.safeParse(touched(1)).success).toBe(true);
+    expect(quizProgressSchema.safeParse({ ...touched(1), pronouns: { taker: "it" } }).success).toBe(
+      false,
+    );
     expect(quizProgressSchema.safeParse({ ...touched(1), answers: { q01: 5 } }).success).toBe(
       false,
     );

@@ -53,7 +53,7 @@ export const quizConfig = {
    * Unscored context questions, asked after the last scored item. They select
    * result-page supporting copy only and never reach scoreQuiz.
    */
-  contextNote: "These don't change your scores — they help us show you the right next step.",
+  contextNote: "These don't change your scores. They help us show you the right next step.",
   contextQuestions: [
     {
       id: "ctx-time-since-breakup",

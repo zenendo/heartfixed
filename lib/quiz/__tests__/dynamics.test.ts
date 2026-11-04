@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { dynamicLeanLines, dynamics } from "@/content/quiz-result";
-import { dynamicFor, profileFor, type Band } from "@/lib/quiz";
+import { dynamicLeanLines, resultContentFor } from "@/content/quiz-result";
+import { dynamicFor, pronounContext, profileFor, type Band } from "@/lib/quiz";
+
+const ctx = pronounContext();
+const { dynamics } = resultContentFor(ctx);
 
 const BANDS: Band[] = ["low", "moderate", "high"];
 
@@ -88,7 +91,7 @@ describe("dynamicFor — composition across all 81 pairings", () => {
   it("lean lines appear only for a lean that chose the read, and render cleanly", () => {
     for (const { you, her } of pairs) {
       const pick = dynamicFor(you, her);
-      const lines = dynamicLeanLines(pick);
+      const lines = dynamicLeanLines(pick, ctx);
       const expected = [pick.youLean, pick.herLean].filter((l) => l !== "none").length;
       expect(lines).toHaveLength(expected);
       if (pick.id === "swing" || pick.id === "secure-involved") expect(lines).toEqual([]);
