@@ -55,8 +55,8 @@ describe("routes — Section 6 URL map", () => {
     );
   });
 
-  it("has no redirects before launch", () => {
-    expect(redirects).toEqual([]);
+  it("ships only the founder-approved /quiz/ short address before launch", () => {
+    expect(redirects).toEqual([{ source: "/quiz/", destination: routes.quiz }]);
   });
 });
 

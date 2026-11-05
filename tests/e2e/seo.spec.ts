@@ -94,6 +94,25 @@ test.describe("built pages", () => {
   });
 });
 
+test.describe("redirects (config/redirects.ts)", () => {
+  test("/quiz and /quiz/ reach the quiz with permanent redirects", async ({ request }) => {
+    // trailingSlash adds the slash first; the config entry then points at the quiz.
+    const bare = await request.get("/quiz", { maxRedirects: 0 });
+    expect(bare.status()).toBe(308);
+    expect(new URL(bare.headers()["location"]!, baseUrl).pathname).toBe("/quiz/");
+
+    const slashed = await request.get("/quiz/", { maxRedirects: 0 });
+    expect(slashed.status()).toBe(308);
+    expect(new URL(slashed.headers()["location"]!, baseUrl).pathname).toBe(routes.quiz);
+
+    for (const path of ["/quiz", "/quiz/"]) {
+      const res = await request.get(path);
+      expect(res.status(), path).toBe(200);
+      expect(new URL(res.url()).pathname, path).toBe(routes.quiz);
+    }
+  });
+});
+
 test.describe("sitemap.xml and robots.txt", () => {
   test("the sitemap lists exactly the Section 6 indexable routes", async ({ request }) => {
     const xml = await (await request.get("/sitemap.xml")).text();

@@ -1872,3 +1872,18 @@ through the real runner.
   ending arrived, and what happened just before)", in the founder's approved wording,
   after the pronoun sentence. "Last updated" stays 2026-11-04, today's date in UTC, as
   set by the last change.
+
+## /quiz short address (2026-11-04)
+
+- **Redirect:** `/quiz/` → `/attachment-style-quiz/`, added as an entry in
+  `config/redirects.ts`, the existing pattern (`next.config.ts` maps every entry to a
+  permanent redirect; `checkRedirects` validates it). There's no www redirect in code to
+  copy: that one is host-level (Section 17.5).
+- **Trailing slash:** one entry covers both. `trailingSlash: true` sends `/quiz` to
+  `/quiz/` first (308), then the entry sends `/quiz/` to the quiz (308): two hops for the
+  bare form, the same as every slashless URL on the site. Next's "permanent" is 308, not
+  301; this matches the existing config. Query strings carry through.
+- **Guard test changed:** `site-config.test.ts` said "has no redirects before launch"
+  (`[]`). It now pins the list to exactly this one entry.
+- **Tests:** a new `seo.spec.ts` test checks both hops' status and `Location` and that
+  both forms land on the quiz with a 200. Removing the entry fails it and the unit guard.
