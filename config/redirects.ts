@@ -4,7 +4,12 @@
  * primary domain) are configured at the host/registrar, not here (Section 17.5).
  */
 import type { Redirect } from "../lib/seo/redirects";
+import { routes } from "./site";
 
 // Checked by checkRedirects (tests/unit/seo.test.ts): sources must not shadow a live route,
 // destinations must be Section 6 routes, and redirects never chain.
-export const redirects: Redirect[] = [];
+export const redirects: Redirect[] = [
+  // The guessed short address (founder request, 2026-11-04). With trailingSlash on,
+  // Next normalises /quiz to /quiz/ before this runs, so one entry covers both.
+  { source: "/quiz/", destination: routes.quiz },
+];
